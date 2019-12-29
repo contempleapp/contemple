@@ -1,0 +1,397 @@
+
+.app-loading { background:none; background-alpha: 0; border: 1px solid #0faded; border-alpha: .75; text-align:right; vertical-align:top; padding-right:0px; padding-top:0px; }
+.agf-console-textfield { font-family:"Lucida Console","Odisseia Regular","Source Code Pro"; color:#BBDDFF; font-size:16px; }
+.texteditor { font-family:"Lucida Console","Odisseia Regular","Source Code Pro","Courier New"; color:#000000; font-size:16px; background-color: #fff; }
+.textview { font-family:"Lucida Console","Odisseia Regular","Source Code Pro","Courier New"; font-size:16px; }
+
+/* body should not have a background */
+body, window, div, textbox, button, p, span { font-family: "Myriad Pro"; font-weight:normal; font-size: 20px; }
+
+.start-screen { padding: 25px; }
+.start-screen-title { font-size: 24px; margin-top:45px; margin-bottom:25px; }
+.start-screen-info { color:#ffffff; margin-top:25px; font-family: "Myriad Pro Light Italic"; font-size:18px;  }
+.start-screen-btn { background: #06F; color:#FFFFFF; opacity:1; margin-top: 12px; margin-left:0px; margin-right:25px; margin-bottom:50px; padding:12px; border-radius:7px; }
+.start-screen-btn:hover { background: #29F; color:#0044AA; }
+.start-screen-popup { background: #666; color:#FFFFFF; opacity:1; margin-top: 12px; margin-left:0px; margin-right:25px; margin-bottom:40px; padding:12px; border-radius:7px; }
+.start-screen-popup:hover { background: #777; color:#0044AA; }
+.start-screen-new-template { background:none; color:#ffffff; margin-top:25px; margin-bottom:12px; font-family: "Myriad Pro Light"; font-size:20px; line-height: 22px; text-decoration:underline; }
+
+.settings { padding: 25px; }
+.settings-title { margin-top:45px; margin-bottom:25px; }
+.settings-btn { background: #06F; color:#FFFFFF; opacity:1; margin-top: 12px; margin-left:0px; margin-right:25px; margin-bottom:50px; padding:12px; border-radius:7px; }
+.settings-btn:hover { background: #29F; color:#0044AA; }
+.settings-popup { background: #666; color:#FFFFFF; opacity:1; margin-top: 12px; margin-left:0px; margin-right:25px; margin-bottom:40px; padding:12px; border-radius:7px; }
+.settings-popup:hover { background: #777; color:#0044AA; }
+
+
+areaview {  background:#fff; border-right:1px solid #fff; background-alpha: 0.05; border-alpha:0.3; }
+areasizebutton {}
+h1 { font-size:20px; font-weight:bold; }
+h2 { font-size:18px; font-weight:bold; }
+h3 { font-size:18px; font-weight: normal; }
+h4 { font-size:16px; font-weight: bold; }
+h5 { font-size:14px; font-weight: bold; }
+h6 { font-size:12px; font-weight: bold; }
+i { font-style: italic; }
+b { font-weight: bold; }
+a { text-decoration: underline; font-weight:bold; }
+
+searchbox { background: #334455; }
+.searchbox-textfield { background: #ccddee; color:#ff9900; }
+.searchbox-ok-button { background: #129; color:#fff; }
+.searchbox-cancel-button { background: #000; color:345; }
+
+.area-view {}
+.area-sizebutton {
+    width: 12px;
+    background:none;
+}
+.area-sizebutton-v {
+    height: 12px;
+    background:none;
+    border-top:1px solid #fff; border-alpha:0.5;
+}
+
+.areaview-container { padding: 8px 16px; }
+
+.command-editor {padding: 24px; }
+.command-editor-title { font-size: 24px;}
+.command-editor-close-button {font-size: 24px; }
+.command-editor-background { background: #F90; }
+
+
+.area-multi-select-menu { background:#fff; background-alpha: 0.1; padding:7px; }
+
+.multisel-cancel-button { background:#fff; border-top-right-radius: 7px; border-bottom-right-radius:7px; border: 1px solid #fff; border-left:none; border-alpha:0.2; background-alpha:0.2; }
+.multisel-undo-button { background:#fff; border-top-left-radius: 7px; border-bottom-left-radius:7px;  border: 1px solid #fff; border-alpha:0.2; background-alpha:0.2; }
+.multisel-delete-button { background:#fff; border-radius: 7px; border: 1px solid #fff; border-alpha:0.2; background-alpha:0.2; margin: 0px 12px; }
+
+.multisel-cut-button { background:#fff; border-top-right-radius: 7px; border-bottom-right-radius:7px; border: 1px solid #fff; border-left:none; border-alpha:0.2; background-alpha:0.2; }
+.multisel-copy-button { background:#fff;  border: 1px solid #fff; border-alpha:0.2; background-alpha:0.2; }
+.multisel-paste-button { background:#fff; border-top-left-radius: 7px; border-bottom-left-radius:7px;  border: 1px solid #fff; border-alpha:0.2; background-alpha:0.2; }
+
+.multisel-move-to-pp { background:#fff;  border-radius: 7px; border: 1px solid #fff; border-alpha:0.2; background-alpha:0.2; margin-right: 12px; padding: 2px 6px; }
+popuplist.multisel-move-to-pp { background: #505459; border-radius: 5px; background-alpha: 1; }
+popupitem.multisel-move-to-pp { border:none; }
+
+
+.name-label {  font-family: "Myriad Pro"; font-size:16px; }
+.name-visible-button, .name-save-button, .name-delete-button, .name-close-button, .name-save-and-close-button, .name-save-and-new-button { background: none; padding: 0px; }
+.name-visible-button:active, .name-save-button:active, .name-delete-button:active, .name-close-button:active, .name-save-and-close-button:active, .name-save-and-new-button:active { background:#fff; background-alpha: 0.1; }
+
+.media-container { margin-left: 20px; }
+
+.preview-bg { background:none; border-left:1px solid #fff; border-alpha:0.1; }
+.preview-collapse-btn { background: none; padding:3px; }
+.preview-resize-icon { background: none; padding:3px 0px; margin: 0px; width:12px; opacity: 0.08; }
+.preview-reload-btn { background: none; padding:5px; padding-left:0px; margin: 2px; opacity: 0.7; }
+.preview-adres-bar { font-family: "Myriad Pro"; font-size: 18px; color:#b0b7bF; }
+
+
+.areaview-new-label { background: none; font-size:16px; font-weight:bold; margin-bottom: 4px; padding-top:4px;  }
+.tree-icon-html { color: #FFFFFF; font-size :12px; padding:0px; margin:0px; }
+.tree-item-list {  }
+.tree-item-0 { font-family: "Myriad Pro"; font-size:20px; background:none; padding: 6px 18px; }
+.tree-item-1 { font-family: "Myriad Pro"; font-size:20px; background:none; padding: 6px 28px; }
+.tree-folder-0 { font-family: "Myriad Pro"; font-size:20px; background:none; padding: 6px 18px;  }
+.tree-folder-1 { font-family: "Myriad Pro"; font-size:20px; background:none; padding: 6px 28px; }
+
+.areaview-item-btn, .drag-new-button { background:none; font-family: "Myriad Pro"; font-size:20px; text-align:left; color:#efefef; padding:6px 0px; margin-bottom: 1px; padding-left: 13px; }
+
+
+.item-tree-btn, .item-tree-btn:active, .item-tree-btn:visited, .item-tree-btn:hover { background:none; font-family: "Myriad Pro Light"; font-size:22px; text-align:left; color:#efefef; padding:0px; margin-bottom: 0px; }
+
+.area-bt-label { background:none; } 
+.area-bt-label:hover { background: #101519; background-alpha: 0.8; }
+.item-tree-element { font-family: "Myriad Pro Light"; font-size:22px; }
+.drag-display { border-top: 2px solid #000; border-alpha: 0.7; }
+
+.preloader { width: 100px; height: 10px; border-radius: 4px; background:#789; }
+.preloader-display { width: 100px; height: 10px; border-radius: 4px; background:#123; }
+
+textfield { color:#efefef; font-family: "Myriad Pro Light"; }
+
+label { }
+
+progress { background:#303236; height: 5px; }
+progressvalue {  background:#707276; height: 5px; }
+
+.progress-label { font-size: 16px; color:#900000; font-family:"Myriad Pro Light"; margin-top: 4px; padding: 10px; }
+
+.upload-title { font-size: 20px; font-family:"Myriad Pro Light Italic";  }
+.upload-text { color:#FFFFFF; font-size:14px; padding: 4px; text-align: left; }
+.upload-container { font-family:"Myriad Pro Light"; padding: 24px; }
+.upload-abort { padding: 5px; background: none; color:#FFFFFF; }
+.upload-abort:hover { background: #603030; }
+.upload-progress { color:#FFFFFF; margin-bottom: 22px; }
+.upload-info { font-size: 14px; font-family: "Lucida Console","Odisseia Regular","Source Code Pro","Courier New"; }
+
+.publish-start-btn { background: #202226; color:#FFFFFF; opacity:1; margin-top: 12px; margin-left:0px; margin-right:25px; margin-bottom:50px; padding:12px; border-radius:7px; }
+.publish-start-btn:hover { background: #06F; }
+
+/*
+.publish-start-btn { 
+	font-family:"Myriad Pro Bold Italic"; 
+	background:#06f; color:#ffffff; font-size:26px; margin: 25px;
+ 	padding:25px; border-radius: 33px; border-bottom-left-radius: 0px; border-top-right-radius: 0px;
+ }
+.publish-start-btn:hover { background: #04d; color:#2299FF;}
+*/
+
+.install-view { background: #40484F; padding: 25px; }
+.install-text { color:#efefef; font-family:"Myriad Pro Light"; font-size:18px; padding-left: 4px; }
+.install-abort { padding: 10px; background: none; margin-top: 4px; }
+.install-abort:hover { color:#770000; }
+.install-progress { border-top-left-radius: 3px; border-bottom-left-radius: 3px; }
+.install-value { border-bottom: 1px solid #123; border-top: 1px solid #cde;  }
+
+button, popup { background:#202226; color:#efefef; padding:4px 8px; }
+popupitem { background:none; color:#efefef; }
+popuplist { background: #404246; }
+
+popup:active, popuplist:active { background: #404246; }
+popupitem:hover { background: #606266;  }
+popupitem:active { background: #808286; }
+
+slider { background: #def; background-alpha: 0.2; width: 16px; }
+sliderbutton { background: #fff; background-alpha: 0.3; border-radius:0px; width: 16px; }
+
+colorpicker {}
+
+.color-picker-slider { padding: 1px; width: 16px; border-radius: 0px; background:#202428; background-alpha: 0.45; }
+.color-picker-slider-button {  background-alpha: 0.45; background: linear-gradient(top, #bbb 0%, #aaa 30%, #aaa 70%, #bbb 100%); border-radius: 0px; width:16px; }
+.color-picker-slider-button:hover {  background: linear-gradient(top, #333 0%, #555 30%, #555 70%, #333 100%); }
+.color-picker-slider-button:active { background: linear-gradient(top, #333 0%, #444 30%, #444 70%, #333 100%); }
+
+.color-picker-cancel-button { padding: 8px; border-radius: 0px; margin: 0px 4px; }
+.color-picker-set-button { padding: 4px; background:#306030; margin: 0px 4px; margin-bottom: 4px; border-radius: 0px; border: 4px solid #373; }
+.input-color-picker { color:#efefef; }
+
+.window { font-family: "Myriad Pro"; font-size:20px; color: #000000; text-align:center; padding: 0px; }
+.window-background { background: #c0c4c8; border:none; border-radius: 7px; padding: 1px; }
+.window-body { padding: 4px; }
+.window-title { background: #30373F; padding: 8px; border:none; vertical-align:top; border-top-left-radius:7px; border-top-right-radius:7px; text-align:right; }
+.window-title-text { color: #D0D7DF; font-family: "Myriad Pro Light"; font-size: 22px; }
+.window-message { font-family: "Myriad Pro Light Italic"; font-size: 20px; text-align: center; }
+.window-message-wimg { font-family: "Myriad Pro Light Italic"; font-size: 20px; text-align: center; }
+.window-closebutton { background: none; width: 16px; padding: 4px; text-align:right; vertical-align:middle; border-top-right-radius: 7px; }
+.window-closebutton:active { background-alpha:0.45; }
+.window-ok-button { border-radius: 5px; padding: 16px; background: #06f; margin:8px 16px; }
+.window-cancel-button { border-radius: 5px;  padding: 16px; margin:8px 16px; }
+
+.new-subtemplate-form { background: #CDE; padding: 8px; }
+
+textbox { background:#BBB; color: #112233; padding: 5px 2px;  }
+textboxt:active { background:#eee; }
+
+/*
+.bottom-menu-body { padding: 8px; border-radius: 0px; background:#20272F; border-top:2px solid #303337; background-alpha: 0.55; border-alpha:0.5; }
+.bottom-menu-save-button { padding: 4px; background:#36AB6E; background-alpha: 0.45; border-alpha:0.7;  border-radius: 0px; border: 4px solid #373;  }
+.bottom-menu-cancel-button { padding: 8px; border-radius: 0px; background-alpha: 0.6;  background: #333; }
+.bottom-menu-delete-button {  padding: 4px; background:#AB6E36; background-alpha: 0.45;  border-alpha:0.7;  border-radius: 0px; border: 4px solid #733; }
+.bottom-menu-delete-button:hover { padding: 8px; border:none; background:#B00; background-alpha:0.5; border-alpha:0.7; }
+.drag-save-cancel-body { padding: 12px; border-radius: 0px; background:#333;  background-alpha: 0.3; border-alpha:0.4; }
+.area-drag-save-button { padding: 4px; background:#36AB6E; border-radius: 0px; border: 4px solid #373; background-alpha: 0.45; border-alpha:0.7; }
+.area-drag-cancel-button { padding: 8px; border-radius: 0px; background: #555;  background-alpha: 0.6;  }
+*/
+
+.area-scroll-container { }
+button.area-insert-btn { padding: 8px; border-radius: 0px; }
+button.area-update-btn { padding: 8px; border-radius: 0px; }
+button.area-delete-btn { padding: 4px; background:#603030; border-radius: 0px; border: 4px solid #733; }
+button.area-delete-btn:hover { padding: 8px; border:none; background:#B00; border-radius: 0px; }
+
+popup.tmpl-editor-mode { border-radius: 0px; padding: 4px 0px; }
+popup.tmpl-editor-mode:active { }
+popuplist.tmpl-editor-mode { padding: 4px 0px; background: #505459; }
+
+.page-editor { padding: 8px; background: #70797F; }
+.pageeditor-plusbutton { padding:2px 12px; border-bottom-right-radius: 7px;}
+.show-pages {  }
+
+.input-help-button { padding: 1px 8px; margin-right: 0px; color: #ffffff; background: none;  }
+popuplist.input-help-button { padding: 5px 1px; background: #202226; }
+
+.back-button { padding: 9px 0px; color:#FFFFFF; margin:0px; background:none;  font-family: "Myriad Pro Light"; font-size:15px; }
+.back-button:active  { background:#fff; background-alpha: 0.1; }
+
+.constanteditor-folder {  font-family: "Myriad Pro Light"; background:none; border-bottom:1px solid #efefef; border-alpha:0.15; padding: 9px 12px; margin-bottom: 16px; }
+.constanteditor-folder:active { background:#fff; background-alpha: 0.1; }
+
+.property-folder-title { font-size: 24px; color: #D0D9DF; padding: 2px 0px; padding:6px; text-align:center;  }
+
+
+.property-label { font-size: 18px; color: #F0F7FF; padding-top:12px; padding-bottom: 4px; text-align:left; }
+.property-section { font-size: 24px; color: #FFFFFF; padding-top: 20px; padding-bottom:8px; text-align:center; }
+
+.media-info { margin-left:7px; }
+.media-info, .media-info-text { font-family: "Myriad Pro Light"; font-size: 18px; color: #F0F7FF; }
+
+.constant-editor, .area-editor, .media-editor { padding: 8px 16px; }
+.constants-container, .area-container, .area-insert-container, .media-container { padding: 0px; }
+.constant-prop, .area-insert-prop {padding: 2px; padding-bottom: 8px; }
+.constant-prop:active, .area-insert-prop:active { padding-top:8px; }
+.constant-prop-label { font-family: "Myriad Pro Light"; font-size: 16px; color: #ffffff; padding-left: 5px; }
+
+.constant-prop-input{ 
+	font-family:"Lucida Console","Odisseia Regular","Source Code Pro","Courier New"; font-size: 20px; 
+	background: #FFFFFF; background-alpha:0.01; color:#FFFFFF;  border-bottom:1px solid #efefef; border-alpha:0.15; padding: 5px 5px;    
+}
+.constant-prop-input:active { background: #FFFFFF; background-alpha: 0.2; }
+
+.page-item-btn, .media-item-btn { font-family: "Myriad Pro Light"; font-size:20px; background:#202529; background-alpha:0; text-align:left; color:#efefef; padding:9px 9px; margin-bottom: 0px;  border-bottom:1px solid #efefef; border-alpha:0.15; }
+.page-item-btn:active, .media-item-btn:active  { background:#fff; background-alpha: 0.1; }
+
+.media-item-btn { padding: 9px 9px;}
+
+.raw-switch-label { font-size: 12px; color: #777777; text-align:right; }
+.raw-switch-label:active { color: #EEEEEE; }
+
+viewcontainer { background:#101519; border-top: 2px solid #303236; }
+
+menu.mainmenu, menu.secmenu { background: #202226; }
+panel#console { background:#10171F; }
+panel#TextView { background:#FFFFFF; }
+
+/*.agf-console-textfield { font-family: "Courier New"; font-weight:bold; font-size:18px; }*/
+
+button.mainmenu { padding: 15px 7px; vertical-align:middle; text-align: left; }
+button.mainmenu:hover, button.secmenu:hover { }
+button.mainmenu:active { background:linear-gradient(top, #303539 0%, #000000 70%, #00070f 100%); }
+
+button.secmenu {  padding: 18px 12px; padding-bottom: 19px; vertical-align:middle; text-align: right; }
+
+popup.mainmenu, popup.secmenu { padding: 15px 7px; vertical-align:middle; text-align: center; }
+popup.mainmenu:hover, popup.secmenu:hover { }
+popup.mainmenu:active, popup.secmenu:active { }
+
+popuplist.mainmenu, popuplist.secmenu { padding: 5px 1px; border-bottom-left-radius: 9px; border-bottom-right-radius: 9px;  border-top-right-radius: 9px; background-alpha:1; }
+popupitem.mainmenu, popupitem.secmenu { padding: 7px 14px; padding-right: 26px; vertical-align:middle; }
+popupitem.mainmenu:hover, popupitem.secmenu:hover { }
+popupitem.mainmenu:active, popupitem.secmenu:active { }
+
+popup.tmpl-editor-mode { padding: 7px;  border-radius: 0px; border-bottom-left-radius: 5px; }
+popup.tmpl-editor-mode:active { border-bottom-right-radius: 0px; border-bottom-left-radius: 0px; }
+popuplist.tmpl-editor-mode { padding: 5px 1px; border-bottom-left-radius: 9px; border-bottom-right-radius: 9px;  border-top-left-radius: 9px; background-alpha:1; }
+popupitem.tmpl-editor-mode { padding: 2px 7px; padding-right: 12px; vertical-align:middle; }
+
+.textbox-color-clip { margin-right:8px; }
+.textbox-boolean-btn, .textbox-nodestyle-btn, .textbox-styleclass-btn { padding:0px; padding-left: 5px; padding-right:8px;  vertical-align:middle; background: none; }
+.textbox-button { padding:0px; padding-left: 5px; padding-right:8px;  vertical-align:middle; background: none; }
+.textbox-button:active { background:#606469; background-alpha:1; }
+
+popup.textbox-popup, popup.textbox-typed {padding:0px; padding-left: 5px; padding-right:8px; vertical-align:middle; background:none; }
+popup.textbox-popup:active, popup.textbox-typed:active { background:#606469; background-alpha: 1; }
+
+popuplist.textbox-popup, popuplist.textbox-typed { padding: 5px 1px; background-alpha:1; }
+popupitem.textbox-popup, popupitem.textbox-typed { padding: 2px 7px; padding-right: 12px; vertical-align:middle; }
+
+.textbox-slider { padding: 0px; width: 18px; background:#d0d4d8; background-alpha:0.2; }
+.textbox-slider-button { background:#e0e4e8; background-alpha: 0.6; border-radius: 0px; width:18px; }
+.textbox-slider-button:active { background-alpha: 1; }
+.input-vector-container { background-color: #357;}
+
+.input-vector-minus-button { border-top-left-radius: 5px; border-bottom-left-radius: 5px; background:#FFF; background-alpha:0.15; }
+.input-vector-plus-button {  border-top-right-radius: 5px; border-bottom-right-radius: 5px; background:#FFF; background-alpha:0.15; }
+
+.richtext-popup, .richtext-btn {  background:none; padding:0px; padding:2px; vertical-align:middle; border-left:1px solid #e0e4e8; border-alpha:0.35;  }
+.richtext-popup:active, .richtext-popup-first:active, .richtext-popup-last:active { background:#505458; }
+popupitem.richtext-popup, popupitem.richtext-popup-first, popupitem.richtext-popup-last { padding-top: 2px; padding-right: 8px; background: none; background-alpha: 1; border:none;  }
+popuplist.richtext-popup, popuplist.richtext-popup-first, popuplist.richtext-popup-last { background:#404246; color:#d0d4d8; padding: 9px; background-alpha: 1; }
+.richtext-popup-first, .richtext-btn-first { color:#202428; }
+.richtext-popup-last, .richtext-btn-last  { color:#202428; }
+.richtext-popup-first, .richtext-btn-first { border-left:none; }
+
+popup.areaeditor-areapopup { background: #202226;  background-alpha:0.45; padding: 7px; border-bottom-right-radius: 5px; }
+popup.areaeditor-areapopup:active { background: #202226; background-alpha:1; border-bottom-right-radius: 0px; }
+popuplist.areaeditor-areapopup { background: #202226; padding: 5px 1px; border-bottom-left-radius: 9px; border-bottom-right-radius: 9px;  border-top-right-radius: 9px;  background-alpha:1; }
+popupitem.areaeditor-areapopup { padding: 2px 7px; vertical-align:middle; }
+
+popup.areaeditor-plusbutton {  background: #202226;  background-alpha:0.45; padding: 7px; border-bottom-left-radius: 5px; }
+popup.areaeditor-plusbutton:active { background: #202226; background-alpha:1; border-bottom-left-radius: 0px; }
+popuplist.areaeditor-plusbutton { background: #202226; padding: 5px 1px; border-bottom-left-radius: 9px; border-bottom-right-radius: 9px;  border-top-left-radius: 9px;  background-alpha:1; }
+popupitem.areaeditor-plusbutton { padding: 2px 7px; vertical-align:middle; }
+.filebuttons { background: #444; width: 100%; padding-top: 4px; }
+.install-template-select { }
+
+.install-template-select-label {  font-family: "Myriad Pro Light Italic"; color:#000000; font-size: 20px; padding: 5px 10px; }
+popup.install-template-popup { padding: 4px 8px; border-radius: 5px; }
+popuplist.install-template-popup { padding: 4px 8px; border-radius: 5px; }
+
+popup.filepopup {
+    border-top-left-radius: 6px;
+    color: #333333;
+    background: #BBB;
+    padding-left: 7px;
+    padding-right: 7px;
+}
+popup.filepopup:active {
+    background: #333;
+    color: #eeeeee;
+}
+.filepopupitem { 
+    font-size: 18px;
+    vertical-align: middle;
+    text-align: right;
+    background: none;
+    color: #eeeeee;
+}
+.filepopupitem:hover { background: #777; color:#EEEFFF;  }
+
+popuplist.filepopup {
+    border-top-left-radius: 11px;
+    border-bottom-left-radius: 11px;
+    background: #333;
+    padding: 9px;
+}
+.filebutton {
+    padding-left: 5px;
+    padding-right: 5px;
+    vertical-align:middle;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    font-size: 18px;
+    font-weight: normal;
+    color: #333333;
+    background: #BBB;
+}
+.filebutton:hover {}
+
+.filebutton:active {
+    color: #333333;
+    background: linear-gradient(top,#eeeeee 0%, #eeeeee 15%, #D4DADF 95%, #FFFFFF 100%);
+}
+
+.editor {
+   background:url(ctres/bg.jpg); width:100%; height:100%;
+    background-repeat: repeat;
+    color: #000;
+    padding: 0px;
+    border-right: 2px solid #444;
+}
+
+
+@media agfconf {
+    
+    conf#app
+    {
+        show-menu: false;
+        load-plugins: false;
+        menu: "ctres/ct-menu-user-mobile.xml";
+        view: "ctres/ct-menu-user-mobile.xml";
+        shortcuts: "ctres/ct-menu-user-mobile.xml";
+		language: "ctres/lang.xml";
+    }
+
+    shortcut#app
+    {
+        cmdc: "Console clear";
+        cmdo: "Console show console";
+		cmds: "CTTools save";
+    }
+    
+    conf#plugins {
+      /* airutils: "plugins/airutils.swf";*/
+    }
+
+}

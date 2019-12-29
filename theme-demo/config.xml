@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ct>
+    <template 
+        name="app.contemple.demo" 
+        version="1.0.0" 
+        type="root" 
+        index="index.html" 
+        sortareas="priority" 
+        sortproperties="priority" 
+		files="contact.html,main.css" 
+		pagetemplates="page-single.html" 
+        folders="img" 
+        help="help.xml" 
+        dbcmds="cmd.xml" 
+        nocompress="" 
+        update="https://contemple.app/demo/cthub/update.xml" 
+        nolocareas="Home" 
+		templatefolders="" 
+        hiddenareas="">
+    </template>
+</ct>

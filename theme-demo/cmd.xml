@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ct>
+	<appstart>
+		<cmd name="Console log APPSTART"/>
+	</appstart>
+	<appload>
+		<cmd name="Console log APPLOAD"/>
+	</appload>
+	<dbcreate>
+		<cmd name="CTTools subtemplate template-generic:/st/text"/>
+		<cmd name="CTTools subtemplate template-generic:/st/menu-item"/>
+	</dbcreate>
+</ct>

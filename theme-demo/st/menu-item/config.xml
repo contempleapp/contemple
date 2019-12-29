@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ct>
+   <template 
+   		name="app.contemple.demo.Menu-Item" 
+   		type="menu" 
+   		index="menu-item.html" 
+   		initquery="" 
+   		defaultquery="cnt.sql" 
+   		files="" 
+   		tables="ex_app_contemple_demo_menuitem" 
+   		fields="name,label,link"
+		listlabel="#label#" 
+		listicon="ico:/activity-feed.png" 
+		nolocation="true" 
+	></template>
+</ct>

@@ -1,0 +1,1 @@
+﻿package agf.icons{	import flash.display.Sprite;		public class StateIconUnselected extends WEIcon 	{		public function StateIconUnselected () {			graphics.clear();			graphics.beginFill(0,0);			graphics.drawRect( 0, 0, 8, 8 );		}	}	}

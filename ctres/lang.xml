@@ -1,0 +1,714 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ct>
+	
+	<item name="Developer">
+		<lang name="en" value="Developer"/>
+		<lang name="de" value="Entwickler"/>
+	</item>
+	<item name="Search">
+		<lang name="en" value="Search"/>
+		<lang name="de" value="Suchen"/>
+	</item>
+	<item name="Open previous Project">
+		<lang name="en" value="Open a Project"/>
+		<lang name="de" value="Projekt Öffnen"/>
+	</item>
+	<item name="Select Recent Project">
+		<lang name="en" value="Recent Projects"/>
+		<lang name="de" value="Zuletzt Geöffnete Projekte"/>
+	</item>
+	<item name="App Settings">
+		<lang name="en" value="Preferences"/>
+		<lang name="de" value="Voreinstellungen"/>
+	</item>
+	<item name="Application Settings">
+		<lang name="en" value="Preferences"/>
+		<lang name="de" value="Voreinstellungen"/>
+	</item>
+	<item name="Selected a previously used Template:">
+		<lang name="en" value="Installed Templates"/>
+		<lang name="de" value="Installierte Templates"/>
+	</item>
+	<item name="Select Installed Template">
+		<lang name="en" value="Select Template"/>
+		<lang name="de" value="Template Auswählen"/>
+	</item>
+	<item name="Install a new Template Folder">
+		<lang name="en" value="Select a Template Folder"/>
+		<lang name="de" value="Ordner mit einem Template auswählen"/>
+	</item>
+	<item name="Install a new Template Zip">
+		<lang name="en" value="Compressed (ZIP)"/>
+		<lang name="de" value="Komprimiert (ZIP)"/>
+	</item>
+	<item name="Select a Folder or a ZIP file with a Template">
+		<lang name="en" value="Select an other Template"/>
+		<lang name="de" value="Anderes Template auswählen"/>
+	</item>
+
+	<item name="Connect to a Website with Contemple Hub enabled">
+		<lang name="en" value="Connect to a Contemple Website"/>
+		<lang name="de" value="Mit einer Contemple Website verbinden"/>
+	</item>
+	<item name="Connect to website">
+		<lang name="en" value="Connect to website"/>
+		<lang name="de" value="Mit Website verbinden"/>
+	</item>
+	<item name="Open Recent Project">
+		<lang name="en" value="Recent Projects:"/>
+		<lang name="de" value="Zuletzt geöffnete Projekte:"/>
+	</item>
+	<item name="Open A Project Folder From Local Harddisk">
+		<lang name="en" value="Open Project"/>
+		<lang name="de" value="Projekt öffnen."/>
+	</item>
+	<item name="Open existing Project Folder">
+		<lang name="en" value="Select Project Folder"/>
+		<lang name="de" value="Projekt Ordner Auswählen"/>
+	</item>
+	<item name="Install a Website or Template">
+		<lang name="en" value="Install a Website or Template"/>
+		<lang name="de" value="Website oder Template Installieren"/>
+	</item>
+	<item name="Extracting template files">
+		<lang name="en" value="Extracting files.."/>
+		<lang name="de" value="Dateien werden Extrahiert.."/>
+	</item>
+	<item name="Search">
+		<lang name="en" value="Search"/>
+		<lang name="de" value="Suchen"/>
+	</item>
+    <item name="Look For Updates">
+		<lang name="en" value="Look For Updates"/>
+		<lang name="de" value="Nach Updates Suchen"/>
+	</item>
+	<item name="Cancel Search">
+		<lang name="en" value="Cancel"/>
+		<lang name="de" value="Abbrechen"/>
+	</item>
+	<item name="New Page">
+		<lang name="en" value="New Page"/>
+		<lang name="de" value="Neue Seite"/>
+	</item>
+	<item name="Edit Page">
+		<lang name="en" value="Edit Page"/>
+		<lang name="de" value="Seite Bearbeiten"/>
+	</item>
+	<item name="Create New Area Item">
+		<lang name="en" value="New:"/>
+		<lang name="de" value="Neu:"/>
+	</item>
+	<item name="Move Items To Area">
+		<lang name="en" value="Area"/>
+		<lang name="de" value="Bereich"/>
+	</item>
+	<item name="Content-MB">
+		<lang name="en" value="Content"/>
+		<lang name="de" value="Inhalte"/>
+	</item>
+	<item name="Options-MB">
+		<lang name="en" value="Settings"/>
+		<lang name="de" value="Einstellungen"/>
+	</item>
+	<item name="Select Color">
+		<lang name="en" value="Select Color"/>
+		<lang name="de" value="Farbe Auswählen"/>
+	</item>
+    <item name="Install Update">
+		<lang name="en" value="Install Update"/>
+		<lang name="de" value="Update Installieren"/>
+	</item>
+	<item name="Multiple Templates are available to install">
+		<lang name="en" value="There are multiple templates available to install:"/>
+		<lang name="de" value="Es sind mehrere Templates für die Installation verfügbar:"/>
+	</item>
+	<item name="Template Update">
+		<lang name="en" value="Template Update"/>
+		<lang name="de" value="Template Update"/>
+	</item>
+	<item name="CT-Template-Update-MSG">
+		<lang name="en" value="Template Update Available: #NAME# #BR# Version: #VERSION# #BR#Date: #DATE# #BR#download: #BR##SRC#"/>
+		<lang name="de" value="Template Update Verfügbar: #NAME# #BR# Version: #VERSION# #BR#Datum: #DATE# #BR#download: #BR##SRC#"/>
+	</item>
+	<item name="Download Update">
+		<lang name="en" value="Download Update"/>
+		<lang name="de" value="Update Herunterladen"/>
+	</item>
+	<item name="Host Info">
+		<lang name="en" value="Install Website"/>
+		<lang name="de" value="Website Installieren"/>
+	</item>
+	<item name="Downloading Template Uptade">
+		<lang name="en" value="Downloading Template Uptade"/>
+		<lang name="de" value="Lade Template Update"/>
+	</item>
+	<item name="Update">
+		<lang name="en" value="Update"/>
+		<lang name="de" value="Update"/>
+	</item>
+	<item name="CT-Update-MSG">
+		<lang name="en" value="Update Available: #NAME# #BR# Version: #VERSION# #BR#Date: #DATE# #BR#download: #BR##SRC#"/>
+		<lang name="de" value="Update Verfügbar: #NAME# #BR# Version: #VERSION# #BR#Datum: #DATE# #BR#download: #BR##SRC#"/>
+	</item>
+    <item name="Media">
+		<lang name="en" value="Media"/>
+		<lang name="de" value="Medien"/>
+	</item>
+    <item name="Error no connection">
+		<lang name="en" value="No Internet connection.."/>
+		<lang name="de" value="Keine Internet Verbindung.."/>
+	</item>
+	<item name="Error">
+		<lang name="en" value="Error"/>
+		<lang name="de" value="Fehler"/>
+	</item>
+	<item name="RichTextSettings">
+		<lang name="en" value="Rich Text Settings"/>
+		<lang name="de" value="Rich Text Einstellungen"/>
+	</item>
+	<item name="the Contemple Project">
+		<lang name="en" value="the Contemple Website"/>
+		<lang name="de" value="die Contemple Webseite"/>
+	</item>
+	<item name="Select Some Text Error">
+		<lang name="en" value="No Text Selected"/>
+		<lang name="de" value="Kein Text Ausgewählt"/>
+	</item>
+	<item name="Select Some Text First">
+		<lang name="en" value="Select Some Text First"/>
+		<lang name="de" value="Wählen sie als erst Text aus"/>
+	</item>
+	<item name="Start Upload Website">
+		<lang name="en" value="Publish Website"/>
+		<lang name="de" value="Webseite Veröffentlichen"/>
+	</item>
+	<item name="Start Publish">
+		<lang name="en" value="Start"/>
+		<lang name="de" value="Start"/>
+	</item>
+	<item name="Upload Aborted">
+		<lang name="en" value="Upload Aborted"/>
+		<lang name="de" value="Upload Unterbrochen"/>
+	</item>
+	<item name="Upload Website">
+		<lang name="en" value="Upload Website"/>
+		<lang name="de" value="Webseite Veröffentlichen"/>
+	</item>
+	<item name="Send New Password">
+		<lang name="en" value="Change Password"/>
+		<lang name="de" value="Passwort Ändern"/>
+	</item>
+	<item name="Reset Password">
+		<lang name="en" value="Reset Password (Local)"/>
+		<lang name="de" value="Passwort Zurücksetzen (Lokal)"/>
+	</item>
+	<item name="Change Password">
+		<lang name="en" value="Change Password"/>
+		<lang name="de" value="Passwort Ändern"/>
+	</item>
+	<item name="Try Again?">
+		<lang name="en" value="Try Again?"/>
+		<lang name="de" value="Erneut Versuchen?"/>
+	</item>
+	<item name="Set Password Error">
+		<lang name="en" value="Password Error"/>
+		<lang name="de" value="Passwort Fehler"/>
+	</item>
+	<item name="Password Error Cancel">
+		<lang name="en" value="Cancel"/>
+		<lang name="de" value="Abbrechen"/>
+	</item>
+	<item name="CT-PasswordError-MSG">
+		<lang name="en" value="The password could not be changed. "/>
+		<lang name="de" value="Passwort konnte nicht geändert werden. "/>
+	</item>
+	<item name="Password">
+		<lang name="en" value="Password"/>
+		<lang name="de" value="Passwort"/>
+	</item>
+	<item name="CT-Get-HashCode">
+		<lang name="en" value="Show Hash Code"/>
+		<lang name="de" value="Hash Code Anzeigen"/>
+	</item>
+	<item name="CT-Get-HashCode-MSG">
+		<lang name="en" value="password"/>
+		<lang name="de" value="password"/>
+	</item>
+	<item name="Generate Hash">
+		<lang name="en" value="Generate Hash Code"/>
+		<lang name="de" value="Hash Code Generieren"/>
+	</item>
+	<item name="CT-PasswordChanged-MSG">
+		<lang name="en" value="The new password has been set successfully"/>
+		<lang name="de" value="Das Passwort wurde erfolgreich geändert"/>
+	</item>
+	<item name="Password Changed">
+		<lang name="en" value="Password Changed"/>
+		<lang name="de" value="Passwort Geändert"/>
+	</item>
+	<item name="Password Changed OK">
+		<lang name="en" value="OK"/>
+		<lang name="de" value="OK"/>
+	</item>
+	<item name="CT-New-Password">
+		<lang name="en" value="New Password"/>
+		<lang name="de" value="Neues Passwort"/>
+	</item>
+	<item name="CT-New-Password-MSG">
+		<lang name="en" value="password"/>
+		<lang name="de" value="passwort"/>
+	</item>
+	<item name="Send">
+		<lang name="en" value="Send"/>
+		<lang name="de" value="Senden"/>
+	</item>
+	<item name="CT-Get-Password">
+		<lang name="en" value="Enter Password"/>
+		<lang name="de" value="Passwort Eingabe"/>
+	</item>
+	<item name="CT-Get-Password-MSG">
+		<lang name="en" value="password"/>
+		<lang name="de" value="password"/>
+	</item>
+	<item name="Installing Website Template">
+		<lang name="en" value="Installing Website Template"/>
+		<lang name="de" value="Das Template der Webseite wird installiert"/>
+	</item>
+	<item name="Revert to Default Value">
+		<lang name="en" value="Revert to Default Value"/>
+		<lang name="de" value="Auf Default Wert Zurücksetzen"/>
+	</item>
+	<item name="Show Help">
+		<lang name="en" value="Show Help"/>
+		<lang name="de" value="Hilfe Anzeigen"/>
+	</item>
+	<item name="Back">
+		<lang name="en" value="Back"/>
+		<lang name="de" value="Zurück"/>
+	</item>
+	<item name="Upload">
+		<lang name="en" value="Publish"/>
+		<lang name="de" value="Veröffentlichen"/>
+	</item>
+	<item name="Website Upgraded">
+		<lang name="en" value="Upload Summary"/>
+		<lang name="de" value="Zusammenfassung der Veröffentlichung"/>
+	</item>
+	<item name="Upgrading Website">
+		<lang name="en" value="Publishing Local Website"/>
+		<lang name="de" value="Lokale Webseite wird Veröffentlicht"/>
+	</item>
+	
+	<item name="Cancel Installing">
+		<lang name="en" value="Abort"/>
+		<lang name="de" value="Abbrechen"/>
+	</item>
+	<item name="Upload Abort">
+		<lang name="en" value="Abort Upload"/>
+		<lang name="de" value="Upload Abbrechen"/>
+	</item>
+	<item name="CT-UploadAbort-MSG">
+		<lang name="en" value="Some files already have been uploaded, abort may break the online version of the website. Abort?"/>
+		<lang name="de" value="Es wurden bereits Dateien hochgeladen, ein Abbruch kann die live Version der Website zerstören. Trotzdem Abbrechen?"/>
+	</item>
+	<item name="Cancel Upload">
+		<lang name="en" value="Abort"/>
+		<lang name="de" value="Abbrechen"/>
+	</item>
+	<item name="Upload Complete">
+		<lang name="en" value="Upload"/>
+		<lang name="de" value="Upload"/>
+	</item>
+	<item name="CT-UploadComplete-MSG">
+		<lang name="en" value="The website is up to date"/>
+		<lang name="de" value="Die Webseite ist auf aktuellem Stand"/>
+	</item>
+	<item name="Upload Errors">
+		<lang name="en" value="Upload"/>
+		<lang name="de" value="Upload"/>
+	</item>
+	<item name="CT-UploadErrors-MSG">
+		<lang name="en" value="Uploading completed with errors"/>
+		<lang name="de" value="Wöhrend dem Upload sind Fehler aufgetreten"/>
+	</item>
+	<item name="Upload Complete OK">
+		<lang name="en" value="Ok"/>
+		<lang name="de" value="Ok"/>
+	</item>
+    <item name="CT-Get-Link">
+		<lang name="en" value="Enter Link URL"/>
+		<lang name="de" value="Link Eingabe"/>
+	</item>
+    <item name="CT-Get-Link-MSG">
+		<lang name="en" value="http://www.google.com"/>
+		<lang name="de" value="http://www.google.com"/>
+	</item>
+    <item name="Set Link">
+		<lang name="en" value="Set Link"/>
+		<lang name="de" value="Link setzen"/>
+	</item>
+	<item name="There may be an error somewhere during the action, open the Console?">
+		<lang name="en" value="There may be an error, open the Console?"/>
+		<lang name="de" value="Möglicherweise gab es einen Fehler, Ausgabe Öffnen?"/>
+	</item>
+	<item name="Loading">
+		<lang name="en" value="Loading"/>
+		<lang name="de" value="Lade"/>
+	</item>
+	<item name="Abort-Loading">
+		<lang name="en" value="Loading"/>
+		<lang name="de" value="Lade"/>
+	</item>
+	<item name="Abort-Loading-OK">
+		<lang name="en" value="Show Console"/>
+		<lang name="de" value="Ausgabe Anzeigen"/>
+	</item>
+	<item name="Abort-Loading-Cancel">
+		<lang name="en" value="Cancel"/>
+		<lang name="de" value="Abbrechen"/>
+	</item>
+	<item name="Welcome">
+		<lang name="en" value="Welcome"/>
+		<lang name="de" value="Willkommen"/>
+	</item>
+	<item name="CT-Get-Client-Host-MSG">
+		<lang name="en" value="Enter your website address to begin"/>
+		<lang name="de" value="Geben sie ihre Internet Adresse ein um zu starten"/>
+	</item>
+	<item name="CT-Welcome-MSG">
+		<lang name="en" value="#APP-NAME# wants to install the project files for #PROJECT#. #BR# #BR#Continue?"/>
+		<lang name="de" value="#APP-NAME# will die Dateien für #PROJECT# installieren. #BR# #BR# Fortfahren?"/>
+	</item>
+	<item name="Welcome-Host-OK">
+		<lang name="en" value='Continue'/>
+		<lang name="de" value='Weiter' />
+	</item>
+	<item name="Welcome-OK">
+		<lang name="en" value='Install'/>
+		<lang name="de" value='Installieren' />
+	</item>
+	<item name="Select a Template">
+		<lang name="en" value='Select a Template'/>
+		<lang name="de" value='Wählen Sie ein Template' />
+	</item>
+	<item name="SelectTemplate-OK">
+		<lang name="en" value='Use Template'/>
+		<lang name="de" value='Template Verwenden' />
+	</item>
+	<item name="SelectTemplate-Cancel">
+		<lang name="en" value='Cancel'/>
+		<lang name="de" value='Abbrechen' />
+	</item>
+	<item name="Welcome-Cancel">
+		<lang name="en" value='Cancel'/>
+		<lang name="de" value='Abbrechen' />
+	</item>
+	<item name="CT-SaveFirst-MSG">
+		<lang name="en" value="Please save project to a new folder"/>
+		<lang name="de" value="Bitte speichern sie das Projekt in einem neuen Ordner"/>
+	</item>
+	<item name="CT-Save-Action-MSG">
+		<lang name="en" value='The current state need to be saved. Continue?'/>
+		<lang name="de" value='Der aktuelle Zustand muss gespeichert werden. Fortfahren?' />
+	</item>
+	<item name="Save Action Message">
+		<lang name="en" value='Information'/>
+		<lang name="de" value='Information' />
+	</item>
+	<item name="Save-Action-Cancel">
+		<lang name="en" value='Ignore'/>
+		<lang name="de" value='Verwerfen' />
+	</item>
+	<item name="Save-Action-Yes">
+		<lang name="en" value='Save'/>
+		<lang name="de" value='Speichern' />
+	</item>
+	<item name="CT-SaveFirst-BTN">
+		<lang name="en" value="Save Project As"/>
+		<lang name="de" value="Projekt Speichern Als"/>
+	</item>
+	<item name="CT-Commander">
+		<lang name="en" value="Commander"/>
+		<lang name="de" value="Kommando Zeile"/>
+	</item>
+	<item name="CT-Commander-MSG">
+		<lang name="en" value="Enter-a-command"/>
+		<lang name="de" value="Geben-sie-ein-Kommando-an"/>
+	</item>
+	<item name="Delete-MSG-Cancel">
+		<lang name="en" value="Cancel"/>
+		<lang name="de" value="Abbrechen"/>
+	</item>
+	<item name="Delete-MSG-Yes">
+		<lang name="en" value="Yes delete"/>
+		<lang name="de" value="Ja löschen"/>
+	</item>
+	<item name="Delete Items Alert">
+		<lang name="en" value="Delete"/>
+		<lang name="de" value="Löschen"/>
+	</item>
+	<item name="CT-Delete-Items-MSG">
+		<lang name="en" value="Delete Items?"/>
+		<lang name="de" value="Einträge löschen?"/>
+	</item>
+	<item name="Delete Item Alert">
+		<lang name="en" value="Delete"/>
+		<lang name="de" value="Löschen"/>
+	</item>
+	<item name="CT-Delete-Item-MSG">
+		<lang name="en" value="Delete Item?"/>
+		<lang name="de" value="Eintrag löschen?"/>
+	</item>
+	<item name="CT-SaveFirst-MSG2">
+		<lang name="en" value="Installation complete. The project was installed successfully."/>
+		<lang name="de" value="Das Projekt wurde erfolgreich Installiert."/>
+	</item>
+	<item name="Developer">
+		<lang name="en" value="Developer"/>
+		<lang name="de" value="Entwickler"/>
+	</item>
+	<item name="User">
+		<lang name="en" value="User"/>
+		<lang name="de" value="Benutzer"/>
+	</item>
+	<item name="Clear">
+		<lang name="en" value="Clear"/>
+		<lang name="de" value="Zurücksetzen"/>
+	</item>
+	<item name="Unset Project">
+		<lang name="en" value="Unset Project"/>
+		<lang name="de" value="Project Zurücksetzen"/>
+	</item>
+	<item name="Open Files..">
+		<lang name="en" value="Open Files.."/>
+		<lang name="de" value="Dateien Öffnen.."/>
+	</item>
+	<item name="Workspace">
+		<lang name="en" value="Workspace"/>
+		<lang name="de" value="Arbeitsbereich"/>
+	</item>
+	<item name="New From Template">
+		<lang name="en" value="New From Template"/>
+		<lang name="de" value="Neu mit Vorlage"/>
+	</item>
+	<item name="New Template">
+		<lang name="en" value="New Template"/>
+		<lang name="de" value="Neue Vorlage"/>
+	</item>
+	<item name="Create Template">
+		<lang name="en" value="Create Template"/>
+		<lang name="de" value="Neue Vorlage Erstellen"/>
+	</item>
+	<item name="Empty (Start)">
+		<lang name="en" value="Empty (Start)"/>
+		<lang name="de" value="Leer (Start)"/>
+	</item>
+	<item name="Process">
+		<lang name="en" value="Process"/>
+		<lang name="de" value="Ausführen"/>
+	</item>
+	<item name="Process Command">
+		<lang name="en" value="Process Command"/>
+		<lang name="de" value="Kommando Ausführen"/>
+	</item>
+	<item name="CT-SaveFirst-BTN2">
+		<lang name="en" value="Okay"/>
+		<lang name="de" value="OK"/>
+	</item>
+	<item name="Information">
+		<lang name="en" value="Information"/>
+		<lang name="de" value="Information"/>
+	</item>
+	<item name="Preferences">
+		<lang name="en" value="Preferences"/>
+		<lang name="de" value="Einstellungen"/>
+	</item>
+	<item name="File">
+		<lang name="en" value="File"/>
+		<lang name="de" value="Datei"/>
+	</item>
+	<item name="Edit">
+		<lang name="en" value="Edit"/>
+		<lang name="de" value="Bearbeiten"/>
+	</item>
+	<item name="Content">
+		<lang name="en" value="Website Content"/>
+		<lang name="de" value="Website Inhalte"/>
+	</item>
+	<item name="Options">
+		<lang name="en" value="Settings"/>
+		<lang name="de" value="Einstellungen"/>
+	</item>
+	<item name="View">
+		<lang name="en" value="View"/>
+		<lang name="de" value="Ansicht"/>
+	</item>
+	<item name="Language">
+		<lang name="en" value="Language"/>
+		<lang name="de" value="Sprache"/>
+	</item>
+	<item name="English">
+		<lang name="en" value="English"/>
+		<lang name="de" value="Englisch"/>
+	</item>
+	<item name="German">
+		<lang name="en" value="German"/>
+		<lang name="de" value="Deutsch"/>
+	</item>
+	<item name="Pages">
+		<lang name="en" value="Pages"/>
+		<lang name="de" value="Unter Seiten"/>
+	</item>
+	<item name="New">
+		<lang name="en" value="New"/>
+		<lang name="de" value="Neu"/>
+	</item>
+	<item name="Open">
+		<lang name="en" value="Open"/>
+		<lang name="de" value="Öffnen"/>
+	</item>
+	<item name="Title Edit Item">
+		<lang name="en" value="Edit:"/>
+		<lang name="de" value="Bearbeiten:"/>
+	</item>
+	<item name="Title Create Item">
+		<lang name="en" value="Create:"/>
+		<lang name="de" value="Erstellen:"/>
+	</item>
+    <item name="CT-Get-Mobile-Folder-Title">
+		<lang name="en" value="Enter a name for the new project"/>
+		<lang name="de" value="Geben sie einen Name für das neue Projekt ein"/>
+	</item>
+    <item name="CT-Get-Mobile-Folder-MSG">
+		<lang name="en" value="Project1"/>
+		<lang name="de" value="Projekt1"/>
+	</item>
+	<item name="Save">
+		<lang name="en" value="Save"/>
+		<lang name="de" value="Speichern"/>
+	</item>
+	<item name="Save As">
+		<lang name="en" value="Save As"/>
+		<lang name="de" value="Speichern Unter"/>
+	</item>
+	<item name="Create Project">
+		<lang name="en" value="Create Project"/>
+		<lang name="de" value="Projekt Erstellen"/>
+	</item>
+    <item name="Create Item">
+		<lang name="en" value="Create"/>
+		<lang name="de" value="Erstellen"/>
+	</item>
+	<item name="Save Item">
+		<lang name="en" value="Save"/>
+		<lang name="de" value="Speichern"/>
+	</item>
+	<item name="Cancel Item">
+		<lang name="en" value="Cancel"/>
+		<lang name="de" value="Abbrechen"/>
+	</item>
+	<item name="Delete Item">
+		<lang name="en" value="Delete"/>
+		<lang name="de" value="Löschen"/>
+	</item>
+	<item name="Page Item Already Available">
+		<lang name="en" value="Page Item already available"/>
+		<lang name="de" value="Seiten Eintrag ist bereits vorhanden"/>
+	</item>
+	<item name="OK">
+		<lang name="en" value="Okay"/>
+		<lang name="de" value="OK"/>
+	</item>
+	<item name="Cancel">
+		<lang name="en" value="Cancel"/>
+		<lang name="de" value="Abbrechen"/>
+	</item>
+	<item name="Preview in Browser">
+		<lang name="en" value="Preview in Browser"/>
+		<lang name="de" value="Im Browser anzeigen"/>
+	</item>
+	<item name="New Item In">
+		<lang name="en" value="New"/>
+		<lang name="de" value="Neu"/>
+	</item>
+	<item name="The Item">
+		<lang name="en" value="The Item"/>
+		<lang name="de" value="Der Eintrag"/>
+	</item>
+	<item name="is already in the database">
+		<lang name="en" value="is already in the database. \nPlease choose an other name"/>
+		<lang name="de" value="is bereits in der Datenbak. \nBitte wählen sie einen anderen Namen"/>
+	</item>
+	<item name="Set Color">
+		<lang name="en" value="Set Color"/>                   
+		<lang name="de" value="Farbe verwenden"/>
+	</item>
+	<item name="Cancel Color">
+		<lang name="en" value="Cancel"/>                   
+		<lang name="de" value="Abbrechen"/>
+	</item>
+	<item name="Console">
+		<lang name="en" value="Console"/>                   
+		<lang name="de" value="Ausgabe"/>
+	</item>
+	<item name="Developer">
+		<lang name="en" value="Developer"/>
+		<lang name="de" value="Entwickler"/>
+	</item>
+	<item name="Template">
+		<lang name="en" value="Template"/>
+		<lang name="de" value="Vorlage"/>
+	</item>
+	<item name="Edit Template">
+		<lang name="en" value="Edit Template"/>
+		<lang name="de" value="Vorlage bearbeiten"/>
+	</item>
+	<item name="Code">
+		<lang name="en" value="Code"/>
+		<lang name="de" value="Quell Text"/>
+	</item>
+	<item name="Code Output">
+		<lang name="en" value="Code Output"/>
+		<lang name="de" value="Quell Text Ausgabe"/>
+	</item>
+	<item name="Editor">
+		<lang name="en" value="Editor"/>
+		<lang name="de" value="Bearbeiten"/>
+	</item>
+	<item name="Preview">
+		<lang name="en" value="Preview"/>
+		<lang name="de" value="Vorschau"/>
+	</item>
+	<item name="About">
+		<lang name="en" value="About"/>
+		<lang name="de" value="Über CT"/>
+	</item>
+	<item name="Drag Save OK">
+		<lang name="en" value="Save New Order"/>
+		<lang name="de" value="Reihenfolge speichern"/>
+	</item>
+	<item name="Drag Save Cancel">
+		<lang name="en" value="Cancel"/>
+		<lang name="de" value="Abbrechen"/>
+	</item>
+	<item name="Require Save">
+		<lang name="en" value="Information"/>
+		<lang name="de" value="Information"/>
+	</item>
+	<item name="CT-RequireSave-MSG">
+		<lang name="en" value="The project needs to be saved to view the actual preview"/>
+		<lang name="de" value="Das Projekt muss erst gespeichert werden bevor \ndie Vorschau den aktuellen Zustand anzeigt"/>
+	</item>
+	<item name="Require Save OK">
+		<lang name="en" value="Save.."/>
+		<lang name="de" value="Speichern.."/>
+	</item>
+	<item name="Require Save Cancel">
+		<lang name="en" value="Abort"/>
+		<lang name="de" value="Abbrechen"/>
+	</item>
+	<item name="Quit CT">
+		<lang name="en" value="Quit"/>
+		<lang name="de" value="Beenden"/>
+	</item>
+</ct>

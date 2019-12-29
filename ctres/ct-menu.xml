@@ -1,0 +1,94 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<agf>
+	<menu clipspacing="4">
+	    <item iconleft="ico:/logo-16.png" float="left">
+	        <!-- <item name="About" cmd='Console show console log Contemple 0.2.25;' /> -->
+			<item name="Preferences">
+				<item name="Language">
+					<item name="English" cmd="SetValue String agf.ui.Language.language en;Application restart"/>
+					<item name="German" cmd="SetValue String agf.ui.Language.language de;Application restart"/>
+				</item>
+				<item name="Workspace">
+					<item name="User" cmd="SetValue String app._config app:/ctres/ct-config-user.css;SetValue Boolean CTOptions.userMode true;Application restart"/>
+					<!-- <item name="Developer" cmd="SetValue String app._config app:/ctres/ct-config.css;SetValue Boolean CTOptions.userMode false;Application restart"/> -->
+				</item>
+                <item name="Properties">
+                	<item name="Server Info" cmd="CTUploader server-info"/>
+                	<item name="#separator"/>
+                    <item name="Verbose Mode On" cmd="SetValue Boolean CTOptions.verboseMode true"/>
+                    <item name="Verbose Mode Off" cmd="SetValue Boolean CTOptions.verboseMode false"/>
+                    <item name="#separator"/>
+                    <item name="Debug Output On" cmd="SetValue Boolean CTOptions.debugOutput true"/>
+                    <item name="Debug Output Off" cmd="SetValue Boolean CTOptions.debugOutput false"/>
+                </item>
+                <item name="Password">
+                    <item name="Reset Password" cmd="CTTools reset-password"/>
+                    <item name="Change Password" cmd="CTTools new-password"/>
+                    <item name="Get Password Hash Code" cmd="CTTools get-hashcode"/>
+                </item>
+                 <item name="Command Editor" cmd="CTTools command-tools"/>
+				<item name="Clear">
+					<item name="Unset Project" cmd="CTTools clear-project-reference;Application restart"/>
+				</item>
+			</item>
+			<item name="Console">
+				<item name="Console" cmd="Console show console"/>
+				<item name="Clear Console" cmd="Console clear"/>
+			</item>
+			<item name="Look For Updates"  cmd="CTTools app-update;CTTools update;"/>
+			<item name="#separator"/>
+			<!-- <item name="Host Info" cmd="CTTools client-host-info"/> -->
+			<item name="App Settings" iconleft="ico:/services.png" cmd="Application view Settings"/>
+            <item name="#separator"/>
+	        <item name="Quit CT" cmd="Application quit"/>
+	    </item>
+		<item name="File">
+            <!-- <item name="New" cmd="CTTools template current" /> -->
+            <item name="New" cmd="Application view StartScreen" />
+            <item name="New Template" cmd="TemplateTools create-template" /> 
+            <item name="#separator"/>
+            <item name="Open" cmd="Application view OpenScreen"/>
+            <item name="#separator"/>
+            <item name="Save" cmd="CTTools save"/>
+		</item>
+		<item name="Edit">
+            <item name="Content" cmd="TemplateTools edit-content"/>
+            <item name="Media" cmd="TemplateTools edit-media"/>
+            <item name="Options" cmd="TemplateTools edit-options"/>
+            <item name="#separator"/>
+            <item name="Pages" cmd="Application view PageView"/>
+        </item>
+		<item name="View">
+            <item name="Editor" cmd="Application view HtmlView"/>
+            <item name="Preview" cmd="Application view PreView"/>
+			<item name="#separator"/>
+            <item name="Preview in Browser" cmd="CTTools browser-preview"/>		
+        </item>
+		<item name="Developer">
+			<item name="Edit Template" cmd="SetValue Boolean CTTools.showCompact false;SetValue Boolean CTTools.showTemplate true;Application view TextView;"/>
+			<item name="#separator"/>
+			<item name="Code Output" cmd="SetValue Boolean CTTools.showCompact false;SetValue Boolean CTTools.showTemplate false;Application view TextView;"/>
+			<item name="Compact Output" cmd="SetValue Boolean CTTools.showCompact true;SetValue Boolean CTTools.showTemplate false;Application view TextView;"/>
+			<item name="Template Information" cmd="TemplateTools template-info"/>
+			<item name="Template Priorities" cmd="TemplateTools template-priorities"/>
+			<item name="#separator"/>
+			<item name="Process Command" cmd="CTTools commander"/>
+		</item>
+		<item name="Upload">
+			<item name="Upload Website" cmd="Application view UploadView"/>
+		</item>
+		<item name="Restart" cmd="Application start"/>
+	</menu>
+	
+	<view  name="HtmlView" vm="panel" src="{*ct.HtmlEditor}" />
+	<view  name="StartScreen" vm="panel" src="{*ct.StartScreen}" />
+	<view  name="OpenScreen" vm="panel" src="{*ct.OpenScreen}" />
+    <view  name="TextView" vm="panel" src="{*ct.TextEditor}" />
+    <view  name="PageView" vm="panel" src="{*ct.PageEditor}" />
+    <view  name="PreView" vm="panel" src="{*ct.Preview}" />
+    <view  name="Settings" vm="panel" src="{*ct.Settings}" />
+    <view  name="UploadView" vm="panel" src="{*ct.UploadView}" />
+    <view  name="InstallView" vm="panel" src="{*ct.InstallView}" />
+    <view  name="console" vm="console" />
+
+</agf>

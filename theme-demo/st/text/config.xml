@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ct>
+   <template 
+   		name="app.contemple.demo.Text" 
+   		type="content" 
+   		listlabel="#value#" 
+		parselistlabel="true" 
+   		listicon="ico:/pencil3.png" 
+   		index="text.html" 
+   		initquery="" 
+   		defaultquery="cnt.sql" 
+   		files="" 
+		tables="ex_app_contemple_demo_text" 
+		fields="name,style,value" 
+	></template>
+</ct>

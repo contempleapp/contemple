@@ -1,0 +1,8 @@
+
+config-user.csS fonts:
+
+Myriad Pro
+Myriad Pro Light
+Myriad Pro SemiBold Italic
+Myriad Pro Light Italic
+Odisseia Regular
