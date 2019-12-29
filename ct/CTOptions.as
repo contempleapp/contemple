@@ -132,7 +132,7 @@
 		public static var reverseAreasPopup:Boolean = false;
 		
 		// quit app after install with overrideDB
-		public static var restartAfterInstall:Boolean = true;
+		public static var restartAfterInstall:Boolean = false;
 		
 		public static var showLinkHash:Boolean = true;
 		
