@@ -4,7 +4,7 @@
 
 With contemple, no database webserver is required. The app stores all data localy and allows to publish new content to the webserver via php upload script [contemple-hub](https://github.com/contempleapp/cthub-php)
 
-## Compile contemple for Desktop or Mobile Devices
+## Compile Contemple
 
 If you don't have Adobe Animate, download the [free trial](https://www.adobe.com/downloads.html).
 In Adobe Animate, open the contemple.fla or contemple-android.fla and choose **File / Air 32.0 Plattform Settings** from the main menu. In the Deployment tab, select a certificate or create a new one and enter the password for the certificate.
