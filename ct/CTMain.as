@@ -674,6 +674,7 @@
 		private function overrideComplete () :void
 		{
 			Console.log("Override Complete..");
+			
 			var sh:SharedObject = SharedObject.getLocal( CTOptions.installSharedObjectId );
 			var lsh:SharedObject = SharedObject.getLocal( CTOptions.localSharedObjectId );
 			
@@ -725,7 +726,9 @@
 						
 						try 
 						{
+							trace("Copy File: " + CTOptions.overrideInstallDB, sh.data.lastProjectDir + CTOptions.urlSeparator + nm);
 							CTTools.copyFile( CTOptions.overrideInstallDB, sh.data.lastProjectDir + CTOptions.urlSeparator + nm, overrideComplete );
+							trace("Copied");
 							return;
 							
 						}catch(e:Error) {

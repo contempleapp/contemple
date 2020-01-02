@@ -46,12 +46,12 @@
 		
 		internal static var clickScrolling:Boolean=false;
 		private var clickY:Number=0;
-			private function removePanel (e:Event) :void {
-				Main(Application.instance).view.removeEventListener( AppEvent.VIEW_CHANGE, removePanel );
-				if( pagesCreated ) {
-					Application.instance.cmd( "Application restart");
-				}
-			
+		
+		private function removePanel (e:Event) :void {
+			Main(Application.instance).view.removeEventListener( AppEvent.VIEW_CHANGE, removePanel );
+			if( pagesCreated ) {
+				Application.instance.cmd( "Application restart");
+			}
 		}
 		
 		public function abortClickScrolling () :void {

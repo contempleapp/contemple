@@ -24,7 +24,7 @@
 		public static var debugOutput: Boolean = true; // Log information and warnings for developers
 		public static var verboseMode: Boolean = false; // In verbose mode, console is visible while installing and uploading
 		
-		public static var monitorFiles:Boolean = false;
+		public static var monitorFiles:Boolean = true;
 		
 		public static var appConfigDir:String = "ctres"; // embeded config files inside applicationDirectory
 		public static var configFolder:String = "cfg";   // config files in applicationStorageDirectory

@@ -193,7 +193,7 @@
 					{
 						str = Options.iconDir + "/" + str.substring(5);
 					}
-					return new IconFromFile(str);
+					return new IconFromFile(str, Options.iconSize, Options.iconSize);
 				}
 			}
 			return null;

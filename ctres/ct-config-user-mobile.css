@@ -77,7 +77,7 @@ popupitem.multisel-move-to-pp { border:none; }
 
 .name-label {  font-family: "Myriad Pro"; font-size:16px; }
 .name-visible-button, .name-save-button, .name-delete-button, .name-close-button, .name-save-and-close-button, .name-save-and-new-button { background: none; padding: 0px; }
-.name-visible-button:active, .name-save-button:active, .name-delete-button:active, .name-close-button:active, .name-save-and-close-button:active, .name-save-and-new-button:active { background:#fff; background-alpha: 0.1; }
+.name-visible-button:active, .name-save-button:active, .name-delete-button:active, .name-close-button:active, .name-save-and-close-button:active, .name-save-and-new-button:active { background:#000; background-alpha: 0.1; }
 
 .media-container { margin-left: 20px; }
 
@@ -213,10 +213,10 @@ popuplist.tmpl-editor-mode { padding: 4px 0px; background: #505459; }
 popuplist.input-help-button { padding: 5px 1px; background: #202226; }
 
 .back-button { padding: 9px 0px; color:#FFFFFF; margin:0px; background:none;  font-family: "Myriad Pro Light"; font-size:15px; }
-.back-button:active  { background:#fff; background-alpha: 0.1; }
+.back-button:active  { background:#000; background-alpha: 0.1; }
 
 .constanteditor-folder {  font-family: "Myriad Pro Light"; background:none; border-bottom:1px solid #efefef; border-alpha:0.15; padding: 9px 12px; margin-bottom: 16px; }
-.constanteditor-folder:active { background:#fff; background-alpha: 0.1; }
+.constanteditor-folder:active { background:#000; background-alpha: 0.1; }
 
 .property-folder-title { font-size: 24px; color: #D0D9DF; padding: 2px 0px; padding:6px; text-align:center;  }
 
@@ -235,12 +235,12 @@ popuplist.input-help-button { padding: 5px 1px; background: #202226; }
 
 .constant-prop-input{ 
 	font-family:"Lucida Console","Odisseia Regular","Source Code Pro","Courier New"; font-size: 20px; 
-	background: #FFFFFF; background-alpha:0.01; color:#FFFFFF;  border-bottom:1px solid #efefef; border-alpha:0.15; padding: 5px 5px;    
+	background: #000000; background-alpha:0.01; color:#FFFFFF;  border-bottom:1px solid #efefef; border-alpha:0.15; padding: 5px 5px;    
 }
-.constant-prop-input:active { background: #FFFFFF; background-alpha: 0.2; }
+.constant-prop-input:active { background: #000000; background-alpha: 0.2; }
 
 .page-item-btn, .media-item-btn { font-family: "Myriad Pro Light"; font-size:20px; background:#202529; background-alpha:0; text-align:left; color:#efefef; padding:9px 9px; margin-bottom: 0px;  border-bottom:1px solid #efefef; border-alpha:0.15; }
-.page-item-btn:active, .media-item-btn:active  { background:#fff; background-alpha: 0.1; }
+.page-item-btn:active, .media-item-btn:active  { background:#000; background-alpha: 0.1; }
 
 .media-item-btn { padding: 9px 9px;}
 
@@ -255,13 +255,13 @@ panel#TextView { background:#FFFFFF; }
 
 /*.agf-console-textfield { font-family: "Courier New"; font-weight:bold; font-size:18px; }*/
 
-button.mainmenu { padding: 15px 7px; vertical-align:middle; text-align: left; }
+button.mainmenu { padding: 17px 7px; vertical-align:middle; text-align: left; }
 button.mainmenu:hover, button.secmenu:hover { }
 button.mainmenu:active { background:linear-gradient(top, #303539 0%, #000000 70%, #00070f 100%); }
 
-button.secmenu {  padding: 18px 12px; padding-bottom: 19px; vertical-align:middle; text-align: right; }
+button.secmenu {  padding: 17px 12px; padding-bottom: 20px; vertical-align:middle; text-align: right; }
 
-popup.mainmenu, popup.secmenu { padding: 15px 7px; vertical-align:middle; text-align: center; }
+popup.mainmenu, popup.secmenu { padding: 14px 7px; vertical-align:middle; text-align: center; }
 popup.mainmenu:hover, popup.secmenu:hover { }
 popup.mainmenu:active, popup.secmenu:active { }
 

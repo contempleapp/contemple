@@ -169,21 +169,16 @@
 		public var lineWrapBegin:String="";
 		public var lineWrapEnd:String="";
 		
-		// Für help text-anzeige
 		public var helpIcon:Button;
 		
 		public var history:Vector.<String> = new Vector.<String>();
 		public var future:Vector.<String> = new Vector.<String>();
 		
 		private var activateValue:String="";
-		
 		private static var tmp_bool_value:Boolean=false;
-		
 		private var _color:uint=0;
-		// FILE, IMAGE, VIDEO
 		private var _dir:String="";
 		private var _file:String="";
-		
 		
 		public function historyPop () :String {
 			var s:String = history.pop();
@@ -235,7 +230,7 @@
 			}
 		}
 		public var specialCharIcons: Object = {
-			name: new IconFromFile( Options.iconDir + CTOptions.urlSeparator + "zehn-schluessel.png", 12, 12 ),
+			/*name: new IconFromFile( Options.iconDir + CTOptions.urlSeparator + "zehn-schluessel.png", Options.iconSize, Options.iconSize),
 			whitespace: new IconEmpty(12, 12),
 			alpha: new IconFromHtml( "&#945;", null, "", 12, 12 ),
 			beta: new IconFromHtml( "&#946;", null, "", 12, 12 ),
@@ -254,6 +249,7 @@
 			sigma: new IconFromHtml( "&#931;", null, "", 12, 12 ),
 			ypsilon: new IconFromHtml( "&#933;", null, "", 12, 12 ),
 			xi: new IconFromHtml( "&#926;", null, "", 12, 12 )
+			*/
 		};
 		
 		public static var specialChars:Object = {
@@ -278,7 +274,7 @@
 			xi:"&#926;"
 		}
 		
-		public var richTextCssIcons: Array = [new IconArrowDown(0xFFFFFF,Options.iconSize,Options.iconSize)];
+		public var richTextCssIcons: Array = [new IconArrowDown(0xFFFFFF, 1, Options.iconSize, int(Options.iconSize))];
 		
 		public var itemList:ItemList;
 		
@@ -348,7 +344,6 @@
 			tf.setTextFormat( fmt );
 			tf.embedFonts = Options.embedFonts;
 			tf.antiAliasType = Options.antiAliasType;
-			//tf.height = getHeight();
 			tf.width = getWidth();
 			var tmp:String = tf.text;
 			tf.text = "VGgyYÖÜ";
@@ -880,33 +875,33 @@
 				
 				specialCharIcons = {
 					name: new IconFromFile( Options.iconDir + CTOptions.urlSeparator + "zehn-schluessel.png", Options.iconSize, Options.iconSize ),
-					whitespace: new IconEmpty(12, 12),
-					alpha: new IconFromHtml( '<p class="special-char-icon">&#945;</p>', styleSheet, "", 12, 12 ),
-					beta: new IconFromHtml( '<p class="special-char-icon">&#946;</p>', styleSheet, "", 12, 12 ),
-					copyright: new IconFromHtml('<p class="special-char-icon">&#169;</p>', styleSheet, "", 12, 12 ),
-					delta: new IconFromHtml('<p class="special-char-icon">&#948;</p>', styleSheet, "", 12, 12 ),
-					gamma: new IconFromHtml( '<p class="special-char-icon">&#947;</p>', styleSheet, "", 12, 12 ),
-					micro: new IconFromHtml( '<p class="special-char-icon">&#181;</p>', styleSheet, "", 12, 12 ),
-					promil: new IconFromHtml( '<p class="special-char-icon">&#8240;</p>', styleSheet, "", 12, 12 ),
-					omega: new IconFromHtml( '<p class="special-char-icon">&#937;</p>', styleSheet, "", 12, 12 ),
-					pi: new IconFromHtml( '<p class="special-char-icon">&#960;</p>', styleSheet, "", 12, 12 ),
-					quote: new IconFromHtml( '<p class="special-char-icon">&#34;</p>', styleSheet, "", 12, 12 ),
-					radic: new IconFromHtml( '<p class="special-char-icon">&#8730;</p>', styleSheet, "", 12, 12 ),
-					theta: new IconFromHtml( '<p class="special-char-icon">&#952;</p>', styleSheet, "", 12, 12 ),
-					delta: new IconFromHtml( '<p class="special-char-icon">&#914;</p>', styleSheet, "", 12, 12 ),
-					lambda: new IconFromHtml( '<p class="special-char-icon">&#916;</p>', styleSheet, "", 12, 12 ),
-					sigma: new IconFromHtml( '<p class="special-char-icon">&#931;</p>', styleSheet, "", 12, 12 ),
-					ypsilon: new IconFromHtml( '<p class="special-char-icon">&#933;</p>', styleSheet, "", 12, 12 ),
-					xi: new IconFromHtml( '<p class="special-char-icon">&#926;</p>', styleSheet, "", 12, 12 )
+					whitespace: new IconEmpty(Options.iconSize, Options.iconSize),
+					alpha: new IconFromHtml( '<p class="special-char-icon">&#945;</p>', styleSheet, "",Options.iconSize, Options.iconSize ),
+					beta: new IconFromHtml( '<p class="special-char-icon">&#946;</p>', styleSheet, "",Options.iconSize, Options.iconSize ),
+					copyright: new IconFromHtml('<p class="special-char-icon">&#169;</p>', styleSheet, "",Options.iconSize, Options.iconSize ),
+					delta: new IconFromHtml('<p class="special-char-icon">&#948;</p>', styleSheet, "",Options.iconSize, Options.iconSize ),
+					gamma: new IconFromHtml( '<p class="special-char-icon">&#947;</p>', styleSheet, "",Options.iconSize, Options.iconSize ),
+					micro: new IconFromHtml( '<p class="special-char-icon">&#181;</p>', styleSheet, "",Options.iconSize, Options.iconSize ),
+					promil: new IconFromHtml( '<p class="special-char-icon">&#8240;</p>', styleSheet, "",Options.iconSize, Options.iconSize ),
+					omega: new IconFromHtml( '<p class="special-char-icon">&#937;</p>', styleSheet, "",Options.iconSize, Options.iconSize ),
+					pi: new IconFromHtml( '<p class="special-char-icon">&#960;</p>', styleSheet, "",Options.iconSize, Options.iconSize ),
+					quote: new IconFromHtml( '<p class="special-char-icon">&#34;</p>', styleSheet, "",Options.iconSize, Options.iconSize ),
+					radic: new IconFromHtml( '<p class="special-char-icon">&#8730;</p>', styleSheet, "",Options.iconSize, Options.iconSize ),
+					theta: new IconFromHtml( '<p class="special-char-icon">&#952;</p>', styleSheet, "",Options.iconSize, Options.iconSize ),
+					delta: new IconFromHtml( '<p class="special-char-icon">&#914;</p>', styleSheet, "",Options.iconSize, Options.iconSize ),
+					lambda: new IconFromHtml( '<p class="special-char-icon">&#916;</p>', styleSheet, "",Options.iconSize, Options.iconSize ),
+					sigma: new IconFromHtml( '<p class="special-char-icon">&#931;</p>', styleSheet, "",Options.iconSize, Options.iconSize ),
+					ypsilon: new IconFromHtml( '<p class="special-char-icon">&#933;</p>', styleSheet, "",Options.iconSize, Options.iconSize ),
+					xi: new IconFromHtml( '<p class="special-char-icon">&#926;</p>', styleSheet, "",Options.iconSize, Options.iconSize )
 				};
 				richTextIcons =  [	richTextCssIcons, specialCharIcons,
-									new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "kopfzeile.png",Options.iconSize,Options.iconSize), 
-									new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "li.png",Options.iconSize,Options.iconSize), 
-									new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "fett-gedruckt.png",Options.iconSize,Options.iconSize), 
-									new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "kursiv.png",Options.iconSize,Options.iconSize),
-									new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "link.png",Options.iconSize,Options.iconSize),
-									new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "reply.png",Options.iconSize,Options.iconSize), 
-									new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "forward.png",Options.iconSize,Options.iconSize)  ];
+									new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "kopfzeile.png",Options.iconSize, Options.iconSize), 
+									new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "li.png",Options.iconSize, Options.iconSize), 
+									new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "fett-gedruckt.png",Options.iconSize, Options.iconSize), 
+									new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "kursiv.png",Options.iconSize, Options.iconSize),
+									new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "link.png",Options.iconSize, Options.iconSize),
+									new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "reply.png",Options.iconSize, Options.iconSize), 
+									new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "forward.png",Options.iconSize, Options.iconSize)  ];
 				
 				itemList = new ItemList(0,0,this,this.styleSheet,'','richtext-btn-list', false);
 				
@@ -1122,6 +1117,7 @@
 									for( ta_i=0; ta_i < ta_arr.length; ta_i++)
 									{
 										tfPopup.rootNode.addItem( [ "" + TemplateTools.obj2Text(ta_arr[ta_i], "#", propObj, false, false ) ], styleSheet);
+									
 									}
 									
 									continue;
@@ -1132,6 +1128,7 @@
 							
 							// no var or constants found:
 							tfPopup.rootNode.addItem( [ "" + TemplateTools.obj2Text( ta_str, "#", propObj, false, false ) ], styleSheet);
+							
 						}
 					}
 					tfPopup.addEventListener( Event.SELECT, ppListAppendSelect );
@@ -1314,7 +1311,8 @@
 						}
 					}
 					
-					tfPopup.addEventListener( Event.SELECT, ppLabelListAppendSelect );
+					//tfPopup.addEventListener( Event.SELECT, ppLabelListAppendSelect );
+					tfPopup.addEventListener( Event.SELECT, ppListAppendSelect );
 					textField.width = textField.width - tfPopup.cssSizeX;
 					tfPopup.x = textField.width - 1;
 					tfPopup.y = 1;
@@ -1360,7 +1358,7 @@
 							ppi3.options.labelValue = TemplateTools.obj2Text( args[i+1], "#", propObj, false, false );
 						}
 					}
-					tfPopup.addEventListener( Event.SELECT, ppLabelListAppendSelect );
+					tfPopup.addEventListener( Event.SELECT, ppListAppendSelect );
 					textField.width = textField.width - tfPopup.cssSizeX;
 					tfPopup.x = textField.width - 1;
 					tfPopup.y = 1;
@@ -1579,6 +1577,7 @@
 				var tmp:String;
 				var tp:int;
 				var s:String;
+				
 				if(textField.text.charCodeAt( endid -1) <= 32) endid--;
 				
 				if( btn.options.originalLabel == "Code" ) {
@@ -1616,16 +1615,19 @@
 				if( btn.options.originalLabel == ".Bold") {
 					historyPush( value );
 					value = textField.text.substring(0, beginid) + '**'+ (beginid >= endid ? "":textField.text.substring( beginid, endid )) + "**" + textField.text.substring( endid );
+					tp = beginid + 2 + (endid > beginid ? (endid - beginid) : 0);
 					textEnter();
-					tp = beginid + 2+ (endid > beginid ? (endid - beginid) : 0);
 					stage.focus = textField;
 					textField.setSelection( tp, tp );
+					
 				}else if( btn.options.originalLabel == ".Italic") {
 					historyPush( value );
 					value = textField.text.substring(0, beginid) + '*'+( beginid >= endid?"":textField.text.substring( beginid, endid )) + "*" + textField.text.substring( endid );
 					tp = beginid + 1 + (endid > beginid ? (endid - beginid) : 0);
+					textEnter();
 					stage.focus = textField;
 					textField.setSelection( tp, tp );
+					
 				}else if( btn.options.originalLabel == ".Heading") {
 					historyPush( value );
 					nli = textField.text.charCodeAt(beginid-1);
@@ -1642,8 +1644,10 @@
 					}
 					value = textField.text.substring(0, beginid) +  nl+ '# '+( beginid >= endid?"":textField.text.substring( beginid, endid )) + nle + textField.text.substring( endid );
 					tp = beginid + 1 + (endid > beginid ? (endid - beginid) : 0);
+					textEnter();
 					stage.focus = textField;
 					textField.setSelection( tp, tp );
+					
 				}else if( btn.options.originalLabel == ".List") {
 					historyPush( value );
 					nli = textField.text.charCodeAt(beginid-1);
@@ -1660,9 +1664,11 @@
 					}
 					value = textField.text.substring(0, beginid) +  nl+ '- '+( beginid >= endid?"":textField.text.substring( beginid, endid )) + nle + textField.text.substring( endid );
 					tp = beginid + 1 + (endid > beginid ? (endid - beginid) : 0);
+					textEnter();
 					stage.focus = textField;
 					textField.setSelection( tp, tp );
-				}else if( btn.options.originalLabel == ".Paragraph") {
+					
+				/*}else if( btn.options.originalLabel == ".Paragraph") {
 					historyPush( value );
 					value = textField.text.substring(0, beginid) + '[p]'+( beginid >= endid?"":textField.text.substring( beginid, endid )) + "[/p]" + textField.text.substring( endid );
 					tp = beginid + 3 + (endid > beginid ? (endid - beginid) : 0);
@@ -1685,16 +1691,18 @@
 					value = textField.text.substring(0, beginid) + '[div class="text-right"]'+( beginid >= endid?"":textField.text.substring( beginid, endid )) + "[/div]" + textField.text.substring( endid );
 					tp = beginid + 234+ (endid > beginid ? (endid - beginid) : 0);
 					stage.focus = textField;
-					textField.setSelection( tp, tp );
+					textField.setSelection( tp, tp );*/
 				}else if( btn.options.originalLabel == ".Link") {
 					// Get Link Window
 					var win:Window = Window( Application.instance.window.GetStringWindow( "LinkWindow", agf.ui.Language.getKeyword("CT-Get-Link"), Language.getKeyword("CT-Get-Link-MSG"), {
 					complete: function (str:String) {
 						historyPush( value );
-						value = textField.text.substring(0, beginid) + '[a href="'+str+'"]'+( beginid >= endid?"":textField.text.substring( beginid, endid )) + "[/a]" + textField.text.substring( endid );
-						tp = beginid + 11 + str.length + (endid > beginid ? (endid - beginid) : 0);
+						value = textField.text.substring(0, beginid) + '['+( beginid >= endid?"":textField.text.substring( beginid, endid )) +'](' + str + ")" + textField.text.substring( endid );
+						tp = beginid + 4 + str.length + (endid > beginid ? (endid - beginid) : 0);
+						textEnter();
 						stage.focus = textField;
 						textField.setSelection( tp, tp );
+						
 					},
 					continueLabel:Language.getKeyword("Set Link"),
 					allowCancel: true,
@@ -1953,20 +1961,7 @@
 			textEnter();
 		}
 		
-		protected function ppListAppendSelect ( e:PopupEvent ) :void {
-			var curr:PopupItem = e.selectedItem;
-			var lb:String = curr.label;
-			if( _type == "listmultiple" ) {
-				if( Application.instance.shortcutMgr.shiftDown ) {
-					value += listAppendSeparator + lb;
-				}else{
-					value = lb;
-				}
-			}else{
-				value += listAppendSeparator + lb;
-			}
-			textEnter();
-		}
+		
 		
 		protected function ppScreenNumberSelect ( e:PopupEvent ) :void {
 			var curr:PopupItem = e.selectedItem;
@@ -1991,21 +1986,23 @@
 			var unit:String = CssUtils.trim( s.substring(ez) );
 			
 			if( unit == "%" && (lb == "vh" || lb == "vw") ) {
-				num = String( Number(num)/*/100*/ );
+				num = String( Number(num) );
 			}else if( (unit == "vh" || unit == "vw") && lb == "%" ) {
-				num = String( Number(num)/* *100*/ );
+				num = String( Number(num) );
 			}else if( unit == "px" && (lb == "rem" || lb == "em")) {
 				num = String( Number(num)/16 );
 			}else if( ( unit == "em" || unit == "rem" ) && lb == "px") {
 				num = String( Number(num)*16 );
 			}
 			
+			activateValue = "";
+			
 			value = "" + num + lb;
 			
 			if(!isNaN(Number(num))) {
 				tfSlider.value = Number(num);
 			}
-			// split text .. change unit..
+			textEnter();
 		}
 		
 		
@@ -2021,23 +2018,177 @@
 		
 		protected function ppLabelListSelect ( e:PopupEvent ) :void {
 			var curr:PopupItem = e.selectedItem;
-			value = curr.options.labelValue;
+			if( Application.instance.shortcutMgr.shiftDown ) {
+				value += listAppendSeparator +  curr.options.labelValue;
+			}else{
+				value =  curr.options.labelValue;
+			}
 			textEnter();
 		}
+		
+		protected function ppListAppendSelect ( e:PopupEvent ) :void
+		{
+			var curr:PopupItem = e.selectedItem;
+			var lb:String = curr.label;
+			
+			if( _type == "listmultiple" || _type == "labellistmultiple" || _type == "itemlistmultiple" )
+			{
+				if (  _type != "listmultiple" ) {
+					lb = curr.options.labelValue;
+				}
+				
+				if( Application.instance.shortcutMgr.shiftDown ) {
+					// force add
+					value += listAppendSeparator + lb;
+				}else{
+					//value = lb;
+					var id:int = args.indexOf( lb );
+					var i:int;
+					var s1:int = -1;
+					var s2:int = args.indexOf( "#separator", id );
+					
+					if( s2 >= 0 ) {
+						s1 = args.lastIndexOf( "#separator", s2-1 );
+					}else{
+						s1 = args.lastIndexOf( "#separator" );
+						if( s1 >= 0 ) {
+							s2 = args.length;
+						}
+					}
+					
+					if( s1 < 0 ) {
+						if ( s2 >= 0 ) {
+							// Group: 0 - s2
+							s1 = 0;
+						}
+					}
+					
+					if( s1 >= 0 && s2 >= 0 ) 
+					{
+						// only one value from a group
+						var values:Array = value.split(listAppendSeparator);
+						var L:int = values.length;
+						var aid:int;
+						var spl:int=-1;
+						
+						for(i=L-1; i>=0; i--)
+						{
+							aid = args.indexOf( values[i] );
+							if( aid > s1 && aid < s2 ) {
+								values.splice(i, 1);
+								spl = i;
+							}
+						}
+						if( spl == -1 ) values.push(lb);
+						else values.splice(spl,0,lb);
+						value = values.join(listAppendSeparator);
+					}
+					else
+					{
+						// no groups
+						var v:String = value;
+						var st:int = v.indexOf( lb );
+						
+						if( st >= 0 ) {
+							// remove
+							value = CssUtils.trim( v.substring(0, st) + v.substring( st + lb.length ) );
+						}else{
+							// add
+							value += listAppendSeparator + lb;
+						}
+					}
+					
+				}
+			}else{
+				value += listAppendSeparator + lb;
+			}
+			textEnter();
+		}
+		
+		/*
 		protected function ppLabelListAppendSelect ( e:PopupEvent ) :void {
 			var curr:PopupItem = e.selectedItem;
 			
 			if( _type == "labellistmultiple" || _type == "itemlistmultiple") {
 				if( Application.instance.shortcutMgr.shiftDown ) {
-					value += listAppendSeparator +  curr.options.labelValue;
+					// force add
+					value += listAppendSeparator + curr.options.labelValue;
 				}else{
-					value =  curr.options.labelValue;
+					
+					
+					// toggle spearator groups
+					var id:int = args.indexOf( curr.options.labelValue );
+					var i:int;
+					var groups:Boolean = false;
+					//var s1:int = args.lastIndexOf( "#separator", id );
+					var s1:int = -1;
+					var s2:int = args.indexOf( "#separator", id );
+					if( s2 >= 0 ) {
+						for( i = s2-1; i >= 0; i-- ) {
+							if( args[i] == "#separator" ) {
+								s1 = i;
+								break;
+							}
+						}
+					}
+					
+					if( s1 < 0 ) {
+						if ( s2 >= 0 ) {
+							// Group: 0 - s2
+							groups = true;
+							s1 = 0;
+						}
+					}
+					if( s2 < 0 ) {
+						if ( s1 >= 0 ) {
+							// Group: s1 - end
+							groups = true;
+							s2 = args.length;
+						}
+					}
+					
+					if( groups )
+					{
+						// only one value from a group allowed..
+						trace("Group: " + s1 + ", " + s2);
+						
+						
+						var values:Array = value.split(listAppendSeparator);
+						var L:int = values.length;
+						var aid:int;
+						
+						for(i=L; i>=0; i--)
+						{
+							aid = args.indexOf( values[i] );
+							if( aid >= s1 && aid <= s2 )
+							{
+								values.splice(i,1);
+							}
+						}
+						value = values.join(listAppendSeparator) +  curr.options.labelValue;
+					}
+					else
+					{
+						var v:String = value;
+						var st:int = v.indexOf( curr.options.labelValue );
+						
+						if( st >= 0 ) {
+							// remove
+							value = CssUtils.trim( v.substring(0, st) + v.substring( st + curr.options.labelValue.length ) );
+						}else{
+							// add
+							value += listAppendSeparator + curr.options.labelValue;
+						}
+					}
+					
+					
 				}
 			}else{
-				value += listAppendSeparator +  curr.options.labelValue;
+				value += listAppendSeparator + curr.options.labelValue;
 			}
 			textEnter();
-		}
+		}*/
+		
 		public override function setWidth ( w:int ) :void {
 			super.setWidth(w-cssBoxX);
 			
@@ -2263,6 +2414,24 @@
 		protected function onActivate (e:Event) :void {
 			if( textField )
 			{
+				
+				if( _type == "screennumber" || _type == "screeninteger" )
+				{
+					var s:String = textField.text;
+					var c:int=s.length;
+					for(var i:int=c-1; i>=0; i--) {
+						if( !isNaN(Number(s.charAt(i))) ) {
+							c = i;
+							break;
+						}
+					}
+					if( c != s.length ) {
+						var num:String = s.substring( 0, c );
+						var unit:String = s.substring( c+1 );
+						StringMath.distFormat = unit;
+					}
+				}
+			
 				fmt = styleSheet.getTextFormat( stylesArray, "active"  );
 				activateValue = value;
 				

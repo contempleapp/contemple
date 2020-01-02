@@ -211,10 +211,10 @@ popuplist.tmpl-editor-mode { padding: 4px 0px; background: #505459; }
 popuplist.input-help-button { padding: 5px 1px; background: #202226; }
 
 .back-button { padding: 7px 0px; color:#FFFFFF; margin:0px; background:none;  font-family: "Myriad Pro Light"; font-size:14px; color:#FFFFFF; opacity:0.8; }
-.back-button:active  { background:#fff; background-alpha: 0.1; }
+.back-button:active  { background:#000; background-alpha: 0.1; }
 
 .constanteditor-folder {  font-family: "Myriad Pro Light"; background:none; border-bottom:1px solid #efefef; border-alpha:0.15; padding: 5px 7px; margin-bottom: 8px; }
-.constanteditor-folder:active { background:#fff; background-alpha: 0.1; }
+.constanteditor-folder:active { background:#000; background-alpha: 0.1; }
 
 .property-folder-title { color: #D0D9DF; padding: 2px 0px; padding:6px; text-align:center;  }
 
@@ -232,10 +232,10 @@ popuplist.input-help-button { padding: 5px 1px; background: #202226; }
 .constant-prop-label { font-family: "Myriad Pro Light"; font-size: 13px; color: #ffffff; padding-left: 0px; padding-bottom: 5px; }
 
 .constant-prop-input{ font-family:"Lucida Console","Odisseia Regular","Source Code Pro","Courier New"; font-size: 14px; background: #FFFFFF; background-alpha:0.01; color:#FFFFFF; border-bottom:1px solid #efefef; border-alpha:0.15; padding: 3px;    }
-.constant-prop-input:active { font-family:"Lucida Console","Odisseia Regular","Source Code Pro","Courier New"; background: #FFFFFF; background-alpha: 0.2; }
+.constant-prop-input:active { font-family:"Lucida Console","Odisseia Regular","Source Code Pro","Courier New"; background: #000000; background-alpha: 0.2; }
 
 .page-item-btn, .media-item-btn, .show-page-ctrl { font-family: "Myriad Pro Light"; font-size:16px; background:#202529; background-alpha:0; text-align:left; color:#efefef; padding:9px; margin-bottom: 0px; border-bottom:1px solid #efefef; border-alpha:0.15; }
-.page-item-btn:active, .media-item-btn:active, .item-tree-btn:active, .show-page-ctrl:active { background:#fff; background-alpha: 0.1; }
+.page-item-btn:active, .media-item-btn:active, .item-tree-btn:active, .show-page-ctrl:active { background:#000; background-alpha: 0.1; }
 
 .media-item-btn { padding: 9px 9px;}
 .raw-switch-label { font-size: 10px; color: #777777; text-align:right; }
@@ -296,6 +296,7 @@ popuplist.richtext-popup, popuplist.richtext-popup-first, popuplist.richtext-pop
 .richtext-popup-last, .richtext-btn-last  { color:#202428; }
 .richtext-popup-first, .richtext-btn-first { border-left:none; }
 
+.special-char-icon { color:#ffffff; font-size:12px;  }
 popup.areaeditor-areapopup { background: #202226;  background-alpha:0.45; padding: 7px; border-bottom-right-radius: 5px; }
 popup.areaeditor-areapopup:active { background: #202226; background-alpha:1; border-bottom-right-radius: 0px; }
 popuplist.areaeditor-areapopup { background: #202226; padding: 5px 1px; border-bottom-left-radius: 9px; border-bottom-right-radius: 9px;  border-top-right-radius: 9px;  background-alpha:1; }

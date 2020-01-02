@@ -124,7 +124,7 @@
 					sizeButton = new Button ([],0,0,this,styleSheet,'','area-sizebutton',false);
 					sizeButton.addEventListener( MouseEvent.MOUSE_DOWN, viewSizeDown );
 					
-					plusButton = new Popup( [ new IconFromFile(Options.iconDir + "/plus.png"), Language.getKeyword("New Item In")],0,0,this,this.styleSheet,'','areaeditor-plusbutton', false);
+					plusButton = new Popup( [ new IconFromFile(Options.iconDir + "/plus.png", Options.iconSize, Options.iconSize), Language.getKeyword("New Item In")],0,0,this,this.styleSheet,'','areaeditor-plusbutton', false);
 					plusButton.visible = viewSize == 0;
 					
 					plusButton.alignH = plusButton.textAlign = "right";
@@ -255,7 +255,7 @@
 					if( node.label == "" ) {
 						tr = treeNode;
 					}else{
-						tr = treeNode.addFolder(  [ new IconFromFile(Options.iconDir + "/folder.png",16,16), node.label ], true );
+						tr = treeNode.addFolder(  [ new IconFromFile(Options.iconDir + "/folder.png", Options.iconSize, Options.iconSize), node.label ], true );
 						tr.btn.nodeClass = "tree-folder-"+dpth;
 						tr.btn.addEventListener( MouseEvent.CLICK, areaSectionClick);
 						tr.btn.init();
@@ -273,7 +273,7 @@
 							dpth--;
 						}else{
 							if( tmp.options.area && tmp.options.area.icon != "" ) {
-								bt = new Button( [ new IconFromFile(tmp.options.area.icon,16,16), tmp.label  ], 0, 0, tr.itemList, styleSheet, '', 'tree-item-'+dpth, false );
+								bt = new Button( [ new IconFromFile(tmp.options.area.icon, Options.iconSize, Options.iconSize), tmp.label  ], 0, 0, tr.itemList, styleSheet, '', 'tree-item-'+dpth, false );
 							}else{
 								bt = new Button( [ tmp.label ], 0, 0, tr.itemList, styleSheet, '', 'tree-item-'+dpth, false );
 							}
@@ -289,7 +289,7 @@
 				else
 				{
 					if( node.options.area && node.options.area.icon != "" ) {
-						bt = new Button( [ new IconFromFile(node.options.area.icon,16,16), node.label ], 0, 0, treeNode.itemList, styleSheet, '', 'tree-item-'+dpth, false );
+						bt = new Button( [ new IconFromFile(node.options.area.icon, Options.iconSize, Options.iconSize), node.label ], 0, 0, treeNode.itemList, styleSheet, '', 'tree-item-'+dpth, false );
 					}else{
 						bt = new Button( [ node.label ], 0, 0, treeNode.itemList, styleSheet, '', 'tree-item-'+dpth, false );
 					}
@@ -905,7 +905,7 @@
 								listIcon = CTTools.parseFilePath( T.listicon );
 								icos = [ new IconFromFile( listIcon, Options.iconSize, Options.iconSize), labelText ];
 							}else{
-								icos = [new IconMenu(ico_col), labelText];
+								icos = [new IconMenu(ico_col, Options.iconSize, Options.iconSize), labelText];
 							}
 							
 							if( T.numAreas > 0 ) {
@@ -1282,7 +1282,7 @@
 						bt = Button( itemList.items[i] );
 						if( bt ) {
 							ar = bt.clips;
-							ar.push( new IconFromFile( Options.iconDir + "/neu-anordnen.png", 16, 16 ) );
+							ar.push( new IconFromFile( Options.iconDir + "/neu-anordnen.png", Options.iconSize, Options.iconSize ) );
 							bt.clips = ar;
 							bt.autoSwapState = "";
 							bt.swapState("normal");

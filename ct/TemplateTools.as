@@ -976,8 +976,6 @@
 										}
 									}
 									continue;
-								
-									
 								}
 							}
 							// ignore continue to parse old format..
@@ -1025,6 +1023,13 @@
 					{
 						if( i>0 && s.charCodeAt(i-1) == 123) continue; // ignore {#
 						if( se == false && L > i+1 && s.charCodeAt(i+1) <= 32 ) continue; // ignore '# '
+						
+						
+						if( se == false && L > i+9 && s.substring(i, i+10).toLowerCase() == "#separator" ) {
+							out += "#separator";
+							i += 10;
+							continue;
+						}
 						
 						if( cb == 35 && i>0 && s.charCodeAt(i-1) == 38 ) { // &#
 							//test for &#NNNN;
@@ -1247,6 +1252,8 @@
 										val = isHtml ? "&apos;" : "'";
 									}else if( nm == "at") {
 										val = "@";
+									/*}else if( nm == "separator") {
+										val = "#separator";*/
 									}else if( nm == "br") {
 										val = isHtml ? "<br/>" : " \n";
 									}else if( nm == "hr") {
