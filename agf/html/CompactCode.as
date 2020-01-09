@@ -252,6 +252,7 @@
 			var cc:int;
 			var ccm1:int=0;
 			var cc2:int;
+			var ltc:int;
 			var search_char:int;
 			
 			for(i=0; i<L; i++)
@@ -292,13 +293,13 @@
 								
 if(!compactOperator || (cc2 != 59 && cc2 != 125 && cc2 != 123 && cc2 != 44 && cc2 != 61 && cc2 != 58 && cc2 != 42 && cc2 != 47 && cc2 != 43 && cc2 != 45 && cc2 != 60 && cc2 != 62) ) {
 								
-									if ( leaveWhiteAroundBrackets ) {
+									//if ( leaveWhiteAroundBrackets ) {
 										str += code.charAt(i);
-									}else {
-										if( cc2 != 41 && cc2 != 40 ) { 
+									/*}else {
+										if(ltc != 40 && ltc != 41 ) { 
 											str += code.charAt(i);
 										}
-									}
+									}*/
 								}
 							}else{
 							
@@ -306,7 +307,9 @@ if(!compactOperator || (cc2 != 59 && cc2 != 125 && cc2 != 123 && cc2 != 44 && cc
 							}
 					}
 				}
+				
 				ccm1 = cc;
+				//if( cc > 32 ) ltc = cc;
 			}
 			return str;
 		}

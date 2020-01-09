@@ -9,6 +9,10 @@
 		<lang name="en" value="Search"/>
 		<lang name="de" value="Suchen"/>
 	</item>
+	<item name="Template up to date">
+		<lang name="en" value="Template up to date"/>
+		<lang name="de" value="Template ist auf neuestem Stand"/>
+	</item>
 	<item name="Open previous Project">
 		<lang name="en" value="Open a Project"/>
 		<lang name="de" value="Projekt Öffnen"/>

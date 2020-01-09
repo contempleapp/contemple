@@ -72,27 +72,19 @@
 		}
 		
 		public function monitorFile( enable:Boolean=false ) :void {
-			var file:File = new File( path );
-			if( file.exists ) {
-				if(enable) {
-					
-					if( monitor ) {
-						monitor.unwatch();
-						monitor = null;
-					}
-					
+			if( monitor ) {
+				monitor.unwatch();
+				monitor = null;
+			}
+			if(enable) {
+				var file:File = new File( path );
+				if( file.exists ) {
 					monitor = new FileMonitor( file );
 					monitor.addEventListener(FileMonitorEvent.CHANGE, onFileChange );
 					monitor.addEventListener(FileMonitorEvent.CREATE, onFileCreate );
 					monitor.addEventListener(FileMonitorEvent.MOVE, onFileMove );
 					
 					monitor.watch();
-					
-				}else{
-					if(monitor) {
-						monitor.unwatch();
-						monitor = null;
-					}
 				}
 			}
 		}
@@ -109,18 +101,21 @@
 		{
 			var s:String = CTTools.readTextFile( e.file.url );
 			
-			if( s ) 
-			{
+			//if( s ) 
+			//{
 				// trace("FileMonitor CHANGE: " + e.file.url);
 				
 				setTemplate( s );
 				
-				// don't need to save again..
-				templateSaveDirty = false;
 				
-				if( templateId && CTTools.activeTemplate && templateId != CTTools.activeTemplate.name  ) {
+				if( templateId && CTTools.activeTemplate && templateId != CTTools.activeTemplate.name  )
+				{
+					// Invalidate sub template files
 					CTTools.invalidateTemplateFiles(CTTools.activeTemplate,false);
 				}
+				
+				// don't need to save modified file again..
+				templateSaveDirty = false;
 				
 				if( CTOptions.autoSave ) CTTools.save();
 				
@@ -130,11 +125,11 @@
 				}catch(e:Error) {
 					
 				}
-			}
-			
-			if(CTOptions.debugOutput ) {
-				Console.log( "Reloaded modified file '"+path+"'");
-			}
+				
+				if(CTOptions.debugOutput ) {
+					Console.log( "Reloaded modified file '"+path+"'");
+				}
+			//}
 		}
 		
 		public function allDirty () :void {

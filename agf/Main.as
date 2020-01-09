@@ -283,6 +283,18 @@
 				rtContainer.cssWidth = topContent.cssWidth = appContent.cssWidth = view.cssWidth = cssWidth = w;
 				rtContainer.cssHeight = topContent.cssHeight = appContent.cssHeight = view.cssHeight = cssHeight = h;
 				
+				
+				topContent.setWidth( w );
+				topContent.setHeight( h );
+				
+				
+				appContent.setWidth( w );
+				appContent.setHeight( h );
+				
+				view.setWidth( w );
+				view.setHeight( h );
+				
+				
 				view.y = mainMenu.getHeight();
 				view.cssHeight -= mainMenu.getHeight();
 				view.resize(w, h);

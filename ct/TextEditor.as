@@ -60,9 +60,19 @@
 				var err:String;
 			}
 			
+			
 			create();
+			
+			if( CTOptions.isMobile ) {
+				tf.addEventListener( SoftKeyboardEvent.SOFT_KEYBOARD_ACTIVATE, CTTools.softKeyboardChange );
+				tf.addEventListener( SoftKeyboardEvent.SOFT_KEYBOARD_DEACTIVATE, CTTools.softKeyboardChange );
+			}
+			
+			
 			displayFiles();
 		}
+		private var tmpH:Number=0;
+		
 		
         
 		public var container: Panel;

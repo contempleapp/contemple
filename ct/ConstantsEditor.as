@@ -521,13 +521,15 @@
 				}
 				
 				// Files have to update all constant values
-				CTTools.invalidateTemplateFiles ( currentTemplate, false);// true );
+				CTTools.invalidateTemplateFiles ( currentTemplate, false );
 				
-				if( CTOptions.autoSave ) CTTools.save();
-				try {
-					Application.instance.view.panel.src["displayFiles"]();
-				}catch(e:Error) {
-					
+				if( CTOptions.autoSave ) {
+					CTTools.save();
+					try {
+						Application.instance.view.panel.src["displayFiles"]();
+					}catch(e:Error) {
+						
+					}
 				}
 			}
 			CTMain(Application.instance).hideLoading();
@@ -675,11 +677,11 @@
 				newname = pc_textBox.www_folder + CTOptions.urlSeparator + newname;
 			}
 			
-			CTTools.copyFile( pc_textBox.value, CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderMinified + CTOptions.urlSeparator /*+ pc_textBox.www_folder + CTOptions.urlSeparator*/ + newname );
-			CTTools.copyFile( pc_textBox.value,  CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderRaw + CTOptions.urlSeparator /*+ pc_textBox.www_folder + CTOptions.urlSeparator*/ + newname );
+			CTTools.copyFile( pc_textBox.value, CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderMinified + CTOptions.urlSeparator + newname );
+			CTTools.copyFile( pc_textBox.value,  CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderRaw + CTOptions.urlSeparator + newname );
 			
 			// Rewrite textbox to new name
-			pc_textBox.value = /*pc_textBox.www_folder + CTOptions.urlSeparator +*/ newname;
+			pc_textBox.value = newname;
 			pc_textBox.setType( pc_textBox.type );
 		}
 		

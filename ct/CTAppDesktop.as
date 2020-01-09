@@ -78,7 +78,7 @@
 			// Set default config options
 			
 			CTOptions.appName = "Contemple-CMS";
-			CTOptions.version = "1.0.7";
+			CTOptions.version = "1.0.8";
 			
 			CTOptions.userMode = true;
 			CTOptions.startConfig = "ct-config-user.css";

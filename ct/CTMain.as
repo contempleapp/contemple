@@ -189,11 +189,11 @@
 		// On open-last-project when app starts
 		private function startupOpenHandler () :void
 		{
-			Console.log( CTOptions.appName + " " + CTOptions.version);
+			Console.log( "Contemple " + CTOptions.version);
 			
 			if( CTTools.activeTemplate ) {
-				Console.log("Template: " + CTTools.activeTemplate.name + " " + CTTools.activeTemplate.version);
-				if( stage && stage.nativeWindow ) stage.nativeWindow.title = CTOptions.appName + " " +  CTTools.activeTemplate.version; //CTOptions.version;
+				Console.log(CTTools.activeTemplate.name + " " + CTTools.activeTemplate.version);
+				if( stage && stage.nativeWindow ) stage.nativeWindow.title = CTOptions.appName + " " + CTTools.activeTemplate.version; //CTOptions.version;
 			}else{
 				if( stage && stage.nativeWindow ) stage.nativeWindow.title = CTOptions.appName + " " + CTOptions.version;
 			}
@@ -321,18 +321,18 @@
 				if( x.@hubScriptFilename != undefined)      CTOptions.hubScriptFilename = x.@hubScriptFilename.toString();
 				if( x.@cacheDownloads != undefined)      CTOptions.cacheDownloads =  CssUtils.stringToBool( x.@cacheDownloads.toString() );
 				if( x.@overrideInstallDB != undefined)      CTOptions.overrideInstallDB = x.@overrideInstallDB.toString();
-				if( x.@debugOutput != undefined)            CTOptions.debugOutput = CssUtils.stringToBool( x.@debugOutput.toString() );
+				// if( x.@debugOutput != undefined)            CTOptions.debugOutput = CssUtils.stringToBool( x.@debugOutput.toString() );
 				if( x.@appName != undefined)                CTOptions.appName = x.@appName.toString();
 				if( x.@version != undefined)                CTOptions.version = x.@version.toString();
-				if( x.@installTemplate != undefined)        CTOptions.installTemplate = x.@installTemplate.toString();
+				// if( x.@installTemplate != undefined)        CTOptions.installTemplate = x.@installTemplate.toString();
 				if( x.@localSharedObjectId != undefined)    CTOptions.localSharedObjectId = x.@localSharedObjectId.toString();
-				if( x.@homeAreaName != undefined)           CTOptions.homeAreaName = x.@homeAreaName.toString();
+				//if( x.@homeAreaName != undefined)           CTOptions.homeAreaName = x.@homeAreaName.toString();
 				if( x.@dbInitFileName != undefined)         CTOptions.dbInitFileName = x.@dbInitFileName.toString();
 				if( x.@uploadViewShowFileInfo != undefined) CTOptions.uploadViewShowFileInfo = CssUtils.stringToBool( x.@uploadViewShowFileInfo.toString() );
-				if( x.@reverseAreasPopup != undefined)      CTOptions.reverseAreasPopup = CssUtils.stringToBool( x.@reverseAreasPopup.toString() );
-				if( x.@animateBackground != undefined)      CTOptions.animateBackground = CssUtils.stringToBool( x.@animateBackground.toString() );
-				if( x.@animateBackgroundMin != undefined)   CTOptions.animateBackgroundMin = Number( x.@animateBackgroundMin.toString() );
-				if( x.@animateBackgroundMax != undefined)   CTOptions.animateBackgroundMax = Number( x.@animateBackgroundMax.toString() );
+				//if( x.@reverseAreasPopup != undefined)      CTOptions.reverseAreasPopup = CssUtils.stringToBool( x.@reverseAreasPopup.toString() );
+				//if( x.@animateBackground != undefined)      CTOptions.animateBackground = CssUtils.stringToBool( x.@animateBackground.toString() );
+				//if( x.@animateBackgroundMin != undefined)   CTOptions.animateBackgroundMin = Number( x.@animateBackgroundMin.toString() );
+				//if( x.@animateBackgroundMax != undefined)   CTOptions.animateBackgroundMax = Number( x.@animateBackgroundMax.toString() );
 				if( x.@localUploadFolder != undefined)      CTOptions.localUploadFolder = x.@localUploadFolder.toString();
 				if( x.@uploadMethod != undefined)           CTOptions.uploadMethod = x.@uploadMethod.toString();
 				if( x.@uploadScript != undefined)           CTOptions.uploadScript = x.@uploadScript.toString();

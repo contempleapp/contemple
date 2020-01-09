@@ -869,6 +869,7 @@
 				}
 				if( txo.template.@sortproperties != undefined && txo.template.@sortproperties != "") activeTemplate.sortproperties = txo.template.@sortproperties.toString();
 				if( txo.template.@dbcmds != undefined && txo.template.@dbcmds != "") activeTemplate.dbcmds = txo.template.@dbcmds.toString();
+				if( txo.template.@homeAreaName != undefined && txo.template.@homeAreaName != "") activeTemplate.homeAreaName = txo.template.@homeAreaName.toString();
 				if( txo.template.@nocompress != undefined && txo.template.@nocompress != "") activeTemplate.nocompress = txo.template.@nocompress.toString();
 				if( txo.template.@nolocareas != undefined && txo.template.@nolocareas != "") activeTemplate.nolocareas = txo.template.@nolocareas.toString();
 				if( txo.template.@hiddenareas != undefined && txo.template.@hiddenareas != "") activeTemplate.hiddenareas = txo.template.@hiddenareas.toString();
@@ -1784,7 +1785,7 @@
 			if ( projectDir && procFiles )
 			{
 				var i:int;
-				if(!CTOptions.isMobile && CTOptions.monitorFiles) {
+				if(!CTOptions.isMobile /*&& CTOptions.monitorFiles*/) {
 					for( i=0; i<procFiles.length; i++) {
 						procFiles[i].monitorFile(false);
 					}
@@ -2687,6 +2688,9 @@
 			templateConstants={};
 			saveAsFirst = false;
 			saveDirty = false;
+			
+			Template.randoms = {};
+			
 			//Language.clear();
 		}
 		public static var showRequireSaveHandler:Function;
@@ -2803,6 +2807,7 @@
 			{
 				saveDirty = true;
 				Template.resetPrios();
+
 				var L:int = procFiles.length;
 				var pf:ProjectFile;
 				for(var i:int=0; i<L; i++) {
@@ -2815,6 +2820,7 @@
 			if(procFiles) {
 				saveDirty = true;
 				Template.resetPrios();
+				
 				var L:int = procFiles.length;
 				var pf:ProjectFile;
 				var text:String;
@@ -3087,6 +3093,30 @@
 			}
 			if ( addFileComplete != null ) addFileComplete ();
 			displayFiles();
+		}
+		
+		
+		public static function softKeyboardChange (e:SoftKeyboardEvent) :void
+		{
+			var ctm:CTMain = CTMain(Application.instance);
+			
+			if( ctm.stage && ctm.stage.softKeyboardRect.width == 0 || ctm.stage.softKeyboardRect.height == 0 )
+			{
+				// deactivate
+				ctm.setSize( ctm.stage.stageWidth, ctm.stage.stageHeight );
+			}
+			else
+			{
+				var h:int = ctm.stage.softKeyboardRect.y - ctm.mainMenu.cssSizeY;
+				ctm.setSize( ctm.stage.stageWidth, h );
+				
+				try {
+					Object(ctm.view.panel.src).newSize(null); //setHeight( stage.softKeyboardRect.y - ctm.view.panel.src.y );
+				}catch(e:Error) {
+					Console.log("Error setting SoftKeyboard Size");
+				}
+				
+			}
 		}
 		
 		public static function prepare (_app:Sprite) :void {

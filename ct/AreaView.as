@@ -213,7 +213,7 @@
 				}
 			}
 			if( sizeButton ) {
-				sizeButton.setWidth( w -8 );
+				sizeButton.setWidth( w - (cssBoxX + sizeButton.cssBoxX) );
 				setChildIndex( sizeButton, numChildren-1);
 			}
 		}

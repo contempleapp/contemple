@@ -20,24 +20,12 @@
 			container = Application.instance.view.panel;
 			container.addEventListener(Event.RESIZE, newSize);
 			Main(Application.instance).mainMenu.addEventListener( MouseEvent.MOUSE_DOWN, mobilePopupOpen );
-			
 			webView = new StageWebView( CTOptions.nativePreview );
 			displayFiles();
 		}
 		
 		public var webView:StageWebView;
-		
         public var container: Panel;
-		
-		/*
-		private var _posLeft:int = 0;
-		public function get posLeft () :int { 
-			return _posLeft; 
-		}
-		public function set posLeft (v:int) :void {
-			_posLeft = v; 
-			newSize(null);
-		}*/
 		
 		public function mobilePopupOpen ( e:Event) :void {
 			Main(Application.instance).mainMenu.addEventListener( Event.CLOSE, mobilePopupClose );

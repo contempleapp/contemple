@@ -210,7 +210,7 @@
 					areaView.rootNode.format(true);
 					
 					// Select first Area...
-					var currArea:String = CTOptions.homeAreaName;
+					var currArea:String = CTTools.activeTemplate.homeAreaName;
 					
 					if( CTOptions.rememberArea ) {
 						var sh:SharedObject = SharedObject.getLocal( CTOptions.localSharedObjectId );
@@ -1027,7 +1027,7 @@
 				var propVal:String;
 				var namlc:String;
 				
-				ict = new NameCtrl( "Name", "name", "name", "", null, null, w, 0, /*itemList*/this, styleSheet,'', 'area-insert-prop', false);
+				ict = new NameCtrl( "Name", "name", "name", "", null, null, w, 0, this, styleSheet,'', 'area-insert-prop', false);
 				var nm:NameCtrl = NameCtrl( ict );
 				
 				if( !isUpdateForm ) {
@@ -1043,7 +1043,6 @@
 				
 				nameCtrl = NameCtrl(ict);
 				
-				//itemList.addItem(ict, true);
 				ict.setWidth( w );
 				
 				if( !isUpdateForm ) {
@@ -1097,13 +1096,13 @@
 								}
 								if( namlc == "name")
 								{
-									/*NameCtrl(itemList.getChildByName("name"))*/nameCtrl.label.label = (isUpdateForm ? "" : (Language.getKeyword("Create New Area Item") + " ") ) + Language.getKeyword( tmpl.name ) + ":";
+									nameCtrl.label.label = (isUpdateForm ? "" : (Language.getKeyword("Create New Area Item") + " ") ) + Language.getKeyword( tmpl.name ) + ":";
 									
 									if( isUpdateForm && updateItem && updateItem[ "name" ] ) {
-										/*NameCtrl(itemList.getChildByName("name"))*/nameCtrl.textBox.value = updateItem[ "name" ];
+										nameCtrl.textBox.value = updateItem[ "name" ];
 									}else{
 										if( propVal != "" ) {
-											/*NameCtrl(itemList.getChildByName("name"))*/nameCtrl.textBox.value = propVal;
+											nameCtrl.textBox.value = propVal;
 										}
 									}
 									continue;	
@@ -1160,6 +1159,8 @@
 				}catch(e:Error) {
 					
 				}
+				
+				setWidth( w );
 			}
 		}
 		private function storeCurrentItemValues () :void {
@@ -1574,7 +1575,7 @@
 				dragNewButton = new Button([Language.getKeyword(tname) ],0,0,this,styleSheet,'','drag-new-button',false);
 				
 				if( dragDisplay && scrollpane.content.contains( dragDisplay ) ) scrollpane.content.removeChild( dragDisplay );
-				dragDisplay = new CssSprite( getWidth(),0, scrollpane.content, styleSheet, '', '','drag-display', false);
+				dragDisplay = new CssSprite( getWidth(), 0, scrollpane.content, styleSheet, '', '','drag-display', false);
 				
 				addEventListener ( Event.ENTER_FRAME, dragNewMove );
 				stage.addEventListener( MouseEvent.MOUSE_UP, dragNewUp );	
@@ -1597,13 +1598,11 @@
 				dragDisplay = null;
 			}
 			
-			
 			if( mouseX > areaView.getWidth()  - Options.iconSize )
 			{
-				// create item at index...
-				
 				var L:int = CTTools.pageItems.length;
 				var r:Object;
+				
 				// Get PageItem List of Items in the CurrentArea stored in the db
 				var areaItems:Array = [];
 				var i:int;
@@ -1619,12 +1618,8 @@
 				
 					if( i == pageItemNewIndex )
 					{
-						if( i == L-1 ) {
-							newInsertSortID = -1;
-						}else{					
-							newInsertSortID = areaItems[i].sortid;
-							areaItems[i].sortid ++;
-						}
+						newInsertSortID = areaItems[i].sortid;
+						areaItems[i].sortid ++;
 					}
 					else if( i > pageItemNewIndex ) 
 					{
@@ -1646,7 +1641,6 @@
 				}
 				else
 				{
-					
 					dragNewButton.visible = true;
 					dragNewButton.x = mouseX - (dragNewButton.cssSizeX * .5);
 					dragNewButton.y = mouseY - (dragNewButton.cssSizeY * .5);
@@ -2125,7 +2119,7 @@
 									storeFileVector( pc.textBox );
 								}
 							}
-							pms[ ":_"+ fields[i] ] = pc.textBox.value;// updateItem[fields[i]] ? updateItem[fields[i]] : "";
+							pms[ ":_"+ fields[i] ] = pc.textBox.value;
 							fieldVal += ','+fields[i]+'=:_' +  fields[i];
 						}
 					} 
@@ -2176,7 +2170,7 @@
 		private function insertPageItem ( e:Event ) :void {
 			// Try select page item with name first
 			var pms:Object = {};
-			pms[":nam"] = /*PropertyCtrl( itemList.getChildByName("name") )*/nameCtrl.textBox.value;
+			pms[":nam"] = nameCtrl.textBox.value;
 			var rv:Boolean = CTTools.db.selectQuery( onPageItemInsertSelect, "uid,name", "pageitem", "name=:nam", "", "", "", pms);
 			if(!rv) {
 				Console.log("SQL-ERROR in Select Page Item");
@@ -2191,7 +2185,7 @@
 				
 				// Page Item already available...
 				var win:Window = Window( Application.instance.window.InfoWindow( Language.getKeyword("Information"), Language.getKeyword("Page Item Already Available"), Language.getKeyword("The Item") +" '"+
-				/*PropertyCtrl( itemList.getChildByName("name") )*/nameCtrl.textBox.value+ "' "+ Language.getKeyword("is already in the database"), {
+				nameCtrl.textBox.value+ "' "+ Language.getKeyword("is already in the database"), {
 				continueLabel:Language.getKeyword("OK"),
 				allowCancel: false,
 				autoWidth:false,
@@ -2211,8 +2205,8 @@
 					}
 					
 					var pms:Object={};
-					pms[":nam"] = /*PropertyCtrl( itemList.getChildByName("name") )*/nameCtrl.textBox.value;
-					pms[":vis"] = /*NameCtrl( itemList.getChildByName("name") )*/nameCtrl.visibleStatus;
+					pms[":nam"] = nameCtrl.textBox.value;
+					pms[":vis"] = nameCtrl.visibleStatus;
 					pms[":tmpl"] = currentTemplate.name;
 					pms[":ara"] = currentArea.name;
 					pms[":sortid"] = areaItems; // Last
@@ -2243,7 +2237,7 @@
 					var fieldVal:String = ":_name";
 					var fields:Array = currentTemplate.fields.split(",");
 					var pms:Object = {};
-					pms[":_name"] = /*PropertyCtrl( itemList.getChildByName("name") )*/nameCtrl.textBox.value;
+					pms[":_name"] = nameCtrl.textBox.value;
 					
 					for (var i:int = 0; i < fields.length; i++) 
 					{
@@ -2386,8 +2380,8 @@
 					Console.log( "WARNING: '" + file.url + "' Already Exists..");
 				}
 			}
-			var f1:String = CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderMinified + CTOptions.urlSeparator + /*pc_textBox.www_folder + CTOptions.urlSeparator +*/ newname ;
-			var f2:String = CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderRaw + CTOptions.urlSeparator + /*pc_textBox.www_folder + CTOptions.urlSeparator +*/ newname;
+			var f1:String = CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderMinified + CTOptions.urlSeparator + newname ;
+			var f2:String = CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderRaw + CTOptions.urlSeparator + newname;
 			
 			CTTools.copyFile( pc_textBox.value, f1 );
 			CTTools.copyFile( pc_textBox.value, f2 );

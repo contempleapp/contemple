@@ -140,21 +140,13 @@
 		
 		private function adresKeyDown ( e:KeyboardEvent ) :void
 		{
-			if ( e.charCode == 13 )
-			{
+			if ( e.charCode == 13 ) {
 				var filepath:String = adresBar.text;
 				var s7:String = filepath.substring(0, 7);
 				
-				if( filepath.substring(0,4) == "www." )
-				{
+				if( filepath.substring(0,4) == "www." ) {
 					filepath = "http://" + filepath;
-				}
-				else if( s7 != "http://" && s7 != "file://" && filepath.substring(0, 8) != "https://" )
-				{
-					
-				//}
-				//else
-				//{
+				}else if( s7 != "http://" && s7 != "file://" && filepath.substring(0, 8) != "https://" ) {
 					filepath = CTTools.projectDir + CTOptions.urlSeparator +  CTOptions.previewFolder + CTOptions.urlSeparator + filepath;
 				}
 				loadWebURL( filepath );
@@ -235,7 +227,7 @@
 					tbh = Math.max( tbh, adresBar.height );
 					if( !adresBar.visible ) adresBar.visible = true;
 			
-					reloadBtn.x = container.cssSizeX - (reloadBtn.cssSizeX + reloadBtn.cssMarginRight); //adresBar.x + adresBar.width + reloadBtn.cssMarginLeft;
+					reloadBtn.x = container.cssSizeX - (reloadBtn.cssSizeX + reloadBtn.cssMarginRight);
 					tbh = Math.max( tbh, reloadBtn.height + reloadBtn.cssMarginY );
 					if( !reloadBtn.visible ) reloadBtn.visible = true;
 				

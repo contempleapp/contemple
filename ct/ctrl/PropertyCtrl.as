@@ -87,7 +87,7 @@
 			textBox.addEventListener( ENTER, textBoxEnter );
 			
 			ctrlOptions = new Popup( null, 0, 0, this, styleSheet, '', 'input-help-button', false);
-			ctrlOptions.clips = [ new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "ellipse-small.png",16,8) ];
+			ctrlOptions.clips = [ new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "ellipse-small.png", Options.iconSize, int(Options.iconSize/2) ) ];
 			ctrlOptions.init();
 			
 			ctrlOptions.x = cssRight - ctrlOptions.cssMarginRight;
@@ -98,7 +98,7 @@
 			ctrlOptions.alignV = "bottom";
 			ctrlOptions.addEventListener( Event.SELECT, optionsSelect );
 			
-			ctrlOptions.rootNode.addItem( [ Language.getKeyword("Revert to Default Value" )], styleSheet);
+			ctrlOptions.rootNode.addItem( [ Language.getKeyword("Revert to Default Value") ], styleSheet);
 			
 			label.x = cssLeft;
 			label.setWidth( getWidth() - (ctrlOptions.cssSizeX + ctrlOptions.cssMarginX));
@@ -111,8 +111,8 @@
 		protected function selectTextOnLabel ( e:MouseEvent ) :void {
 			if( !TemplateEditor.clickScrolling ) {
 				if( stage && textBox && textBox.textField ) {
-					stage.focus = textBox.textField;
 					textBox.textField.setSelection( 0, textBox.textField.text.length);
+					stage.focus = textBox.textField;
 				}
 			}else{
 				TemplateEditor.endClickScrolling();

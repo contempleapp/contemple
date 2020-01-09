@@ -15,14 +15,16 @@ body, window, div, textbox, button, p, span { font-family: "Myriad Pro"; font-we
 .start-screen-popup:hover { background: #202226;  }
 .start-screen-new-template { background:none; color:#ffffff; margin-top:25px; margin-bottom:12px; font-family: "Myriad Pro Light"; font-size:16px; line-height: 20px; text-decoration:underline; }
 
-.settings { padding: 25px; }
-.settings-title { margin-top:45px; margin-bottom:25px; }
-.settings-btn { background: #06F; color:#FFFFFF; opacity:1; margin-top: 12px; margin-left:0px; margin-right:25px; margin-bottom:50px; padding:12px; border-radius:7px; }
-.settings-btn:hover { background: #29F; color:#0044AA; }
-.settings-popup { background: #666; color:#FFFFFF; opacity:1; margin-top: 12px; margin-left:0px; margin-right:25px; margin-bottom:40px; padding:12px; border-radius:7px; }
-.settings-popup:hover { background: #777; color:#0044AA; }
+.preferences { padding: 20px; }
+.preferences-title { margin-top:45px; margin-bottom:25px; }
+.preferences-toggle { background: #666; color:#FFFFFF; padding: 4px 16px; border-radius: 5px;  margin-bottom: 25px; }
+.preferences-toggle:active { background: #29F; }
+.preferences-label { padding: 4px; }
+.preferences-button { background: #06F; color:#FFFFFF; opacity:1; margin-top: 12px; margin-left:0px; margin-right:25px; margin-bottom:50px; padding:12px; border-radius:7px; }
+.preferences-button:hover { background: #202226; }
 
 areaview {  background:#fff; border-right:1px solid #fff; background-alpha: 0.05; border-alpha:0.3; }
+
 areasizebutton {}
 h1 { font-size:20px; font-weight:bold; }
 h2 { font-size:18px; font-weight:bold; }
@@ -197,11 +199,12 @@ popup.tmpl-editor-mode { border-radius: 0px; padding: 4px 0px; }
 popup.tmpl-editor-mode:active { }
 popuplist.tmpl-editor-mode { padding: 4px 0px; background: #505459; }
 
-.page-editor {  }
+.page-editor { padding: 24px; }
 .pageeditor-container {  }
 .pageeditor-list {}
-
-.pageeditor-plusbutton { padding:8px 12px; border-bottom-right-radius: 7px; }
+.pages-title { font-size: 18px; font-family:"Myriad Pro Light Italic"; margin-bottom: 12px; }
+.pageeditor-plusbutton { background: #202226; color:#FFFFFF; opacity:1; margin-top: 24px; margin-bottom:24px; padding:12px; border-radius:7px; }
+.pageeditor-plusbutton:hover { background: #06F; }
 
 .show-pages { padding: 24px; }
 .showpage-delbtn { background: none; }
@@ -251,7 +254,7 @@ button.mainmenu { padding: 15px 7px; vertical-align:middle; text-align: left; }
 button.mainmenu:hover, button.secmenu:hover { }
 button.mainmenu:active { background:linear-gradient(top, #303539 0%, #000000 70%, #00070f 100%); }
 
-button.secmenu {  padding: 7px;  padding-top:17px; padding-bottom: 18px; vertical-align:middle; text-align: right; }
+button.secmenu {  padding:18px 7px; /*padding-top:17px; padding-bottom: 18px;*/ vertical-align:middle; text-align: right; }
 
 popup.mainmenu, popup.secmenu { padding: 15px 7px; vertical-align:middle; text-align: center; }
 popup.mainmenu:hover, popup.secmenu:hover { }

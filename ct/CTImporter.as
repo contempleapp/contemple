@@ -51,7 +51,6 @@
 						var obj:Object = { name:x.update.@name.toString(), date: x.update.@date.toString(), type:updateType, version:x.update.@version.toString(), src:x.update.@src.toString() };
 						msg = ct.TemplateTools.obj2Text( msg, '#', obj);
 						
-						// Have to load a project or template...
 						var win:Window = Window( Main(Application.instance).window.GetBooleanWindow( "UpdateWindow", Language.getKeyword("Update"), msg, {
 						complete: function (bool:Boolean) { 
 							if (bool) {
@@ -77,6 +76,8 @@
 			if( res && res.loaded == 1 )
 			{
 				var x:XML = new XML( String(res.obj) );
+				var win:Window;
+				
 				if( x.update.@version != undefined )
 				{
 					var updateType:String = CTTools.compareVersions( CTTools.activeTemplate.version, x.update.@version.toString() );
@@ -89,10 +90,8 @@
 						var obj:Object = { name:x.update.@name.toString(), date: x.update.@date.toString(), type:x.update.@type.toString(), version:x.update.@version.toString(), src:x.update.@src.toString() };
 						msg = ct.TemplateTools.obj2Text( msg, '#', obj);
 						
-						// Have to load a project or template...
-						var win:Window = Window( Main(Application.instance).window.GetBooleanWindow( "TemplateUpdateWindow", Language.getKeyword("Template Update"), msg, {
+						win = Window( Main(Application.instance).window.GetBooleanWindow( "TemplateUpdateWindow", Language.getKeyword("Template Update"), msg, {
 						complete: function (bool:Boolean) { 
-							// Automatically load the pre installed template
 							if (bool) {
 								CTImporter.downloadUpdate( x.update.@src.toString() );
 							}
@@ -107,6 +106,12 @@
 						Main(Application.instance).windows.addChild( win );
 					}else{
 						if( CTOptions.debugOutput || CTOptions.verboseMode ) Console.log("Template up to date");
+						win = Window( Main(Application.instance).window.InfoWindow( "TemplateUpdateWindow2", Language.getKeyword("Template Update"), Language.getKeyword("Template up to date"), {
+						continueLabel: Language.getKeyword("Ok"),
+						autoWidth:false,
+						autoHeight:true
+						}, 'template-update-window-2') );
+						
 					}
 				}
 			}

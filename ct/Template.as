@@ -35,7 +35,8 @@
 		public var sortareas:String = "name";     // the string "name" or "priority" for sorting in editor
 		public var sortproperties:String = "name";// the string "name" or "priority" for sorting in editor
 		public var files:String;                  // Template text files (only html, js css with template objects etc..)
-		public var pagetemplates:String="";       // Template text files (only html, js css with template objects etc..)
+		public var pagetemplates:String="";       // Template text files (only html)
+		public var homeAreaName:String="";        // Name of area to display first
 		
 		public var staticfiles:String;        // Any additional files in the /raw and /min folders
 		public var folders:String;            // static folders in /raw and /min folders (duplicate)
@@ -62,6 +63,8 @@
 		
 		public var dbProps:Object = {};          // {name,uid,type,value}
 		public var update:String="";
+		
+		internal static var randoms:Object = {};
 		
 		private var _hiddenareas:String = "";
 		public var hiddenAreasLookup:Object = {}; // read only
@@ -168,6 +171,7 @@
 		
 		public static function resetPrios () :void {
 			prios = { _: 100 };
+			randoms = {};
 		}
 		public static function preproc (s:String, itemName:String="", pageName:String="") :String
 		{
@@ -830,9 +834,6 @@
 											nam = pageItemName;
 										}
 										
-										
-										
-										
 										if ( areasByName[nam] ) {
 											areas.push( areasByName[nam] );
 										}else{
@@ -842,14 +843,20 @@
 											}
 										}
 										
-										
-										if(CTOptions.insertAreaLocation ) 											
+										if( CTOptions.insertAreaLocation ) 											
 										{
-											if( !template || !template.nolocAreasLookup[nam] ) {
+											
+											if(!template || ( template.nolocareas != "true" && !template.nolocAreasLookup[nam]) ) {
 												if( nam != "SCRIPT" && nam != "SCRIPT-BEGIN" && nam != "SCRIPT-END" && nam != "SCRIPT-OBJECT" && nam != "STYLE" && nam != "STYLE-BEGIN" && nam != "STYLE-END" && nam != "STYLE-OBJECT") {
 													tmpl_struct[ sid > 0 ? sid - 1 : sid] += CTOptions.insertAreaPre + nam + CTOptions.insertAreaPost;
 												}
 											}
+											/*
+											if( !template || !template.nolocAreasLookup[nam] ) {
+												if( nam != "SCRIPT" && nam != "SCRIPT-BEGIN" && nam != "SCRIPT-END" && nam != "SCRIPT-OBJECT" && nam != "STYLE" && nam != "STYLE-BEGIN" && nam != "STYLE-END" && nam != "STYLE-OBJECT") {
+													tmpl_struct[ sid > 0 ? sid - 1 : sid] += CTOptions.insertAreaPre + nam + CTOptions.insertAreaPost;
+												}
+											}*/
 										}
 									}
 								}
@@ -1081,9 +1088,15 @@
 										}
 									}
 									
-									if( nam == "random" || defType == "random" )
-									{
-										tmpl_struct[sid] += InputTextBox.getUniqueName( args && args.length > 0 ? args[0] : "", args && args.length > 1 ? args[1] : 2 );
+									if( nam == "random" || defType == "random" ) {
+										if( args && args.length > 0 ) {
+											if( randoms[ args[0] ] == undefined ) {
+												randoms[ args[0] ] = InputTextBox.getUniqueName(  args.length > 1 ? args[1] : "", args.length > 2 ? args[2] : 2 );
+											}
+											tmpl_struct[sid] += randoms[args[0]];
+										}else{
+											tmpl_struct[sid] += InputTextBox.getUniqueName( args && args.length > 0 ? args[1] : "", args && args.length > 1 ? args[2] : 2 );
+										}
 										i = en;
 										continue;
 									}

@@ -21,10 +21,14 @@
 			stage.align = StageAlign.TOP_LEFT;
 			stage.scaleMode = StageScaleMode.NO_SCALE;
 			
-			Main.prepare( this, false );
+			Main.prepare( this, true );
 			CTMain.setupConfigFiles();
 			
 			// load the logo first:
+			setTimeout(showLogo, 0);
+		}
+		
+		function showLogo ():void {
 			ResourceMgr.getInstance().loadResource( CTOptions.appLogo, logoLoaded, false );
 		}
 		
@@ -46,7 +50,7 @@
 				
 				anim.loop = false;
 				anim.addEventListener( Event.COMPLETE, animDone );
-				anim.run( appLogo, { y:ypos, x:xpos, scaleX:1, scaleY:1, alpha:0.4 }, 777, Strong.easeOut );
+				anim.run( appLogo, { y:ypos, x:xpos, scaleX:1, scaleY:1, alpha:0.5 }, 777, Strong.easeOut );
 				
 				addChild( appLogo );
 				

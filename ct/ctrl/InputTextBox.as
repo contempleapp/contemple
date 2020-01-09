@@ -32,6 +32,7 @@
 	import flash.desktop.NativeDragManager;
 	import flash.display.InteractiveObject;
 	import flash.filesystem.File;
+	import ct.CTMain;
 	import ct.ctrl.VectorTextField;
 	import agf.tools.Console;
 	import ct.TemplateTools;
@@ -265,6 +266,7 @@
 			omega:"&#937;",
 			pi:"&#960;",
 			quote:"&#34;",
+			singlequote:"&#39;",
 			radic: "&#8730;",
 			theta: "&#952;",
 			delta:"&#914;",
@@ -297,7 +299,7 @@
 			fmt = styleSheet.getTextFormat( stylesArray, "normal" );
 			setupTextField( textField, textChange, onActivate, onDeactivate);
 		}
-		// allow only 0-9, a-s, A-Z and the _-$:@ specialChars
+		// allow only 0-9, a-s, A-Z and the _-$: specialChars
 		// If string is empty, returns getUniqueName()
 		// n: a trimmed string (with only single white-spaces
 		private function parseName (n:String) :String {
@@ -310,7 +312,8 @@
 				cc = n.charCodeAt(i);
 				if( cc <= 32 ) {
 					o += "-";
-				}else if( (cc >= 48 && cc <= 57) || (cc >= 97 && cc <= 122) || (cc >= 65 && cc <= 90) || cc == 95 || cc == 36 || cc == 45 ||cc == 58 || cc == 64 ) {
+				// 0 - 9 || a - z || A - Z || - || _ || $ || :
+				}else if( (cc >= 48 && cc <= 57) || (cc >= 97 && cc <= 122) || (cc >= 65 && cc <= 90) || cc == 45 || cc == 95 || cc == 36 ||cc == 58 ) {
 					o += String.fromCharCode(cc);
 				}
 			}
@@ -355,8 +358,47 @@
 			if( _onActivate != null )    tf.addEventListener( FocusEvent.FOCUS_IN, _onActivate);
 			if( _onDeactivate != null )  tf.addEventListener( FocusEvent.FOCUS_OUT, _onDeactivate );
 			if( _onChange != null  )     tf.addEventListener( Event.CHANGE, _onChange );
+			
+			if( CTOptions.isMobile ) {
+				tf.addEventListener( SoftKeyboardEvent.SOFT_KEYBOARD_ACTIVATE, CTTools.softKeyboardChange );
+				tf.addEventListener( SoftKeyboardEvent.SOFT_KEYBOARD_DEACTIVATE, CTTools.softKeyboardChange );
+			}
 			addChild(tf);
 		}
+		
+		//private var tmpH:Number=0;
+		/*
+		private function softKeyboardChange (e:SoftKeyboardEvent) :void
+		{
+			var ctm:CTMain = CTMain(Application.instance);
+			
+			if( stage && stage.softKeyboardRect.width == 0 || stage.softKeyboardRect.height == 0 )
+			{
+				// deactivate
+				// parent.y = tmpY;
+				ctm.setSize( stage.stageWidth, stage.stageHeight );
+			}
+			else
+			{
+				var h:int = stage.softKeyboardRect.y - ctm.mainMenu.cssSizeY;
+				
+				ctm.setSize( stage.stageWidth, h );
+				
+				try {
+					// tmpH = CssSprite( ctm.view.panel.src ).getHeight();
+					// var ht:HtmlEditor = HtmlEditor( ctm.view.panel.src );
+					// ctm.view.setHeight( h );
+					// ctm.view.panel.setHeight( h );
+					Object(ctm.view.panel.src).newSize(null); //setHeight( stage.softKeyboardRect.y - ctm.view.panel.src.y );
+					
+					// ctm.view.panel.setHeight( ctm.getHeight() - ctm.mainMenu.cssSizeY );
+					
+				}catch(e:Error) {
+					Console.log("Error setting SoftKeyboard Size");
+				}
+				
+			}
+		}*/
 		
 		private function onImageLoaded ( _res:Resource ) :void
 		{
@@ -1631,19 +1673,19 @@
 				}else if( btn.options.originalLabel == ".Heading") {
 					historyPush( value );
 					nli = textField.text.charCodeAt(beginid-1);
-					if( nli == 9 || nli == 10 ||nli == 13 ) {
+					if( beginid == 0 || nli == 9 || nli == 10 || nli == 13 ) {
 						nl = "";
 					}else{
 						nl = "\n";
 					}
-					nli = textField.text.charCodeAt(endid+1);
+					nli = textField.text.charCodeAt(endid);
 					if( nli == 9 || nli == 10 || nli == 13 ) {
 						nle = "";
 					}else{
 						nle = "\n";
 					}
 					value = textField.text.substring(0, beginid) +  nl+ '# '+( beginid >= endid?"":textField.text.substring( beginid, endid )) + nle + textField.text.substring( endid );
-					tp = beginid + 1 + (endid > beginid ? (endid - beginid) : 0);
+					tp = beginid + 2 + nl.length + (endid > beginid ? (endid - beginid) + nle.length : 0);
 					textEnter();
 					stage.focus = textField;
 					textField.setSelection( tp, tp );
@@ -1651,19 +1693,19 @@
 				}else if( btn.options.originalLabel == ".List") {
 					historyPush( value );
 					nli = textField.text.charCodeAt(beginid-1);
-					if( nli == 9 || nli == 10 || nli == 13 ) {
+					if( beginid == 0 || nli == 9 || nli == 10 || nli == 13 ) {
 						nl = "";
 					}else{
 						nl = "\n";
 					}
-					nli = textField.text.charCodeAt(endid+1);
+					nli = textField.text.charCodeAt(endid);
 					if( nli == 9 || nli == 10 || nli == 13 ) {
 						nle = "";
 					}else{
 						nle = "\n";
 					}
 					value = textField.text.substring(0, beginid) +  nl+ '- '+( beginid >= endid?"":textField.text.substring( beginid, endid )) + nle + textField.text.substring( endid );
-					tp = beginid + 1 + (endid > beginid ? (endid - beginid) : 0);
+					tp = beginid + 2 + nl.length + (endid > beginid ? (endid - beginid) + nle.length : 0);
 					textEnter();
 					stage.focus = textField;
 					textField.setSelection( tp, tp );
@@ -1999,7 +2041,7 @@
 			
 			value = "" + num + lb;
 			
-			if(!isNaN(Number(num))) {
+			if(tfSlider && !isNaN(Number(num))) {
 				tfSlider.value = Number(num);
 			}
 			textEnter();
@@ -2037,157 +2079,93 @@
 					lb = curr.options.labelValue;
 				}
 				
+				
 				if( Application.instance.shortcutMgr.shiftDown ) {
 					// force add
 					value += listAppendSeparator + lb;
 				}else{
-					//value = lb;
-					var id:int = args.indexOf( lb );
-					var i:int;
-					var s1:int = -1;
-					var s2:int = args.indexOf( "#separator", id );
 					
-					if( s2 >= 0 ) {
-						s1 = args.lastIndexOf( "#separator", s2-1 );
-					}else{
-						s1 = args.lastIndexOf( "#separator" );
-						if( s1 >= 0 ) {
-							s2 = args.length;
-						}
-					}
-					
-					if( s1 < 0 ) {
-						if ( s2 >= 0 ) {
-							// Group: 0 - s2
-							s1 = 0;
-						}
-					}
-					
-					if( s1 >= 0 && s2 >= 0 ) 
-					{
-						// only one value from a group
-						var values:Array = value.split(listAppendSeparator);
-						var L:int = values.length;
-						var aid:int;
-						var spl:int=-1;
+					var v:String = value;
+					var st:int = v.indexOf( lb );
 						
-						for(i=L-1; i>=0; i--)
+					if( st >= 0 ) {
+						// remove
+						value = CssUtils.trim( v.substring(0, st) + v.substring( st + lb.length ) );
+						if( value == "" ) 
 						{
-							aid = args.indexOf( values[i] );
-							if( aid > s1 && aid < s2 ) {
-								values.splice(i, 1);
-								spl = i;
+							activateValue = " ";
+						}
+					}else{
+						
+						
+						//value = lb;
+						var id:int = args.indexOf( lb );
+						var i:int;
+						var s1:int = -1;
+						var s2:int = args.indexOf( "#separator", id );
+						
+						if( s2 >= 0 ) {
+							s1 = args.lastIndexOf( "#separator", s2-1 );
+						}else{
+							s1 = args.lastIndexOf( "#separator", id-1 );
+							if( s1 >= 0 ) {
+								s2 = args.length;
 							}
 						}
-						if( spl == -1 ) values.push(lb);
-						else values.splice(spl,0,lb);
-						value = values.join(listAppendSeparator);
-					}
-					else
-					{
-						// no groups
-						var v:String = value;
-						var st:int = v.indexOf( lb );
 						
-						if( st >= 0 ) {
-							// remove
-							value = CssUtils.trim( v.substring(0, st) + v.substring( st + lb.length ) );
-						}else{
-							// add
-							value += listAppendSeparator + lb;
+						if( s1 < 0 ) {
+							if ( s2 >= 0 ) {
+								// Group: 0 - s2
+								s1 = 0;
+							}
+						}
+						
+						if( s1 >= 0 && s2 >= 0 ) 
+						{
+							// only one value from a group
+							var values:Array = v.split(listAppendSeparator);
+							var L:int = values.length;
+							var aid:int;
+							var spl:int=-1;
+							
+							for(i=L-1; i>=0; i--) {
+								aid = args.indexOf( values[i] );
+								if( aid > s1 && aid < s2 ) {
+									values.splice(i, 1);
+									spl = i;
+								}
+								if( values[i] == "" ) values.splice(i,1);
+							}
+							if( spl == -1 ) values.push(lb);
+							else values.splice(spl,0,lb);
+							
+							if( values.length == 0 ) {
+								activateValue = " ";
+								value = "";
+							}else if( values.length == 1 ) {
+								value = values[0];
+							}else{
+								value = values.join(listAppendSeparator);
+							}
+							
+						}
+						else
+						{
+							// no groups
+							if( v == "" ) {
+								value = lb;
+							}else{
+								value += listAppendSeparator + lb;
+							}
 						}
 					}
-					
 				}
 			}else{
 				value += listAppendSeparator + lb;
 			}
+			
 			textEnter();
 		}
-		
-		/*
-		protected function ppLabelListAppendSelect ( e:PopupEvent ) :void {
-			var curr:PopupItem = e.selectedItem;
-			
-			if( _type == "labellistmultiple" || _type == "itemlistmultiple") {
-				if( Application.instance.shortcutMgr.shiftDown ) {
-					// force add
-					value += listAppendSeparator + curr.options.labelValue;
-				}else{
-					
-					
-					// toggle spearator groups
-					var id:int = args.indexOf( curr.options.labelValue );
-					var i:int;
-					var groups:Boolean = false;
-					//var s1:int = args.lastIndexOf( "#separator", id );
-					var s1:int = -1;
-					var s2:int = args.indexOf( "#separator", id );
-					if( s2 >= 0 ) {
-						for( i = s2-1; i >= 0; i-- ) {
-							if( args[i] == "#separator" ) {
-								s1 = i;
-								break;
-							}
-						}
-					}
-					
-					if( s1 < 0 ) {
-						if ( s2 >= 0 ) {
-							// Group: 0 - s2
-							groups = true;
-							s1 = 0;
-						}
-					}
-					if( s2 < 0 ) {
-						if ( s1 >= 0 ) {
-							// Group: s1 - end
-							groups = true;
-							s2 = args.length;
-						}
-					}
-					
-					if( groups )
-					{
-						// only one value from a group allowed..
-						trace("Group: " + s1 + ", " + s2);
-						
-						
-						var values:Array = value.split(listAppendSeparator);
-						var L:int = values.length;
-						var aid:int;
-						
-						for(i=L; i>=0; i--)
-						{
-							aid = args.indexOf( values[i] );
-							if( aid >= s1 && aid <= s2 )
-							{
-								values.splice(i,1);
-							}
-						}
-						value = values.join(listAppendSeparator) +  curr.options.labelValue;
-					}
-					else
-					{
-						var v:String = value;
-						var st:int = v.indexOf( curr.options.labelValue );
-						
-						if( st >= 0 ) {
-							// remove
-							value = CssUtils.trim( v.substring(0, st) + v.substring( st + curr.options.labelValue.length ) );
-						}else{
-							// add
-							value += listAppendSeparator + curr.options.labelValue;
-						}
-					}
-					
-					
-				}
-			}else{
-				value += listAppendSeparator + curr.options.labelValue;
-			}
-			textEnter();
-		}*/
 		
 		public override function setWidth ( w:int ) :void {
 			super.setWidth(w-cssBoxX);
@@ -2404,9 +2382,11 @@
 		}
 		
 		private function enterListener ( e:KeyboardEvent ) :void {
-			if ( e.charCode == 13 ) {
-  				if( stage && stage.focus ) {
-					stage.focus = null; // call onDeactivate..
+			if( !CTOptions.isMobile ) {
+				if ( e.charCode == 13 ) {
+					if( stage && stage.focus ) {
+						stage.focus = null; // call onDeactivate..
+					}
 				}
 			}
 		}

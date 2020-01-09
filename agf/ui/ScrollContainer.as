@@ -104,6 +104,7 @@
 				scrollbar.maxValue = 0.0001;
 				scrollbar.visible = false;
 			}
+			applyScrollValue( slider.value );
 		}
 	}
 }

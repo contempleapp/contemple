@@ -18,11 +18,15 @@
 	
 	public class PageEditor extends CssSprite {
 
-		public function PageEditor(w:Number=0, h:Number=0, parentCS:CssSprite=null, style:CssStyleSheet=null, name:String='', id:String="", classes:String="", noInit:Boolean=false) {
+		public function PageEditor(w:Number=0, h:Number=0, parentCS:CssSprite=null, style:CssStyleSheet=null, name:String='', id:String="", classes:String="", noInit:Boolean=false)
+		{
 			super(w,h,parentCS,style,name,id,classes,noInit);
+			
 			container = Application.instance.view.panel;
 			container.addEventListener(Event.RESIZE, newSize);
+			
 			Application.instance.view.addEventListener( AppEvent.VIEW_CHANGE, removePanel );
+			
 			showPages();
 		
 			if( CTOptions.animateBackground ) {
@@ -31,8 +35,10 @@
 		}
 		public var container: Panel;
 		
+		public var title:Label;
 		public var scrollpane:ScrollContainer;
 		public var itemList:ItemList;
+		public var cont:CssSprite;
 		public var body:CssSprite;
 		public var plusButton:Button;
 		private var pageName:NameCtrl;
@@ -59,20 +65,34 @@
 		}
 		
 		public function newSize(e:Event=null): void {
-			if (container && body)
+			if (container && cont && body)
 			{
 				var w:int = container.getWidth();
 				var h:int = container.getHeight();
 				
-				body.setWidth(w);
-				body.setHeight(h);
+				cont.setWidth(w - cont.cssBoxX);
+				cont.setHeight(h - cont.cssBoxY);
+				
+				body.setWidth(w - body.cssBoxX);
+				body.setHeight(h - body.cssBoxY);
 				
 				var sbw:int = 0;
-				if( scrollpane && scrollpane.slider.visible ) sbw = 16;
+				if( scrollpane ) {
+					if( scrollpane.slider.visible ) sbw = 16;
+					if( title ) {
+						title.setWidth( w );
+						
+						scrollpane.setWidth( w - body.cssBoxX );
+						scrollpane.setHeight( h - scrollpane.y );
+						scrollpane.contentHeightChange();
+					}
+					scrollpane.setWidth(w);
+				}
+				
 				if( itemList) {
 					if(itemList.items) {
 						for( var i:int=0; i < itemList.items.length; i++) {
-							itemList.items[i].setWidth( w - ( itemList.items[i].cssBoxX + cssBoxX + sbw ) );
+							itemList.items[i].setWidth( w - ( itemList.items[i].cssBoxX + body.cssBoxX + sbw ) );
 						}
 					}
 					itemList.setWidth(0);
@@ -83,19 +103,33 @@
 		
 		public function create () :void 
 		{
-			if( body && contains(body) ) removeChild(body);
+			if( cont ) {
+				if( body ) { 
+					if( title && body.contains(title) ) body.removeChild(title);
+					if( plusButton && body.contains(plusButton) ) body.removeChild(plusButton);
+					if( scrollpane && body.contains(scrollpane) ) body.removeChild(scrollpane);
+					if( cont.contains(body) ) cont.removeChild(body);
+					body = null;
+				}
+				if( contains(cont) ) removeChild(cont);
+				cont = null;
+			}
 			
 			if( container ) {
-				body = new CssSprite( container.getWidth(), container.getHeight(), null, container.styleSheet, 'div', '', 'editor page-editor', true);
-				addChild(body);
-				body._parentNode = container;
-				body.init();
+				cont = new CssSprite( container.getWidth(), container.getHeight(), null, styleSheet, 'body', '', '', true);
+				addChild(cont);
+				cont.init();
 				
-				body.setWidth( body.getWidth() - body.cssBoxX );
-				body.setHeight( body.getHeight() - body.cssBoxY );
+				body = new CssSprite( container.getWidth(), container.getHeight(), cont, container.styleSheet, 'div', '', 'editor page-editor', false);
+				//addChild(body);
+				//body._parentNode = container;
+				//body.init();
 				
-				body.x = container.cssLeft;
-				body.y = container.cssTop;
+				//body.setWidth( container.getWidth() - body.cssBoxX );
+				//body.setHeight( container.getHeight() - body.cssBoxY );
+				
+				//body.x = container.cssLeft;
+				//body.y = container.cssTop;
 			}
 		}
 		
@@ -105,16 +139,23 @@
 		
 		public function showPages ():void {
 		
+			var w:Number = container.getWidth();
 			create();
 			
-			plusButton = new Button( [ "New Page" ], 0, 0, body, container.styleSheet,'','pageeditor-plusbutton', false);
-			plusButton.addEventListener( MouseEvent.CLICK, plusClick );
-			plusButton.x = cssLeft;
-			plusButton.y = cssTop;
+			title = new Label( w, 20, body, container.styleSheet, '', 'pages-title', false);
+			title.label = Language.getKeyword( "Pages" );
+			title.x = body.cssLeft + title.cssMarginLeft;
+			title.y = body.cssTop + title.cssMarginTop;
+			title.setHeight( title.textField.textHeight );
 			
-			scrollpane = new ScrollContainer(0,0,body,container.styleSheet,'','pageeditor-container',false);
-			scrollpane.y = plusButton.y + plusButton.cssSizeY + 45;
-			scrollpane.x = cssLeft;
+			plusButton = new Button( [ "New Page" ], 0, 0, body, container.styleSheet, '', 'pageeditor-plusbutton', false);
+			plusButton.addEventListener( MouseEvent.CLICK, plusClick );
+			plusButton.x = body.cssLeft + plusButton.cssMarginLeft;
+			plusButton.y = body.cssTop + plusButton.cssMarginTop + title.cssSizeY + title.cssMarginBottom;
+			
+			scrollpane = new ScrollContainer(w,0,body,container.styleSheet,'','pageeditor-container',false);
+			scrollpane.y = plusButton.y + plusButton.cssSizeY + plusButton.cssMarginBottom;
+			scrollpane.x = body.cssLeft;
 			
 			itemList = new ItemList(0,0,scrollpane.content,container.styleSheet,'','pageeditor-list',true);
 			
@@ -124,7 +165,7 @@
 			pageCtrls = new Vector.<PageCtrl>;
 			
 			var pgc:PageCtrl;
-			var w:Number = container.getWidth();
+			
 			
 			var yp:Number = plusButton.cssSizeY;
 			var margin:Number = 2;
@@ -139,9 +180,11 @@
 			itemList.format();
 			itemList.init();
 			
-			body.setChildIndex( plusButton, body.numChildren-1 );
-			scrollpane.setHeight( container.getHeight() - (plusButton.cssSizeY+cssTop) );
-			scrollpane.contentHeightChange();
+			body.setChildIndex( plusButton, body.numChildren-2 );
+			body.setChildIndex( title, body.numChildren-1 );
+			
+		//	scrollpane.setHeight( container.getHeight() - scrollpane.y );
+		//	scrollpane.contentHeightChange();
 			
 			newSize();
 		}
@@ -177,8 +220,8 @@
 			}
 			
 			scrollpane = new ScrollContainer(0,0,body,styleSheet,'','pageeditor-container',false);
-			scrollpane.y = plusButton.y + plusButton.cssSizeY;
-			scrollpane.x = cssLeft;
+			scrollpane.y = body.cssTop; //plusButton.y + plusButton.cssSizeY;
+			scrollpane.x = body.cssLeft;
 			
 			itemList = new ItemList(0,0,scrollpane.content,container.styleSheet,'','pageeditor-list',true);
 			
