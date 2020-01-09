@@ -31,8 +31,8 @@
 			CTOptions.installSharedObjectId = "app.contemple.1.0.6";
 			
 			// to embed theme for testing use: app:/theme-demo
-			CTOptions.installTemplate = "app:/theme-demo";
-			// CTOptions.installTemplate = "";
+			// CTOptions.installTemplate = "app:/theme-demo";
+			CTOptions.installTemplate = "";
 			
 			CTOptions.clientHost = "";
 			CTOptions.projectName = "";
