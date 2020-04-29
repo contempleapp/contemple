@@ -22,12 +22,12 @@
 		// [br] -> <br/>
 		// [b]Fetter Text(Bold Text)[/b] -> <b>Fetter Text(Bold Text)</b>
 		// [i]Kursiver Text(Italic Text)[/i] -> <i>Kursiver Text(Italic Text)</i>
-		// [a href=google.de]Click Here[/a] -> <a href=url>Click Here</a:
+		// [a href=google.de]Click Here[/a] -> <a href=google.de>Click Here</a>
 		// [img src=bild.jpg width=550 height=335] -> <img src=src width=width height=height/>
 		//
 		// To add allowd tags, add the name aof the tag prefixed with an underscore (_) to HtmlParser.allowedDBTags 
 		//
-		// A DEPRECATED HTML DB TEXT SYNTAX IS ALSO AVAILABLE IN RICHTEXT INPUTS, NESTED TAGS ARE NOT ALLOWED: #A:url(c.com):link #B:text#/B#/A
+		// A DEPRECATED HTML DB TEXT SYNTAX IS ALSO AVAILABLE IN RICHTEXT INPUTS, NESTED TAGS ARE NOT ALLOWED
 		// #prop# --> Object Property Value
 		// #name# --> DB-Item-Name
 		// #L:English Label# --> German or English Text
@@ -40,9 +40,12 @@
 		// #A:url(url.com):Link Text# --> <a href=url>German Link Text</a>
 		// #T:url(img-path.gif):css-classes# --> <div class=css-classes><img src=url/></div>
 		// #P:url(img-path.gif):css-classes# <img src=url class=css-classes>
+		// #at# --> @
 		// #br# --> <br/> if isHtml or \n
 		// #hr# --> <hr/>
 		// #tab# --> return three "nbsp;" if isHtml is true, or three whitespaces
+		// #quote# --> "
+		// #squote# --> '
 		// #app-name# --> CTOptions.appName
 		// #app-verison# --> CTOptions.version
 		// #template-name# --> Name or Root Template
@@ -53,7 +56,107 @@
 		*/
 		
 		public static var allowedDBTags:Object = {
-			_a:true, _b:true, _br:true, _div:true, _hr:true, _i:true, _img:true, _p:true, _h1:true, _h2:true, _h3:true, _h4:true, _h5:true, _h6:true, _h7:true, _span:true, _u:true 
+			_a:true,
+			_abbr:true,
+			_address:true,
+			_area:true,
+			_aside:true,
+			_audio:true,
+			_b:true,
+			_bdi:true,
+			_bdo:true,
+			_blockqutoe:true,
+			_br:true,
+			_button:true,
+			_canvas:true,
+			_caption:true,
+			_cite:true,
+			_code:true,
+			_col:true,
+			_colgroup:true,
+			_command:true,
+			_data:true,
+			_datalist:true,
+			_del:true,
+			_details:true,
+			_div:true,
+			_dd:true,
+			_dfn:true,
+			_dl:true,
+			_dt:true,
+			_em:true,
+			_embed:true,
+			_fieldset:true,
+			_figure:true,
+			_figcaption:true,
+			_footer:true,
+			_form:true,
+			_header:true,
+			_hr:true,
+			_h1:true,
+			_h2:true,
+			_h3:true,
+			_h4:true,
+			_h5:true,
+			_h6:true,
+			_i:true,
+			_iframe:true,
+			_img:true,
+			_input:true,
+			_ins:true,
+			_kbd:true,
+			_keygen:true,
+			_label:true,
+			_li:true,
+			_legend:true,
+			_main:true,
+			_map:true,
+			_mark:true,
+			_math:true,
+			_menu:true,
+			_meter:true,
+			_object:true,
+			_ol:true,
+			_optgroup:true,
+			_option:true,
+			_output:true,
+			_p:true,
+			_param:true,
+			_pre:true,
+			_progress:true,
+			_q:true,
+			_nav:true,
+			_ruby:true,
+			_rp:true,
+			_rt:true,
+			_script:true,
+			_section:true,
+			_select:true,
+			_s:true,
+			_samp:true,
+			_small:true,
+			_source:true,
+			_span:true,
+			_strong:true,
+			_sub:true,
+			_sup:true,
+			_summary:true,
+			_svg:true,
+			_table:true,
+			_tbody:true,
+			_td:true,
+			_textarea:true,
+			_thead:true,
+			_tfoot:true,
+			_th:true,
+			_tr:true,
+			_time:true,
+			_track:true,
+			_ul:true,
+			_u:true ,
+			_var:true,
+			_video:true,
+			_wbr:true
 		};
 		
 		public static function toDBText ( code:String ) :String
@@ -105,7 +208,6 @@
 						writeChar = false;
 					
 					}
-				//	else if( cc1 == 47 ) // tag-close
 					else
 					{ // tag-open
 						st = i+1;

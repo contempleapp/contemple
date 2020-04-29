@@ -40,7 +40,7 @@
 		private var _children:Vector.<PopupItem>;
 		public function get children () :Vector.<PopupItem> { return _children; }
 		
-		// Add an item with its icons, labels and other assets, the label is the id of the item 
+		// Add an item with its icons, labels and other assets
 		public function addItem ( items:Array, css:CssStyleSheet=null ) :PopupItem 
 		{
 			if(_children == null) _children = new Vector.<PopupItem>();

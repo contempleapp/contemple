@@ -100,36 +100,33 @@
 		private function onFileChange( e:FileMonitorEvent ):void
 		{
 			var s:String = CTTools.readTextFile( e.file.url );
+
+			// trace("FileMonitor CHANGE: " + e.file.url);
 			
-			//if( s ) 
-			//{
-				// trace("FileMonitor CHANGE: " + e.file.url);
+			setTemplate( s );
+			
+			
+			if( templateId && CTTools.activeTemplate && templateId != CTTools.activeTemplate.name  )
+			{
+				// Invalidate sub template files
+				CTTools.invalidateTemplateFiles(CTTools.activeTemplate,false);
+			}
+			
+			// don't need to save modified file again..
+			templateSaveDirty = false;
+			
+			if( CTOptions.autoSave ) CTTools.save();
+			
+			try {
+				// update text editors
+				Application.instance.view.panel.src["displayFiles"]();
+			}catch(e:Error) {
 				
-				setTemplate( s );
-				
-				
-				if( templateId && CTTools.activeTemplate && templateId != CTTools.activeTemplate.name  )
-				{
-					// Invalidate sub template files
-					CTTools.invalidateTemplateFiles(CTTools.activeTemplate,false);
-				}
-				
-				// don't need to save modified file again..
-				templateSaveDirty = false;
-				
-				if( CTOptions.autoSave ) CTTools.save();
-				
-				try {
-					// update text editors
-					Application.instance.view.panel.src["displayFiles"]();
-				}catch(e:Error) {
-					
-				}
-				
-				if(CTOptions.debugOutput ) {
-					Console.log( "Reloaded modified file '"+path+"'");
-				}
-			//}
+			}
+			
+			if(CTOptions.debugOutput ) {
+				Console.log( "Reloaded modified file '"+path+"'");
+			}
 		}
 		
 		public function allDirty () :void {

@@ -54,7 +54,7 @@
 		public override function setWidth (w:int) :void {
 			super.setWidth(w);
 			if( w ) {
-				if( label ) label.setWidth( w - ( ctrlOptions ? ctrlOptions.cssSizeY + ctrlOptions.cssMarginX : 0) );
+				//if( label ) label.setWidth( w - ( ctrlOptions ? ctrlOptions.cssSizeY + ctrlOptions.cssMarginX : 0) );
 				if( textBox ) textBox.setWidth( w );
 				if( ctrlOptions ) ctrlOptions.x = w - (ctrlOptions.cssSizeX + ctrlOptions.cssMarginRight);
 			}
@@ -125,6 +125,7 @@
 			if( lb == Language.getKeyword("Revert to Default Value" )  ) {
 				if( textBox && _propObj ) {
 					textBox.value = _propObj.defValue;
+					textBox.activateValue = "";
 					textBox.textEnter();
 				}
 			} else if( lb == Language.getKeyword("Show Help") ) {

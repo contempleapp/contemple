@@ -38,7 +38,8 @@
 		private var itemList:ItemList;
 		private var currDir:String="";
 		internal static var clickScrolling:Boolean=false;
-		private var clickY:Number=0; 
+		private var clickY:Number=0;
+		private var pathLabel:Label;
 		
 		public function create () :void {}
 		
@@ -53,6 +54,8 @@
 		public override function setWidth( w:int) :void {
 			super.setWidth(w);
 			var sbw:int = 0;
+			if( pathLabel ) pathLabel.setWidth( w - cssBoxX );
+			
 			if( scrollpane && scrollpane.slider.visible ) sbw = 8;
 			if( itemList) {
 				if(itemList.items) {
@@ -69,7 +72,7 @@
 			super.setHeight(h);
 			if(scrollpane) {
 				var sldv:Boolean = scrollpane.slider.visible;
-				scrollpane.setHeight( h - (cssBoxY) );
+				scrollpane.setHeight( (h - cssBoxY) - pathLabel.cssSizeY );
 				scrollpane.contentHeightChange();
 				if( scrollpane.slider.visible != sldv ) setWidth( getWidth() );
 			}
@@ -85,6 +88,7 @@
 		public function showMediaItems ( directory:String="" ) :void
 		{
 			if(scrollpane) {
+				if( pathLabel && contains( pathLabel) ) removeChild( pathLabel );
 				if( itemList && scrollpane.content.contains( itemList ) ) scrollpane.content.removeChild( itemList );
 				if( contains( scrollpane) ) removeChild( scrollpane );
 			}
@@ -92,10 +96,16 @@
 			var w:Number = getWidth();
 			var h:Number = getHeight() - cssTop;
 			
+			pathLabel = new Label( 0,0, this, styleSheet, '', 'media-path-label', true);
+			pathLabel.label = "QYqpÜ";
+			pathLabel.init();
+			pathLabel.x = cssLeft;
+			pathLabel.y = cssTop;
+			
 			scrollpane = new ScrollContainer( w, h, this, styleSheet,'', 'media-scroll-container', false);
-			scrollpane.setHeight( cssSizeY );
+			scrollpane.setHeight( cssSizeY - pathLabel.cssSizeY );
 			scrollpane.setWidth( cssSizeX );
-			scrollpane.y = cssTop;
+			scrollpane.y = cssTop + pathLabel.cssSizeY;
 			scrollpane.x = cssLeft;
 			scrollpane.content.addEventListener( MouseEvent.MOUSE_DOWN, btnDown );
 			
@@ -114,9 +124,11 @@
 					itemList.addItem( ico, true);
 				}
 				listDirectory( directory );
+				pathLabel.label = directory.substring( rootDir.length ) + "/";
 			}else{
 				if( CTTools.projectDir ) {
 					listDirectory( rootDir );
+					pathLabel.label = "/";
 				}
 			}
 		}
@@ -250,14 +262,30 @@
 		}
 		
 		private function folderBtnClick(event:MouseEvent):void {
-			showMediaItems( currDir + CTOptions.urlSeparator + Button(event.currentTarget).label );
-		}
-		private function parentBtnClick(event:MouseEvent):void {
-			var cid:int = currDir.lastIndexOf(CTOptions.urlSeparator);
-			if( cid>=0 ) {
-				showMediaItems( currDir.substring(0,cid) );
+			if( clickScrolling )
+			{
+				clickScrolling = false;
+			}
+			else
+			{
+				showMediaItems( currDir + CTOptions.urlSeparator + Button(event.currentTarget).label );
 			}
 		}
+		
+		private function parentBtnClick(event:MouseEvent):void {
+			if( clickScrolling )
+			{
+				clickScrolling = false;
+			}
+			else
+			{
+				var cid:int = currDir.lastIndexOf(CTOptions.urlSeparator);
+				if( cid>=0 ) {
+					showMediaItems( currDir.substring(0,cid) );
+				}
+			}
+		}
+		
 		private function dirlistAsync(event:FileListEvent):void {
 			var list:Array = event.files;
 			for (var i:uint = 0; i < list.length; i++)

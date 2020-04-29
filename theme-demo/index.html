@@ -43,7 +43,7 @@ ContactOptions:Folder;
 <head>
 	<meta charset="utf-8">
 	<title>{#GeneralOptions.Browser-Title}</title>
-	<link rel="stylesheet" href="main.css?{random:Random}">
+	<link rel="stylesheet" href="main.css?{#r:random(2)}">
 </head>
 <body>
 	<div class="logo"><img src="{#Logo-Image}"></div>
@@ -54,6 +54,7 @@ ContactOptions:Folder;
 		</div>
 	</div>
 	<div class="demo">
+		<div class="sc">{#static-content:include("raw/sc.html")}</div>
 		<h1>test-num: {#test-num}</h1>
 		<div>Unit: {#test-num@unit}</div>
 		<div>Negativ: {#test-num@negativ}</div>

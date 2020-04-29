@@ -1,5 +1,4 @@
-﻿
-package agf.animation
+﻿package agf.animation
 {
 	public class MotionTransition implements IChannel
 	{
@@ -37,7 +36,6 @@ package agf.animation
 			}
 		}
 		
-		
 		public function storeFrame (keyframe:Number = 1, value:Number = 0, ease_def:*= undefined) :int
 		{
 			if( typeof( ease_def ) == "function" ) {
@@ -58,8 +56,6 @@ package agf.animation
 			return false;
 		}
 		public function clearFrames () :void {}
-		
-		
 	}
 }
 

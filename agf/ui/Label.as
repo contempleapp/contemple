@@ -22,8 +22,7 @@
 			
 			autoSwapState = "";
 			
-			if(css)
-			{
+			if(css) {
 				styleSheet = css;
 				textField.styleSheet = css;
 			}
@@ -44,7 +43,6 @@
 			if( w == 0 ) {
 				textField.autoSize = TextFieldAutoSize.LEFT;
 			}else{
-			
 				textField.autoSize = TextFieldAutoSize.NONE;
 				textField.width = w;
 			}

@@ -28,7 +28,7 @@
 			compileMedia( m.toLowerCase() );
 		}
 		
-		public static var defStyle:String="body{}div,header,nav,footer,br,p,h1,h2,h3,h4,h5,h6,h7,canvas,center{display:block;}a,abbr,address,article,aside,b,base,bdi,bdo,blockquote,br,button,caption,cite,code,data,datalist,dd,del,dfn,dl,tt,em,embed,fieldset,figcaption,figure,form,hr,i,img,iframe,input,ins,kbd,keygen,label,legend,li,map,mark,object,ol,optgroup,option,output,param,pre,progress,q,rb,rp,rt,rtc,s,samp,section,select,small,source,span,strong,sub,sup,template,textarea,time,track,u,ul,var,video{display:inline;}center{text-align:center;}h1{font-size:2em;}h2{font-size:1.5em;}table{display:table;}tr{display:table-row;}td{display:table-column;}b,strong{font-weight:bold;}i{font-style:italic;}";
+		public static var defStyle:String="body{}div,header,nav,footer,br,p,h1,h2,h3,h4,h5,h6,canvas,center{display:block;}a,abbr,address,article,aside,b,base,bdi,bdo,blockquote,br,button,caption,cite,code,data,datalist,dd,del,dfn,dl,tt,em,embed,fieldset,figcaption,figure,form,hr,i,img,iframe,input,ins,kbd,keygen,label,legend,li,map,mark,object,ol,optgroup,option,output,param,pre,progress,q,rb,rp,rt,rtc,s,samp,section,select,small,source,span,strong,sub,sup,template,textarea,time,track,u,ul,var,video{display:inline;}center{text-align:center;}h1{font-size:2em;}h2{font-size:1.5em;}table{display:table;}tr{display:table-row;}td{display:table-column;}b,strong{font-weight:bold;}i{font-style:italic;}";
 		
 		public override function parseCSS (cssText:String) :void
 		{

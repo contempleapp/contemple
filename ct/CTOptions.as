@@ -13,7 +13,6 @@
 	 */
 	public class CTOptions 
 	{
-		// Contemple version string
 		public static var appName: String = "Contemple";
 		public static var version: String = "0.0.0";
 		public static var defaultServerStartUrl:String = "https://www.contemple.app/demo/cthub/";
@@ -25,6 +24,8 @@
 		public static var verboseMode: Boolean = false; // In verbose mode, console is visible while installing and uploading
 		
 		public static var monitorFiles:Boolean = false;
+		public static var softKeyboard:Boolean = true; 
+		public static var textEditorUndos:int = 16; 
 		
 		public static var appConfigDir:String = "ctres"; // embeded config files inside applicationDirectory
 		public static var configFolder:String = "cfg";   // config files in applicationStorageDirectory
@@ -32,7 +33,6 @@
 		
 		public static var hubFolder:String = "cthub";   // hub folder on clientHost
 		public static var hubScriptFilename:String = "cthub.php";   // hub folder on clientHost
-		public static var installXmlName:String = "install.xml";   // install filename on clientHost
 		
 		public static var mobileProjectFolderName: String = "ask"; // fixed project-directory name or the string "ask"
 		public static var currentMobileFolder:String = ""; // read-only
@@ -54,10 +54,10 @@
 		public static var previewAtBottom:Boolean = false;  // (TODO: not implemented) web preview bottom or right
 		
 		public static var autoSave:Boolean = true;
-		public static var dontAskForSave:Boolean = true;
+		public static var dontAskForSave:Boolean = true; // If autoSave is false, performs one autoSave before switching to Fullscreen Preview
 		
 		public static var animateBackground:Boolean = true;		
-		public static var animateBackgroundMin:Number = 0.3;		
+		public static var animateBackgroundMin:Number = 0.48;		
 		public static var animateBackgroundMax:Number = 1.0;		
 		
 		public static var autoUpdate:Boolean = false;		  // check for updates every app-start
@@ -73,7 +73,7 @@
 		public static var pageParentEnabled:Boolean = false;
 		public static var pageTypeEnabled:Boolean = false;
 		public static var pageTitleEnabled:Boolean = false;
-		public static var pageWebdirEnabled:Boolean = false;
+		public static var pageWebdirEnabled:Boolean = true;
 		
 		public static var charset:String = "utf-8"; // charset for text files
 		public static var overrideInstallDB:String = ""; // sqlite db file path or empty
@@ -93,7 +93,7 @@
 		
 		// Template Information
 		public static var templateIndexFile:String = "config.xml";
-		public static var generateXhtmlStrictHtml:Boolean = true;
+		public static var generateXhtmlStrictHtml:Boolean = false;
 		
 		// DB Information
 		public static var dbIndexFileName:String = "dbi.xml"; // index file in the project directopry with database information for database
@@ -111,6 +111,8 @@
 		public static var uploadMethod:String = "php"; // ftp, php, asp etc
 		public static var uploadScript:String = "https://your-site.com/cthub.php"; // Online script that takes file uploads, manage passwords, sync etc.
         public static var uploadViewShowFileInfo:Boolean = true;
+		
+		public static var protectTemplateDownloads:Boolean = true;		// calls cthub.php for all zip file downloads (true)
 		
 		public static var autoSync:Boolean = true;		// sync database and template with every publish
 		public static var syncDatabase:Boolean = true;

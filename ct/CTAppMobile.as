@@ -24,15 +24,17 @@
 			
 			CTOptions.appConfigDir = "ctres";
 			CTOptions.appName = "ContempleCMS";
-			CTOptions.version = "1.0.8";
+			CTOptions.version = "1.0.11";
 			
 			CTOptions.mobileProjectFolderName = "ask";
 			CTOptions.localSharedObjectId = "app.contemple.1.0.6";
 			CTOptions.installSharedObjectId = "app.contemple.1.0.6";
 			
 			// to embed theme for testing use: app:/theme-demo
-			// CTOptions.installTemplate = "app:/theme-demo";
-			CTOptions.installTemplate = "";
+			//
+			
+			CTOptions.installTemplate = "app:/theme-shopping";
+			//CTOptions.installTemplate = "";
 			
 			CTOptions.clientHost = "";
 			CTOptions.projectName = "";

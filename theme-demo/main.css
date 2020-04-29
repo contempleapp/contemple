@@ -14,7 +14,7 @@ body {
 	background-size:cover;
 	background-position:center center;
 	height:100%;
-	background-image:url({#Background-Image});
+	background-image:url({#Background-Image}?{#r:random(2)});
 	background-repeat:repeat-x;
 	color:{#Font-Color};
 	font-family:"avenir next","Roboto Condensed","Myriad Pro","Myriad Web Pro",Avenir,Arial,Verdana;

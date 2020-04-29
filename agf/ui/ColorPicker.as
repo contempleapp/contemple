@@ -17,7 +17,7 @@
 			create(w, h);
 		}
 		
-		public static var knownColors:Array = [ 0x0, 0xFFFFFF ];
+		public static var knownColors:Array = [ 0x020202, 0xFFFFFF ];
 		
 		// add color to known colors box..
 		public static function testColor (c:int):void {
@@ -28,9 +28,11 @@
 		
 		private var _color:uint=0; // current color
 		private var _multiplier:Number=1;
-		private var mulR:Number = 1;
-		private var mulG:Number = 1;
-		private var mulB:Number = 1;
+		//private var mulR:Number = 1;
+		//private var mulG:Number = 1;
+		//private var mulB:Number = 1;
+		
+		//private var lightness:Number = 1; // 0-20
 		
 		public var target:Object;
 		public var targetName:String="colorValue";
@@ -52,6 +54,7 @@
 		private var colorPreviewWidth:int=40;
 		
 		public function get color () :uint {
+			/*
 			var col:Object = {};
 			ColorUtils.getRGBAComponents( _color, col );
 			if( multiplier != 1 ) {
@@ -71,6 +74,15 @@
 				if( mulB < 1 ) mulB = 1;
 			}
 			return ColorUtils.combineRGB( col.r * (_multiplier*mulR), col.g * (_multiplier*mulG), col.b * (_multiplier*mulB) ); 
+			*/
+			if ( _multiplier != 1 ) {
+				var lght:Number = multiplier < 1 ? multiplier : Math.pow( multiplier, 8 );
+				var col:Object = {};
+				ColorUtils.getRGBAComponents( _color, col );
+				return ColorUtils.lightness( col, lght );
+			}else{
+				return _color; 
+			}
 		}
 		public function set color (v:uint) :void {
 			_color = v;
@@ -100,11 +112,15 @@
 		}
 		private function updateColor (px:uint) :void {
 			_multiplier = 1;
-			mulR = 1;
-			mulG = 1;
-			mulB = 1;
-			color = px;
+			//mulR = 1;
+			//mulG = 1;
+			//mulB = 1;
+			// lightness = 1;
 			sb.value = 100;
+			
+			color = px;
+			//_color = px;
+			
 		}
 		public function setLabel (s:String) :void {
 			if( label ) {
@@ -254,7 +270,7 @@
 		
 		private function mouse_move (e:MouseEvent) :void  {
 			if( currEditImg ) {
-				var px: uint =  currEditImg.bitmapData.getPixel32( currEditImg.parent.mouseX, currEditImg.parent.mouseY );
+				var px:uint =  currEditImg.bitmapData.getPixel32( currEditImg.parent.mouseX, currEditImg.parent.mouseY );
 				updateColor(px);
 			}else{
 				mouse_up(null);
@@ -262,7 +278,7 @@
 		}
 		private function mouse_up (e:MouseEvent) :void {
 			if( currEditImg ) {
-				var px: uint =  currEditImg.bitmapData.getPixel32( currEditImg.parent.mouseX, currEditImg.parent.mouseY );
+				var px:int =  currEditImg.bitmapData.getPixel32( currEditImg.parent.mouseX, currEditImg.parent.mouseY );
 				updateColor(px);
 			}
 			currEditImg = null;
@@ -276,7 +292,7 @@
 			}else{
 				currEditImg = Bitmap(  e.target.getChildByName("bmp") );
 			}
-			var px: uint =  currEditImg.bitmapData.getPixel32( currEditImg.parent.mouseX, currEditImg.parent.mouseY );
+			var px:int =  currEditImg.bitmapData.getPixel32( currEditImg.parent.mouseX, currEditImg.parent.mouseY );
 			updateColor(px);
 			
 			if( stage ) {

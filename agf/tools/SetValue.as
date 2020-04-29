@@ -6,11 +6,9 @@
 	
 	public class SetValue extends BaseTool
 	{
-
 		// Interface methods:
 		public static function command ( argv:String, cmdComplete:Function=null, cmdCompleteArgs:Array=null ) :void 
 		{
-			
 			var args:Array = argv2Array( argv );
 		
 			// Command: Application set variable value
@@ -23,12 +21,8 @@
 			{
 				var pt:int = varname.lastIndexOf(".");
 			
-				
 				if( pt >= 0 ) 
 				{
-					
-					//trace("SetValue: " + vartype + " " + varname.substring(0, pt) + "[ " + varname.substring( pt+1 ) + " ] = " + value );
-					
 					var tar:String = varname.substring(0, pt);
 					var prop:String = varname.substring( pt+1 );
 					
@@ -36,37 +30,35 @@
 					if(!obj) obj = Application.instance.strval(tar, true );
 					
 					if( obj ) {
-					switch( vartype ) {
-						case "Boolean":
-							
-							obj[ prop ] = (value === "1" || value === "true");
-							break;
-						case "Number":
-							obj[ prop ] = Number(value);
-							break;
-						case "String":
-							obj[ prop ] = value;
-							break;
-						case "Object":
-							obj[ prop ] = Application.instance.strval( value, true );
-							break;
-						case "Class":
-							obj[ prop ] = new (Application.getClass(value))();
-							break;
-						case "CssValue":
-							obj[ prop ] = CssUtils.parse(value);
-							break;
-						
+						switch( vartype ) {
+							case "Boolean":
+								obj[ prop ] = (value === "1" || value === "true");
+								break;
+							case "Number":
+								obj[ prop ] = Number(value);
+								break;
+							case "String":
+								obj[ prop ] = value;
+								break;
+							case "Object":
+								obj[ prop ] = Application.instance.strval( value, true );
+								break;
+							case "Class":
+								obj[ prop ] = new (Application.getClass(value))();
+								break;
+							case "CssValue":
+								obj[ prop ] = CssUtils.parse(value);
+								break;
+						}
+					}
+					else{
+						Console.log( "SetValue::Target not found: " + tar);
 					}
 				}
-				else{
-					Console.log( "SetValue::Target not found: " + tar);
-				}
-				}
-				else
+				/*else
 				{
 					
-				}
+				}*/
 			}
 			
 			trace("Set Value complete... " + cmdComplete + ", " + cmdCompleteArgs);

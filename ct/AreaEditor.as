@@ -2,6 +2,8 @@
 {
 	import agf.html.*;
 	import agf.events.*;
+	import agf.utils.FileInfo;
+	import agf.utils.FileUtils;
 	import agf.utils.StringMath;
 	import flash.events.*;
 	import agf.icons.*;
@@ -30,8 +32,46 @@
 		public function AreaEditor( w:Number=0, h:Number=0, parentCS:CssSprite=null, style:CssStyleSheet=null, name:String='', id:String="", classes:String="", noInit:Boolean=false) {
 			super(w,h,parentCS,style,name,id,classes,noInit);
 			_clickScrolling = false;
+			Application.instance.view.addEventListener( AppEvent.VIEW_CHANGE, removePanel );
 			create();
 		}
+		
+		private function removePanel (e:Event) :void {
+			if( stage ) {
+				stage.removeEventListener( MouseEvent.MOUSE_MOVE, btnMove );
+				stage.removeEventListener( MouseEvent.MOUSE_MOVE, btnUp );
+			}
+			Main(Application.instance).view.removeEventListener( AppEvent.VIEW_CHANGE, removePanel );
+		}
+		
+		private function btnUp (event:MouseEvent) :void {
+			stage.removeEventListener( MouseEvent.MOUSE_MOVE, btnMove );
+			stage.removeEventListener( MouseEvent.MOUSE_UP, btnUp );
+		}
+		private function btnMove (event:MouseEvent) :void {
+			var dy:Number = mouseY - clickY;
+			
+			if( ! clickScrolling )
+			{
+				if( Math.abs(dy) > CTOptions.mobileWheelMove )
+				{
+					clickScrolling = true;
+				}
+			}else{
+				// scroll
+				scrollpane.slider.value -= dy;
+				scrollpane.scrollbarChange(null);
+				clickY = mouseY;
+			}
+		}
+		private function btnDown (event:MouseEvent) :void {
+			stage.addEventListener( MouseEvent.MOUSE_MOVE, btnMove );
+			stage.addEventListener( MouseEvent.MOUSE_UP, btnUp );
+			clickScrolling = false;
+			clickY = mouseY;
+		}
+		
+		private var clickY:Number=0; 
 		private var _h:int=0;
 		public var areapp:Popup;
 		public var plusButton:Popup;
@@ -63,7 +103,6 @@
 		private var pageItemDownTime:int = 0;
 		private var pageItemCurr:int = 0;
 		private var newPageItemTmp:Object={};
-		private var prevBottomMenu:Object={};
 		
 		// Change interface if template split changes
 		private var tmplSplitPaths:String;
@@ -170,6 +209,7 @@
 									for(i=0; i<L; i++) {
 										if(areas[i].name == CTTools.currArea ) {
 											currentArea = areas[i];
+											break;
 										}
 									}
 									if( !currentArea ) {
@@ -179,7 +219,7 @@
 								if( currentArea ) {
 									areapp.label = currentArea.name;
 								}
-								for(i = 0; i<L; i++) {
+								for (i = 0; i < L; i++) {
 									storeArea( areas[i] );
 								}
 							}
@@ -193,7 +233,7 @@
 						st = CTTools.subTemplates[i];
 						if(st.areasByName) {
 							for(nam in st.areasByName) {
-								if( st.areasByName[nam].name != "" ) {
+								if ( st.areasByName[nam].name != "" && st.stPageAreas[nam] == undefined ) {
 									storeArea( st.areasByName[nam] );
 								}
 							}
@@ -328,7 +368,7 @@
 								while( it != null ) {
 									it.open(null);
 									it = it.parentTree;
-								}						y
+								}
 							}
 						}
 					}else if( bt.labelSprite.state != "normal" ) {
@@ -383,7 +423,7 @@
 			
 			if( area != null && area.link == "" ) {
 				
-				if( CTTools.activeTemplate &&  CTTools.activeTemplate.hiddenAreasLookup != null ) {
+				if( CTTools.activeTemplate && CTTools.activeTemplate.hiddenAreasLookup != null ) {
 					if( CTTools.activeTemplate.hiddenAreasLookup[area.name] != null ) {
 						return;
 					}
@@ -426,7 +466,7 @@
 							}
 							else
 							{
-								path +="-" + secs[j] /*+ "."*/;
+								path += "-" + secs[j];
 								
 								itid = nd.getItemIdByLabel( secs[j] );
 								
@@ -447,9 +487,9 @@
 						}
 					}
 				}else{
-					if( !menuStore[ /*path +*/ area.name ] ) {
+					if( !menuStore[ area.name ] ) {
 						newit = areapp.rootNode.addItem( [area.name], styleSheet );
-						menuStore[ /*path +*/ area.name ] = true;
+						menuStore[ area.name ] = true;
 						newit.options.area = area;
 						newit.sortid = area.priority;
 					}
@@ -724,11 +764,11 @@
 				}
 			}
 		}
+		private var areaItems:Array;
 		
 		public function showAreaItems () :void
 		{
 			updateItem = null;
-			
 			
 			// Area changed...
 			if( multiSelectMenu != null ) {
@@ -750,6 +790,7 @@
 			var i:int;
 			var L:int;
 			var T:Template;
+			var ppi:PopupItem;
 			
 			if ( CTTools.subTemplates ) { // Select allowed sub templates for currentArea from DB...
 				
@@ -761,7 +802,7 @@
 				var hash:Object = {};
 				var id:String;
 				var nam:String;
-				var ppi:PopupItem;
+				
 				var ico:String;
 				
 				
@@ -860,11 +901,13 @@
 			var w:Number = getWidth();
 			
 			scrollpane = new ScrollContainer( 0,0, this, styleSheet,'', 'area-scroll-container', false);
-			
 			itemList = new ItemList(0, 0, scrollpane.content, styleSheet, '', 'area-container', false);
 			itemList.margin = 1;
 			var icos:Array;
 			var area_ico:Sprite;
+			var article_areas:Popup;
+			var pf:ProjectFile;
+			var filename:String;
 			
 			if( CTTools.pageItems )
 			{
@@ -873,7 +916,9 @@
 				var r:Object;
 				
 				// Get PageItem List of Items in the CurrentArea
-				var areaItems:Array = [];
+				//var areaItems:Array = [];
+				
+				areaItems = [];
 				for(i=0; i<L; i++) {
 					r = CTTools.pageItems[i];
 					if( r && r.area && r.area == currentArea.name ) areaItems.push(r);
@@ -883,12 +928,17 @@
 				var ico_col:int = Application.instance.mainMenu.iconColor;
 				var created:Boolean;
 				var labelText:String;
+				var j:int;
+				var jL:int;
+				var listIcon:String;
+				//var ppi:PopupItem;
 				
-				for(i=0; i<L; i++) {
+				for (i = 0; i < L; i++)
+				{
 					r = areaItems[i];
 					T = CTTools.findTemplate( r.subtemplate, "name" );
 					created = false;
-					var listIcon:String="";
+					listIcon = "";
 					
 					if( T )
 					{
@@ -908,10 +958,42 @@
 								icos = [new IconMenu(ico_col, Options.iconSize, Options.iconSize), labelText];
 							}
 							
-							if( T.numAreas > 0 ) {
-								area_ico = new IconFromFile( Options.iconDir + CTOptions.urlSeparator + "anmeldung-abgerundet.png", Options.iconSize, Options.iconSize);
-								area_ico.addEventListener( MouseEvent.MOUSE_DOWN, gotoAreaHandler );
-								icos.push( area_ico );
+							if ( T.articlepage != "" )
+							{
+								if( r.inputname == undefined ) {
+									r.inputname = r.name;
+								}
+								filename = CTTools.webFileName( T.articlename, r );
+								
+								pf = CTTools.findArticleProjectFile( CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderTemplate + CTOptions.urlSeparator + filename, "path");
+								
+								if ( pf && pf.templateAreas && pf.templateAreas.length > 0 )
+								{
+									article_areas = new Popup( [new IconArrowDown(Application.instance.mainMenu.iconColor, 1, Options.iconSize, Options.iconSize)], 
+															Options.btnSize, Options.btnSize, null, styleSheet, '', 'article-areas-popup', true );
+									article_areas.alignH = "right";
+									article_areas.textAlign = "right";
+									
+									jL = pf.templateAreas.length;
+									
+									for (j = 0; j < jL; j++ )
+									{
+										if ( CTTools.activeTemplate.areasByName[pf.templateAreas[j].name] == undefined) {
+											ppi = article_areas.rootNode.addItem( [pf.templateAreas[j].name], styleSheet );
+											ppi.options.area = pf.templateAreas[j];
+										}
+									}
+									if( article_areas.rootNode.children && article_areas.rootNode.children.length > 0 ) {
+										article_areas.addEventListener( PopupEvent.SELECT, gotoAreaPP );
+										icos.push( article_areas );
+									}
+								}
+							}else{
+								if( T.numAreas > 0 ) {
+									area_ico = new IconFromFile( Options.iconDir + CTOptions.urlSeparator + "anmeldung-abgerundet.png", Options.iconSize, Options.iconSize);
+									area_ico.addEventListener( MouseEvent.MOUSE_DOWN, gotoAreaHandler );
+									icos.push( area_ico );
+								}
 							}
 							
 							pg = new Button(icos, 0, 0, itemList, styleSheet, '', 'page-item-btn', false);
@@ -928,7 +1010,7 @@
 						pg = new Button([ "" + Language.getKeyword(r.subtemplate) + ": " + r.name, new IconMenu(ico_col) ], 0, 0, itemList, styleSheet, '', 'page-item-btn', false);
 					}
 					
-					if( areaItems[i].visible == "false" || areaItems[i].visible == false ) {
+					if( areaItems[i].visible == false ) {
 						pg.alpha = 0.35;
 					}
 					
@@ -949,7 +1031,14 @@
 				}
 			}
 		}
-		
+		private function gotoAreaPP (e:PopupEvent) :void {
+			e.preventDefault();
+			e.stopPropagation();
+			e.stopImmediatePropagation();
+			
+			var curr:PopupItem = e.selectedItem;
+			gotoArea( curr.options.area );
+		}
 		private function gotoAreaHandler (e:MouseEvent) :void
 		{
 			e.stopPropagation();
@@ -990,6 +1079,29 @@
 		private var _isUpdateForm:Boolean=false;
 		
 		
+		public function gotoArea (area:Area) :void
+		{
+			currentArea = area;
+			CTTools.currArea = area.name;
+			if( areapp ) {
+				areapp.label = area.name;
+			}
+			if( CTOptions.rememberArea ) {
+				var sh:SharedObject = SharedObject.getLocal( CTOptions.localSharedObjectId );
+				if( sh && sh.data) {
+					sh.data.lastArea = area.name;
+					sh.flush();
+					sh.close();
+				}
+			}
+			if( CTOptions.previewInEditor && CTTools.procFiles )
+			{
+				setCurrPF();
+			}
+			
+			showAreaItems();
+		}
+		
 		public function displayInsertForm ( tmpl:Template, isUpdateForm:Boolean=false ) :void 
 		{
 			if(!tmpl || !tmpl.indexFile) return;
@@ -1013,11 +1125,15 @@
 				var jL:int;
 				var ict:CssSprite;
 				
+				if( nameCtrl && contains( nameCtrl ) ) removeChild(nameCtrl);
+				
 				if( scrollpane && itemList && scrollpane.content.contains( itemList ) ) scrollpane.content.removeChild( itemList );
 				if( scrollpane && contains( scrollpane) ) removeChild( scrollpane );
 				
 				var w:Number =  getWidth();
 				scrollpane = new ScrollContainer(w, 0, this, styleSheet, '', '',false);
+				scrollpane.content.addEventListener( MouseEvent.MOUSE_DOWN, btnDown );
+				
 				itemList = new ItemList(w,0,scrollpane.content,styleSheet,'','area-insert-container',true);
 				var currSprite:CssSprite;
 				itemList.margin = 3;
@@ -1029,17 +1145,62 @@
 				
 				ict = new NameCtrl( "Name", "name", "name", "", null, null, w, 0, this, styleSheet,'', 'area-insert-prop', false);
 				var nm:NameCtrl = NameCtrl( ict );
+				var ppi:PopupItem; 
+				
+				if ( isUpdateForm && tmpl.articlepage != "" && updateItem )
+				{
+					var r:Object = CTTools.pageItemTable[ updateItem.name ];
+					
+					if ( r )
+					{
+						if( r.inputname == undefined ) {
+							r.inputname = r.name;
+						}
+						var filename:String = CTTools.webFileName( tmpl.articlename, r );
+						
+						pf = CTTools.findArticleProjectFile( CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderTemplate + CTOptions.urlSeparator + filename, "path");
+						
+						if ( pf && pf.templateAreas && pf.templateAreas.length > 0 )
+						{
+							jL = pf.templateAreas.length;
+							
+							nm.areaPopup.rootNode.removeItems();
+							
+							for (j = 0; j < jL; j++ )
+							{
+								if ( CTTools.activeTemplate.areasByName[pf.templateAreas[j].name] == undefined) {
+									ppi = nm.areaPopup.rootNode.addItem( [pf.templateAreas[j].name], styleSheet );
+									ppi.options.area = pf.templateAreas[j];
+								}
+							}
+							
+							nm.areaPopup.addEventListener( PopupEvent.SELECT, gotoAreaPP );
+						}
+					}
+				}
 				
 				if( !isUpdateForm ) {
-					if( nm.saveButton ) nm.saveButton.visible = false;
-					if( nm.deleteButton ) nm.deleteButton.visible = false;
+					nm.showSaveButton(false); // .visible = false;
+					nm.showDeleteButton(false); // .visible = false;
+					nm.showNextButton(false);
+					nm.showPrevButton(false);
+				}else{
+					if ( areaItems ) {
+						if ( areaItems.length <= 1 ) {
+							nm.showNextButton(false);
+							nm.showPrevButton(false);
+						}
+					}
 				}
+				
 				
 				ict.addEventListener( PropertyCtrl.ENTER, ictChange );
 				ict.addEventListener( "save", (isUpdateForm ? updatePageItem : insertPageItem));
 				ict.addEventListener( "saveInline", inlineSaveClick );
 				ict.addEventListener( "delete", deletePageItem );
 				ict.addEventListener( "close", cancelPageItem);
+				ict.addEventListener( "next", nextPageItem);
+				ict.addEventListener( "prev", prevPageItem);
 				
 				nameCtrl = NameCtrl(ict);
 				
@@ -1077,7 +1238,7 @@
 							for(j=0; j<jL; j++)
 							{
 								propName = pf.templateProperties[j].name;
-								
+								propVal = "";
 								if( propName == "field" ) continue;
 								
 								propType = pf.templateProperties[j].defType.toLowerCase();
@@ -1085,8 +1246,17 @@
 								if(propStore[propName]) continue; // ignore multiple properties with the same name
 								propStore[propName] = true;
 								
-								if( tmpl.dbProps && tmpl.dbProps[ propName ] ) propVal =/* typeof tmpl.dbProps[ propName ]=="object" ? */ tmpl.dbProps[ propName ].value /*: tmpl.dbProps[ propName ]*/;
-								else propVal = pf.templateProperties[j].defValue;
+								if ( isUpdateForm ) {
+									if ( updateItem && CTTools.pageItemTable[ updateItem['name'] ] && typeof(CTTools.pageItemTable[ updateItem['name'] ][propName]) != "undefined" )
+									{
+										propVal = CTTools.pageItemTable[ updateItem['name'] ][propName];
+									}
+								}
+								else
+								{
+									propVal = pf.templateProperties[j].defValue;
+									
+								}
 								
 								// filter "name" and "visible" property
 								namlc = propName.toLowerCase();
@@ -1108,7 +1278,10 @@
 									continue;	
 								}
 								
-								if(isUpdateForm && updateItem && updateItem[ propName ]) propVal = updateItem[propName];
+								if (isUpdateForm && updateItem && updateItem[ propName ])
+								{
+									propVal = updateItem[propName];
+								}
 								
 								ict = new PropertyCtrl( Language.getKeyword(propName.toLowerCase()), propName, propType, propVal, pf.templateProperties[j], pf.templateProperties[j].args, w, 0, itemList, styleSheet,'', 'area-insert-prop', false);
 								ict.options.propObject = pf.templateProperties[j];
@@ -1126,7 +1299,7 @@
 								{
 									PropertyCtrl(ict).textBox.addEventListener("heightChange", inputHeightChange);
 									
-									if( propType == "vector" || propType == "vectorlink" ) {									
+									if( propType == "vector" || propType == "vectorlink" ) {
 										PropertyCtrl(ict).textBox.addEventListener("lengthChange", vectorLengthChange);
 									}
 									
@@ -1176,7 +1349,7 @@
 					}
 				}
 				
-				var nm:NameCtrl = /*NameCtrl(itemList.getChildByName("name"))*/ nameCtrl;
+				var nm:NameCtrl = nameCtrl;
 				initValues[ 'visible' ] = { value: nm.visibleStatus, name:'visible' };
 				
 				currItemName = nm.textBox.value;
@@ -1604,26 +1777,26 @@
 				var r:Object;
 				
 				// Get PageItem List of Items in the CurrentArea stored in the db
-				var areaItems:Array = [];
+				var _areaItems:Array = [];
 				var i:int;
 				
 				for( i=0; i<L; i++ ) {
 					r = CTTools.pageItems[i];
-					if( r && r.area && r.area == currentArea.name ) areaItems.push(r);
+					if( r && r.area && r.area == currentArea.name ) _areaItems.push(r);
 				}
-				areaItems.sortOn( "sortid", Array.NUMERIC );
+				_areaItems.sortOn( "sortid", Array.NUMERIC );
 				
-				L = areaItems.length;
+				L = _areaItems.length;
 				for( i=0; i<L; i++ ) {
 				
 					if( i == pageItemNewIndex )
 					{
-						newInsertSortID = areaItems[i].sortid;
-						areaItems[i].sortid ++;
+						newInsertSortID = _areaItems[i].sortid;
+						_areaItems[i].sortid ++;
 					}
 					else if( i > pageItemNewIndex ) 
 					{
-						areaItems[i].sortid ++;
+						_areaItems[i].sortid ++;
 					}
 				}
 				
@@ -1768,6 +1941,7 @@
 				if( CTTools.activeTemplate.areasByName[ CTTools.currArea ] != undefined ) 
 				{ 
 					L = CTTools.procFiles.length;
+					currPF = null;
 					
 					for(i = 0; i < L; i++) 
 					{
@@ -1786,9 +1960,12 @@
 								break;
 							}
 						}
+						if ( currPF != null ) break;
 					}
 				
-				}else{
+				}
+				else
+				{
 					if( CTTools.subTemplates )
 					{
 						var st:Template=null;
@@ -1822,7 +1999,9 @@
 							if( _currArea != "" && _currItem != "" )
 							{
 								L = CTTools.procFiles.length;
-					
+								
+								currPF = null;
+								
 								for(i = 0; i < L; i++) 
 								{
 									L2 = CTTools.procFiles[i].templateAreas.length;
@@ -1832,6 +2011,7 @@
 										{
 											currPF = CTTools.procFiles[i];
 											currItemName = _currItem;
+											
 											try {
 												Application.instance.view.panel.src["displayFiles"]();
 											}catch(e:Error) {
@@ -1840,12 +2020,49 @@
 											break;
 										}
 									}
+									if ( currPF != null ) break;
 								}
 							}
+						}else{
+							
+							if ( CTTools.articleProcFiles )
+							{
+								L = CTTools.articleProcFiles.length;
+								
+								for(i = 0; i < L; i++) 
+								{
+									if ( CTTools.articleProcFiles[i].templateAreas )
+									{
+										L2 = CTTools.articleProcFiles[i].templateAreas.length;
+										for(j = 0; j < L2; j++) 
+										{
+											if( CTTools.articleProcFiles[i].templateAreas[j].name == CTTools.currArea ) 
+											{
+												currPF = CTTools.articleProcFiles[i];
+												currItemName = CTTools.currArea;
+												
+												try {
+													Application.instance.view.panel.src["displayFiles"]();
+												}catch(e:Error) {
+													
+												}
+												break;
+											}
+										}
+										if ( currPF != null ) break;
+									}
+								}
+								
+								
+							}
 						}
-					}	
+						
+					}
+					
 				}
 			}
+			//if( currPF ) trace("CURRPF: " + currPF.name);
+			
 		}
 		private function plusClick (e:PopupEvent) :void{
 			var curr:PopupItem = e.selectedItem;
@@ -1860,6 +2077,55 @@
 		private function onAskInsert () :void {
 			displayInsertForm( currentTemplate, false );
 		}
+		
+		private function nextPageItem (e:Event) :void {
+			if ( updateItem && areaItems && areaItems.length > 0)
+			{
+				var L:int = areaItems.length;
+				
+				for( var i:int=0; i<L; i++)
+				{
+					if( areaItems[i] && areaItems[i].name == updateItem.name )
+					{
+						if( L > i+1 && areaItems[i+1] )
+						{
+							var T:Template = CTTools.findTemplate( areaItems[i+1].subtemplate, "name" );
+							if( T ) {
+								updateItem = areaItems[i+1];
+								displayInsertForm( T, true );
+							}else Console.log("ERROR: Can not find Template '" + areaItems[i+1].subtemplate + "' for Page Item: " +  areaItems[i+1].name);
+							
+							
+							break;
+						}
+					}
+				}
+			}
+		}
+		private function prevPageItem (e:Event) :void {
+			if ( updateItem ) {
+				var L:int = areaItems.length;
+				
+				for( var i:int=L-1; i>=0; i--)
+				{
+					if( areaItems[i] && areaItems[i].name == updateItem.name )
+					{
+						if( i>0 && areaItems[i-1] )
+						{
+							var T:Template = CTTools.findTemplate( areaItems[i-1].subtemplate, "name" );
+							if( T ) {
+								updateItem = areaItems[i-1];
+								displayInsertForm( T, true );
+							}else Console.log("ERROR: Can not find Template '" + areaItems[i-1].subtemplate + "' for Page Item: " +  areaItems[i-1].name);
+							
+							break;
+						}
+					}
+				}
+				
+				
+			}
+		}
 		private function cancelPageItem (e:Event) :void {
 			// reset ram-db values
 			if( _isUpdateForm && initValues ) {
@@ -1871,6 +2137,7 @@
 					}
 				}
 			}
+			
 			showAreaItems();
 		}
 		public function multiSelDelete () :void {
@@ -2076,7 +2343,6 @@
 		private function updatePageItem ( e:Event ) :void {
 			if( updateItem ) {
 				var pms:Object={};
-				
 				pms[":_name"] = updateItem.name;
 				pms[":_visible"] = updateItem.visible;
 				pms[":_uid"] = updateItem.uid;
@@ -2096,8 +2362,10 @@
 					pms[":_uid"] = updateItem.ext_uid;
 					var fields:Array = currentTemplate.fields.split(",");
 					var pc:PropertyCtrl;
+					var L:int = fields.length;
+					var i:int;
 					
-					for(var i:int=0; i < fields.length; i++)
+					for(i=0; i < L; i++)
 					{
 						// fill pms and build query...
 						if( fields[i] == "crdate")
@@ -2119,10 +2387,52 @@
 									storeFileVector( pc.textBox );
 								}
 							}
-							pms[ ":_"+ fields[i] ] = pc.textBox.value;
+							pms[ ":_"+ fields[i] ] = pc ? pc.textBox.value : "";
 							fieldVal += ','+fields[i]+'=:_' +  fields[i];
 						}
-					} 
+					}
+					
+					if( currentTemplate.articlepage != "" )					 
+					{
+						// create article page with db fields
+						// var props:Object = { inputname: pms[":_name"] };
+						props = { inputname: pms[":_name"] };
+						
+						
+						for( i = 0; i < L; i++)
+						{
+							pc = PropertyCtrl( itemList.getChildByName( fields[i] ) );
+							props[ fields[i] ] = pc ? pc.textBox.value : "";
+						}
+						
+						props["itemtemplate"] = currentTemplate.name;
+						props["name"] = nameCtrl.textBox.value;
+						
+						var filename:String = "";
+						var fi:FileInfo;
+						
+						if( currentTemplate.articlename != "" )
+						{
+							filename = CTTools.webFileName( currentTemplate.articlename, props );
+						}
+						else
+						{
+							fi = FileUtils.fileInfo( currentTemplate.articlepage );
+							
+							filename = pms[":_name"] + "." + fi.extension;
+						}
+						
+						fi = FileUtils.fileInfo( filename );
+						
+						articlePageWritten = false;
+						articleAreasInvalid = false;
+						
+						if ( !PageEditor.createPage( fi.name, true, "", "article", currentTemplate.name + ":" + currentTemplate.articlepage, props["inputname"], fi.path, "now", onArticlePage, props) )
+						{
+							Console.log( "Error: Create " + fi.name + " Page");
+						}
+					}
+					
 					var rv:Boolean = CTTools.db.updateQuery( onUpdateExtensionItem, currentTemplate.tables, "uid=:_uid", fieldVal, pms);
 					if( !rv) {
 						Console.log( "ERROR Updating Item Extension Table " + updateItem + ", uid: " + updateItem.ext_uid + ", tmpl: " + currentTemplate + ", fields: " + currentTemplate.fields);
@@ -2147,10 +2457,25 @@
 			
 			if( CTOptions.autoSave ) CTTools.save();
 			
-			if( !saveInline ) {
-				if( currentTemplate && currentTemplate.numAreas > 0 ) {
-					create();
+			if ( !saveInline )
+			{
+				if ( currentTemplate.articlepage != "" ) {
+					if ( currentTemplate.articlepage != "" ) {
+						if(articlePageWritten) {
+							
+							//Application.instance.cmd( "Application restart");
+							showAreaItems();
+							return;
+						}else{
+							articleAreasInvalid = true;
+						}
+					}
+				}else{
+					if( currentTemplate && currentTemplate.numAreas > 0 ) {
+						create();
+					}
 				}
+			
 				showAreaItems();
 			}else{
 				storeCurrentItemValues();
@@ -2179,6 +2504,7 @@
 			
 			Application.instance.showLoading();
 		}
+		
 		private function onPageItemInsertSelect (res:DBResult) :void {
 			if (res && res.data && res.data.length > 0 ) {
 				Application.instance.hideLoading();
@@ -2196,12 +2522,12 @@
 				
 			}else{				
 				if( itemList ) {
-					var areaItems:int;
+					var _areaItems:int;
 					
 					if( newInsertSortID >= 0 ) {
-						areaItems = newInsertSortID;
+						_areaItems = newInsertSortID;
 					}else{
-						areaItems = itemList.numItems;
+						_areaItems = itemList.numItems;
 					}
 					
 					var pms:Object={};
@@ -2209,7 +2535,7 @@
 					pms[":vis"] = nameCtrl.visibleStatus;
 					pms[":tmpl"] = currentTemplate.name;
 					pms[":ara"] = currentArea.name;
-					pms[":sortid"] = areaItems; // Last
+					pms[":sortid"] = _areaItems; // Last
 					pms[":date"] = "now";
 					
 					newPageItemTmp = { name: pms[":nam"], area: pms[":ara"], sortid: pms[":sortid"], subtemplate: pms[":tmpl"], crdate: "" };
@@ -2222,6 +2548,9 @@
 				}
 			}
 		}
+		private static var props:Object;
+		private static var articlePageWritten:Boolean=false;
+		private static var articleAreasInvalid:Boolean=false;
 		
 		private function onPageItemInsert  (res:DBResult) :void {
 			if (res && res.rowsAffected > 0) 
@@ -2232,14 +2561,16 @@
 				if ( currentTemplate.tables && currentTemplate.fields && itemList )
 				{
 					insertFileStore = [];
-					
+					var i:int;
+					var L:int;
 					var pc:PropertyCtrl;
 					var fieldVal:String = ":_name";
 					var fields:Array = currentTemplate.fields.split(",");
 					var pms:Object = {};
 					pms[":_name"] = nameCtrl.textBox.value;
 					
-					for (var i:int = 0; i < fields.length; i++) 
+					L = fields.length;
+					for (i = 0; i < L; i++) 
 					{
 						// build query...
 						
@@ -2270,17 +2601,139 @@
 						newPageItemTmp[ fields[i] ] = pms[ ":_"+ fields[i] ];
 					}
 					
-					var rv:Boolean = CTTools.db.insertQuery( onInsertExTable, currentTemplate.tables, currentTemplate.fields, fieldVal, pms);
+					if( currentTemplate.articlepage != "" )					 
+					{
+						// create article page with db fields
+						//var props:Object = { inputname: pms[":_name"] };
+						props = { inputname: pms[":_name"] };
+						
+						for( i = 0; i < L; i++)
+						{
+							pc = PropertyCtrl( itemList.getChildByName( fields[i] ) );
+							props[ fields[i] ] = pc ? pc.textBox.value : "";
+						}
+						
+						props["itemtemplate"] = currentTemplate.name;
+						props["name"] = nameCtrl.textBox.value;
+						
+						var filename:String = "";
+						var fi:FileInfo;
+						
+						if( currentTemplate.articlename != "" )
+						{
+							filename = CTTools.webFileName( currentTemplate.articlename, props );
+						}
+						else
+						{
+							fi = FileUtils.fileInfo( currentTemplate.articlepage );
+							
+							filename = pms[":_name"] + "." + fi.extension;
+						}
+						
+						fi = FileUtils.fileInfo( filename );
+						
+						articlePageWritten = false;
+						articleAreasInvalid = false;
+						
+						if ( !PageEditor.createPage( fi.name, true, "", "article", currentTemplate.name + ":" + currentTemplate.articlepage, props["inputname"], fi.path, "now", onArticlePage, props) )
+						{
+							Console.log( "Error: Create " + fi.name + " Page");
+						}
+					}
 					
+					var rv:Boolean = CTTools.db.insertQuery(onInsertExTable, currentTemplate.tables, currentTemplate.fields, fieldVal, pms);
 					if(!rv) {
 						Application.instance.hideLoading();
 						Console.log("ERROR Inserting Item Extension Table " + pms[":_name"]);
 					}
 				}
+				
 				// Construct inline db-item
 				CTTools.pageItems.push( newPageItemTmp );
 				CTTools.pageItemTable[newPageItemTmp.name] = newPageItemTmp;
 			}
+		}
+		
+		private function onArticlePage ( success:Boolean ) :void
+		{
+			if ( success )
+			{
+				var s:String = CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderTemplate + CTOptions.urlSeparator + (PageEditor._ltPage.webdir ? PageEditor._ltPage.webdir + CTOptions.urlSeparator : "") + PageEditor._ltPage.filename;
+				var pf:ProjectFile = CTTools.findArticleProjectFile( s, "path" );
+				
+				if ( pf ) {
+					pf.allDirty();
+					CTTools.saveArticleFile( pf, PageEditor._ltPage.webdir );
+				}
+				
+				articlePageWritten = true;
+								
+				if ( articleAreasInvalid )
+				{
+					//Application.instance.cmd( "Application restart");
+					showAreaItems();
+					//create();
+				}
+			}
+		}
+		
+		private function onInsertExTable  (res:DBResult) :void {
+			if(res && res.rowsAffected ) {
+				newPageItemTmp.ext_uid = res.lastInsertRowID;
+				Application.instance.hideLoading();
+				
+				if( newInsertSortID >= 0 ) {
+					newInsertSortID = -1;
+					showAreaItems();
+					dragSaveClickHandler(null);
+					pageItemDragging = false;
+				}else{
+					
+					invalidateCurrArea( true );
+					
+					if ( CTOptions.autoSave ) CTTools.save();
+					
+					// rebuild area tree for new areas..
+						
+					if ( currentTemplate.articlepage != "" ) {
+						if(articlePageWritten) {
+							//create();
+							//Application.instance.cmd( "Application restart");
+							showAreaItems();
+							return;
+						}else{
+							articleAreasInvalid = true;
+						}
+					}else{
+						if( currentTemplate && currentTemplate.numAreas > 0 ) {
+							create();
+						}
+					}
+					Application.instance.hideLoading();
+					
+					if(!saveInline) {
+						showAreaItems();
+					}else{
+						storeCurrentItemValues();
+						saveInline = false;
+					}
+					
+					try {
+						Application.instance.view.panel.src["reloadClick"]();
+					}catch(e:Error) {
+						
+					}
+				}
+			}else{
+				Console.log( "ERROR In Insert Page Item Extension");
+				Application.instance.hideLoading();
+				showAreaItems();
+			}
+		}
+		
+		private function onFilesInserted(res:DBResult) :void {
+			Application.instance.hideLoading();
+			showAreaItems();
 		}
 		
 		private function storeFileVector (pc_textBox:InputTextBox) :void {
@@ -2346,16 +2799,15 @@
 				obj.hours = d.hours;
 				obj.minutes = d.minutes;
 				obj.seconds = d.seconds;
-				obj.milliseconds = d.milliseconds;
+				//obj.milliseconds = d.milliseconds;
 				obj.time = d.time;
 				obj.timezoneOffset = d.timezoneOffset;
 				obj.vectorindex = vectorIndex;
 				
-				//var namPC:PropertyCtrl = PropertyCtrl( itemList.getChildByName("name") );
-				if( /*namPC*/ nameCtrl) {
-					obj["inputname"] = /*namPC*/nameCtrl.textBox.value;
+				if(nameCtrl) {
+					obj["inputname"] = nameCtrl.textBox.value;
 				}
-
+				
 				if( pc_textBox.propObj ) {
 					for( var nm:String in pc_textBox.propObj ) {
 						obj[nm] = pc_textBox.propObj[nm];
@@ -2366,7 +2818,7 @@
 					obj.uid = 0;
 				}
 				
-				newname = TemplateTools.obj2Text (  pc_textBox.www_folder + CTOptions.urlSeparator + pc_textBox.rename_template, "#", obj );
+				newname = TemplateTools.obj2Text( pc_textBox.www_folder + CTOptions.urlSeparator + pc_textBox.rename_template, "#", obj );
 			}else{
 				newname = pc_textBox.www_folder + CTOptions.urlSeparator + newname;
 			}
@@ -2392,56 +2844,8 @@
 			ResourceMgr.getInstance().clearResourceCache( f1 );
 			ResourceMgr.getInstance().clearResourceCache( f2 );
 			// Display new image...
+			
 		}
-		
-		private function onInsertExTable  (res:DBResult) :void {
-			if(res && res.rowsAffected ) {
-				newPageItemTmp.ext_uid = res.lastInsertRowID;
-				Application.instance.hideLoading();
-				
-				if( newInsertSortID >= 0 ) {
-					newInsertSortID = -1;
-					showAreaItems();
-					dragSaveClickHandler(null);
-					pageItemDragging = false;
-				}else{
-					
-					invalidateCurrArea( true );
-					
-					if( CTOptions.autoSave ) CTTools.save();
-					
-					if( currentTemplate && currentTemplate.numAreas > 0 ) {
-						// rebuild area tree for new areas..
-						create();
-					}
-					
-					Application.instance.hideLoading();
-					
-					if(!saveInline) {
-						showAreaItems();
-					}else{
-						storeCurrentItemValues();
-						saveInline = false;
-					}
-					
-					try {
-						Application.instance.view.panel.src["reloadClick"]();
-					}catch(e:Error) {
-						
-					}
-				}
-			}else{
-				Console.log( "ERROR In Insert Page Item Extension");
-				Application.instance.hideLoading();
-				showAreaItems();
-			}
-		}
-		
-		private function onFilesInserted(res:DBResult) :void {
-			Application.instance.hideLoading();
-			showAreaItems();
-		}
-		
 		private function ictChange ( e:Event ) :void {
 			var it:PropertyCtrl = PropertyCtrl( e.currentTarget );
 			
@@ -2459,7 +2863,7 @@
 			var L:int;
 			
 			// Test if template splits changed
-			if ( tmplSplitPaths != "" && currentTemplate )
+			if ( currentTemplate && tmplSplitPaths != "" )
 			{
 				//Insert in tmpl->dbprops
 				if( currentTemplate.dbProps[ it._name ] != undefined) {

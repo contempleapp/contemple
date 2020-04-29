@@ -37,7 +37,8 @@
 		public var files:String;                  // Template text files (only html, js css with template objects etc..)
 		public var pagetemplates:String="";       // Template text files (only html)
 		public var homeAreaName:String="";        // Name of area to display first
-		
+		public var articlepage:String="";         // page-template, optional page for the item
+		public var articlename:String="";         // articlepage-name
 		public var staticfiles:String;        // Any additional files in the /raw and /min folders
 		public var folders:String;            // static folders in /raw and /min folders (duplicate)
 		public var templatefolders:String;    // static folder in /tmpl dir
@@ -58,13 +59,16 @@
 		public var propertiesByName:Object = {}; // name:object
 		public var filesByName:Object = {};      // name:urlstring
 		
-		public var jsfiles:Vector.<EmbedFile>; // collect embed files of sub templates 
-		public var cssfiles:Vector.<EmbedFile>;// collect embed files of sub templates
+		public var jsfiles:Vector.<EmbedFile>;   // collect embed files of sub templates 
+		public var cssfiles:Vector.<EmbedFile>;  // collect embed files of sub templates
 		
 		public var dbProps:Object = {};          // {name,uid,type,value}
 		public var update:String="";
 		
 		internal static var randoms:Object = {};
+		
+		internal var stPageAreas:Object = {};
+		
 		
 		private var _hiddenareas:String = "";
 		public var hiddenAreasLookup:Object = {}; // read only
@@ -171,7 +175,7 @@
 		
 		public static function resetPrios () :void {
 			prios = { _: 100 };
-			randoms = {};
+			// randoms = {};
 		}
 		public static function preproc (s:String, itemName:String="", pageName:String="") :String
 		{
@@ -298,7 +302,6 @@
 					// ignore whitespace after ;
 					for( ++i; i<L; i++ ) { 
 						if( s.charCodeAt(i) > 32 ) {
-							//i--;
 							break;
 						}
 					}
@@ -420,6 +423,7 @@
 			var t2tobj:Object;
 			var t2tres:Resource;
 			var t2tstr:String;
+			var t2tnum:Number;
 			var t2tpth:String;
 			var t2ttmp:String;
 			var atc:int;
@@ -436,6 +440,9 @@
 			var filepath:String;
 			var tmpdbprops:Object;
 			var pftmp:ProjectFile = new ProjectFile("tmp");
+			var file:File;
+			var fileName:String;
+			var stpg:Boolean;
 			
 			for(var i:int=0; i<L; i++) {
 				
@@ -552,22 +559,23 @@
 											spcc = nam.charCodeAt(k);
 											if ( spcc == 33 || spcc == 60 || spcc == 61 || spcc == 62 ) { // ! < = >
 												opfound = k;
-												split_name = nam.substring(1, k);
+												split_name = CssUtils.trim(nam.substring(1, k));
+												
 												split_operator = nam.charAt(k);
 												spcc = nam.charCodeAt(k + 1);
 												if ( spcc == 33 || spcc == 60 || spcc == 61 || spcc == 62 ) { // ! < = >
-													k++
+													k++;
 													split_operator += nam.charAt(k); // found two char operator: >= == <= !=
 													if( nam.length >= k+2) {
 														spcc = nam.charCodeAt(k + 1);
 														if ( spcc == 33 || spcc == 60 || spcc == 61 || spcc == 62 ) { 
-															k++
+															k++;
 															split_operator += nam.charAt(k); // found three char operator: >== === <== !==
 														}
 													}
 												}
 												
-												split_value = nam.substring( k + 1 );
+												split_value = CssUtils.trimQuotes( CssUtils.trim(nam.substring( k + 1 )) );
 												
 												split_value_lc = split_value.toLowerCase();
 												
@@ -591,9 +599,9 @@
 												
 												splitCondition = false;
 												splitProp = null;
-												
+											
 												// Search the [name] in dpProps,
-												if ( template && template.dbProps && template.dbProps[split_name]   ) {
+												if ( template && template.dbProps && template.dbProps[split_name] != undefined ) {
 													splitProp = typeof template.dbProps[split_name] == "object" ? template.dbProps[split_name].value : template.dbProps[split_name];// template.dbProps[split_name].value;
 												}else {
 													// Search in properties for default value:
@@ -622,30 +630,22 @@
 												
 												if ( split_operator == "=" || split_operator == "==" ) {
 													splitCondition = splitProp == split_valueProp;
-													
 												}else if ( split_operator == ">" ) {
 													splitCondition = splitProp > split_valueProp;
-													
 												}else if ( split_operator == "<" ) {
 													splitCondition = splitProp < split_valueProp;
-													
 												}else if ( split_operator == "<=" ) {
 													splitCondition = splitProp <= split_valueProp;
-													
 												}else if ( split_operator == ">=" ) {
 													splitCondition = splitProp >= split_valueProp;
-													
 												}else if ( split_operator == "!=" ) {
 													splitCondition = splitProp != split_valueProp;
-											
 												}else if ( split_operator == "!==" ) {
 													splitCondition = splitProp !== split_valueProp;
-													
 												}else if ( split_operator == "===" ) {
 													splitCondition = splitProp === split_valueProp;
-													
 												}
-																								
+												
 												if ( splitCondition ) {
 													// Continue
 													writeSplit = true;
@@ -672,7 +672,7 @@
 										tpy = "";
 										
 										if( tpi > 0 ) {
-											tpy = nam.substring( tpi + 1);
+											tpy = CssUtils.trim( nam.substring( tpi + 1) );
 											nam = nam.substring( 0, tpi );
 										}
 										
@@ -688,14 +688,12 @@
 											
 											if( dp > tpi )
 											{
-												
 												argv = nam.substring( tpi+1, dp );
-												nam = nam.substring( 0, tpi );
+												nam = CssUtils.trim( nam.substring( 0, tpi ) );
 												
 												L2 = argv.length;
 												dp5 = 0;
 												stringArg = false;
-												
 												
 												for( j=0; j<L2; j++)
 												{
@@ -791,10 +789,8 @@
 															j++;
 															dp5++;
 														}
-														
 													}
 												}
-												
 											}
 										}
 										
@@ -814,6 +810,9 @@
 									
 										sections = null;
 										prio = 0;
+										
+										// TODO render area into file... {##section.0.NAME(ico, "page-template.html > root:/blog#YEAR#/blog-entry-#NAME#.html" ):content}
+										
 										if( nam.indexOf(".") >= 0 ) {
 											sections = nam.split(".");
 											namL = sections.length;
@@ -824,14 +823,52 @@
 												sections.splice( sections.length-1, 1 );
 											}
 										}
+										stpg = false;
 										
-										if(  template && template.type != "root" ) {
-											if( sections ) {
-												sections.splice(0,0,nam);
-											}else{
-												sections = [nam];
+										if ( template && template.type != "root" )
+										{
+											if ( nam == "root" )
+											{
+												nam = tpsv.join(".");
+												
+												if ( CTTools.activeTemplate && CTTools.activeTemplate.areasByName[nam] != undefined ) {
+													areas.push( CTTools.activeTemplate.areasByName[nam] );
+													i = en;
+													continue;
+												}
 											}
-											nam = pageItemName;
+											else if ( nam == "this" )
+											{
+												nam = tpsv.join(".");
+												stpg = true;
+											}
+											else
+											{
+												tpi = nam.indexOf(":");
+												t2tstr = "";
+												
+												if ( tpi >= 0 ) {
+													t2tstr = nam.substring(0, tpi).toLowerCase();
+													nam = nam.substring(tpi + 1);
+												}
+												
+												if ( t2tstr == "root" ) {
+													if ( CTTools.activeTemplate && CTTools.activeTemplate.areasByName[nam] != undefined ) {
+														areas.push( CTTools.activeTemplate.areasByName[nam] );
+														i = en;
+														continue;
+													}
+												}else if ( t2tstr == "this" ) {
+													
+												}else{
+													if( sections ) {
+														sections.splice(0,0,nam);
+													}else{
+														sections = [nam];
+													}
+													nam = pageItemName;
+												}
+											}
 										}
 										
 										if ( areasByName[nam] ) {
@@ -839,24 +876,21 @@
 										}else{
 											areasByName[nam] = areas[ areas.push(new Area(st, en, sections, prio, nam, tpy, tpsv, args, argv)) - 1];
 											if( sections && sections.length > 0 ) {
-												areasByName[sections.join(".") + nam] = areasByName[nam];
+												areasByName[sections.join(".") + "." + nam] = areasByName[nam];
 											}
+										}
+										
+										if ( stpg ) {
+											template.stPageAreas[nam] = areasByName[nam];
 										}
 										
 										if( CTOptions.insertAreaLocation ) 											
 										{
-											
 											if(!template || ( template.nolocareas != "true" && !template.nolocAreasLookup[nam]) ) {
 												if( nam != "SCRIPT" && nam != "SCRIPT-BEGIN" && nam != "SCRIPT-END" && nam != "SCRIPT-OBJECT" && nam != "STYLE" && nam != "STYLE-BEGIN" && nam != "STYLE-END" && nam != "STYLE-OBJECT") {
 													tmpl_struct[ sid > 0 ? sid - 1 : sid] += CTOptions.insertAreaPre + nam + CTOptions.insertAreaPost;
 												}
 											}
-											/*
-											if( !template || !template.nolocAreasLookup[nam] ) {
-												if( nam != "SCRIPT" && nam != "SCRIPT-BEGIN" && nam != "SCRIPT-END" && nam != "SCRIPT-OBJECT" && nam != "STYLE" && nam != "STYLE-BEGIN" && nam != "STYLE-END" && nam != "STYLE-OBJECT") {
-													tmpl_struct[ sid > 0 ? sid - 1 : sid] += CTOptions.insertAreaPre + nam + CTOptions.insertAreaPost;
-												}
-											}*/
 										}
 									}
 								}
@@ -894,7 +928,7 @@
 									//
 									// Define an image:
 									//
-									// {#my-image:Image("img","my-img-new.#EXTENSION#","Images for my-image","*.PNG;*.GIF")="img/my-img.png"}
+									// {#my-image:Image("img","my-img-new.#EXTENSION#","Images for my-image","*.PNG;*.GIF;")="img/my-img.png"}
 									//
 									// Then its possible to get the width of the image using the @ character
 									//
@@ -948,9 +982,9 @@
 										if(dp2 >= 0) {
 											if( dp < dp2 )
 											{
-												defType = nam.substring( dp+1, dp2 ); // : bis = 
-												defValue = dp2 < namL-1 ?  nam.substring( dp2+1 ) : "";  // = bis ende
-												nam = nam.substring( 0, dp ); // 0 bis :
+												defType = CssUtils.trim( nam.substring( dp+1, dp2 ) ); // : bis = 
+												defValue = dp2 < namL-1 ?  CssUtils.trim(nam.substring( dp2+1 )) : "";  // = bis ende
+												nam = CssUtils.trim( nam.substring( 0, dp ) ); // 0 bis :
 											}
 										}
 									}
@@ -964,9 +998,9 @@
 											dp4 = defType.lastIndexOf(")");
 											if ( dp4 >= 0 && dp4 > dp3 ) 
 											{
-												argv = defType.substring( dp3+1, dp4 );
+												argv = CssUtils.trim(defType.substring( dp3+1, dp4 ));
 												args = [];
-												defType = defType.substring(0, dp3); // Trim Type
+												defType = CssUtils.trim(defType.substring(0, dp3)); // Trim Type
 												
 												L2 = argv.length;
 												dp5 = 0;
@@ -1088,29 +1122,36 @@
 										}
 									}
 									
-									if( nam == "random" || defType == "random" ) {
-										if( args && args.length > 0 ) {
-											if( randoms[ args[0] ] == undefined ) {
-												randoms[ args[0] ] = InputTextBox.getUniqueName(  args.length > 1 ? args[1] : "", args.length > 2 ? args[2] : 2 );
+									if( defType == "random" ) {
+										if( args && args.length > 1 ) {
+											
+											if( args[0] == "" || isNaN( Number( args[0] )) )
+											{
+												// hexadecimal with random length and fixed by name-id until next app-start:{#my-rnd:random('pre-text',4)}
+												if( randoms[nam] == undefined) {
+													randoms[nam] = InputTextBox.getUniqueName( args[0], Number(args[1]) );
+												}
+												tmpl_struct[sid] += randoms[nam];
+											}else{
+												// get integer random value: min, max: {#my-rnd:random(0,1,0.01)} -> returns a value between 0 and 1
+												t2tnum = Number(args[0]);
+												t2tnum = Math.random() * (Number(args[1]) - t2tnum) + t2tnum;
+												tmpl_struct[sid] += args.length > 2 ? ( Math.round( t2tnum/Number(args[2]) ) * Number(args[2])) : t2tnum;
 											}
-											tmpl_struct[sid] += randoms[args[0]];
 										}else{
-											tmpl_struct[sid] += InputTextBox.getUniqueName( args && args.length > 0 ? args[1] : "", args && args.length > 1 ? args[2] : 2 );
+											tmpl_struct[sid] += InputTextBox.getUniqueName( "", args && args.length > 0 ? Number(args[0]) : 2 );
 										}
 										i = en;
 										continue;
 									}
-									
-									if( nam == "include" || defType == "include" )
+									else if( nam == "include" || defType == "include" )
 									{
 										// include text file relative to project-dir with root template file or page
-										
-										include_file = CTTools.readTextFile( new File(CTTools.projectDir).resolvePath(args[0]).url );
 										
 										if( args.length > 1 )
 										{
 											// include template file
-											filepath = CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderTemplate + CTOptions.urlSeparator + args[1];
+											filepath = CTTools.projectDir + CTOptions.urlSeparator + /* CTOptions.projectFolderTemplate + CTOptions.urlSeparator + */ args[0];
 											pftxt = ProjectFile( CTTools.procFiles[ CTTools.projFileBy( filepath, "path") ]);
 											if( pftxt )
 											{
@@ -1126,6 +1167,7 @@
 											
 										}else{
 											// static include file
+											include_file = CTTools.readTextFile( new File(CTTools.projectDir).resolvePath(args[0]).url );
 											tmpl_struct[sid] += include_file;
 										}
 										i = en;
@@ -1134,21 +1176,23 @@
 									
 									if( nam == "field" ) {
 										if( template && template.dbProps && template.dbProps[defType] != undefined ) {
-											// acces field in subtemplate from DB: {#field:name}
+											// access field in subtemplate from DB: {#field:name}
 											tmpl_struct[sid] += template.dbProps[defType];
 											i = en;
 											continue;
 										}
-									}
-									if( nam == "root" ) {
-										if( CTTools.activeTemplate) {
+									}else if( nam == "root" ) {
+										if ( CTTools.activeTemplate) {
 											
+											// access root template property from sub template: {#root:page-title}
 											if( CTTools.activeTemplate.dbProps && CTTools.activeTemplate.dbProps[defType] != undefined ) 
 											{
+												
 												tmpl_struct[sid] += CTTools.activeTemplate.dbProps[defType].value;
 											}
 											else if( CTTools.activeTemplate.propertiesByName && CTTools.activeTemplate.propertiesByName[ defType ] != undefined ) 
-											{	
+											{
+												
 												// Get default value
 												tmpl_struct[sid] += CTTools.activeTemplate.propertiesByName[ defType ].defValue;
 											}
@@ -1157,8 +1201,22 @@
 											continue;
 										}
 									}
-									
-									if( nam == "page#" ) {
+									else if( nam == "get-date" )
+									{
+										if( defType == "year" ) {
+											tmpl_struct[sid] += new Date().fullYear;
+											i = en;
+											continue;
+										}else if( defType == "month" ) {
+											tmpl_struct[sid] += new Date().month+1;
+											i = en;
+											continue;
+										}else if( defType == "date" ) {
+											tmpl_struct[sid] += new Date().date;
+											i = en;
+											continue;
+										}
+									}else if( nam == "page#" ) {
 										tmpl_struct[sid] += pageName;
 										i = en;
 										continue;
@@ -1245,12 +1303,14 @@
 															
 														}
 													}else{
-														// requires re-parse..
+														// TODO: requires re-parse later..
 														
 														rm.loadResource( t2tpth, null, false );
 													}
 												}
-											}else if ( defType == "number" || defType == "integer" || defType == "screennumber" || defType == "screeninteger" ) {
+											}
+											else if ( defType == "number" || defType == "integer" || defType == "screennumber" || defType == "screeninteger" )
+											{
 												// number properties: number, integer, 
 												try {
 													t2ttmp = tpy.substring(0, 4);
@@ -1262,7 +1322,7 @@
 															if ( tpy == "number" ) {
 																t2tstr = "" + parseFloat( template.dbProps[nam]["value"] );
 															}else if ( tpy == "integer" ) {
-																t2tstr = "" + parseInt(  template.dbProps[nam]["value"] );
+																t2tstr = "" + parseInt( template.dbProps[nam]["value"] );
 															}else if( tpy == "unit" ) {
 																t2tstr = "" + NumberUtils.getUnit( template.dbProps[nam]["value"] );
 															}else if( tpy == "negativ" ) {
@@ -1347,7 +1407,9 @@
 												}catch(e:Error) {
 													if( CTOptions.debugOutput ) Console.log( e.toString() );
 												}
-											}else if( defType == "color" ) {
+											}
+											else if ( defType == "color" )
+											{
 												
 												try {
 													
@@ -1355,22 +1417,7 @@
 													{
 														if ( template && typeof( template.dbProps[nam] ) != "undefined" ) 
 														{
-															ColorUtils.getRGBComponents( parseInt( "0x"+template.dbProps[nam]["value"].substring(1)), color);
-															
-															if ( tpy == "red" ) {
-																t2tstr = "" + color.r;
-															}else if ( tpy == "green" ) {
-																t2tstr = "" + color.g;
-															}else if ( tpy == "blue" ) {
-																t2tstr = "" + color.b;
-															}else if ( tpy == "invert" ) {
-																t2tstr = "#" + ColorUtils.colorToString( ColorUtils.combineRGB( 255-color.r, 255-color.g, 255-color.b ), true) ;
-															
-															}
-														}
-														else if ( typeof( propertiesByName[nam] ) != "undefined" )
-														{
-															ColorUtils.getRGBComponents( parseInt( "0x"+ propertiesByName[nam].defValue.substring(1)), color);
+															ColorUtils.getRGBComponents( CssUtils.stringToColor(template.dbProps[nam]["value"]), color);
 															
 															if ( tpy == "red" ) {
 																t2tstr = "" + color.r;
@@ -1380,6 +1427,42 @@
 																t2tstr = "" + color.b;
 															}else if ( tpy == "invert" ) {
 																t2tstr = "#" + ColorUtils.colorToString( ColorUtils.combineRGB( 255-color.r, 255-color.g, 255-color.b ), true);
+															}else if ( tpy == "sat" ) {
+																t2tnum = int( (color.r + color.g + color.b) / 3);
+																t2tstr = "#" + ColorUtils.colorToString( ColorUtils.combineRGB( t2tnum, t2tnum, t2tnum ), true);
+															}else{
+																t2ttmp = tpy.substring(0, 4);
+																
+																if ( t2ttmp == "mul " ) {
+																	t2tstr = "#" +  ColorUtils.colorToString( ColorUtils.lightness( color, parseFloat( tpy.substring(4) )));
+																}else if ( t2ttmp == "sat " ) {
+																	t2tstr = "#" +  ColorUtils.colorToString( ColorUtils.saturation( color, parseFloat( tpy.substring(4) )));
+																}
+															}
+														}
+														else if ( typeof( propertiesByName[nam] ) != "undefined" )
+														{
+															ColorUtils.getRGBComponents( CssUtils.stringToColor(propertiesByName[nam].defValue), color);
+															
+															if ( tpy == "red" ) {
+																t2tstr = "" + color.r;
+															}else if ( tpy == "green" ) {
+																t2tstr = "" + color.g;
+															}else if ( tpy == "blue" ) {
+																t2tstr = "" + color.b;
+															}else if ( tpy == "invert" ) {
+																t2tstr = "#" + ColorUtils.colorToString( ColorUtils.combineRGB( 255-color.r, 255-color.g, 255-color.b ), true);
+															}else if ( tpy == "sat" ) {
+																t2tnum = int( (color.r + color.g + color.b) / 3);
+																t2tstr = "#" + ColorUtils.colorToString( ColorUtils.combineRGB( t2tnum, t2tnum, t2tnum ), true);
+															}else{
+																t2ttmp = tpy.substring(0, 4);
+																
+																if ( t2ttmp == "mul " ) {
+																	t2tstr = "#" +  ColorUtils.colorToString( ColorUtils.lightness( color, parseFloat( tpy.substring(4) )));
+																}else if ( t2ttmp == "sat " ) {
+																	t2tstr = "#" +  ColorUtils.colorToString( ColorUtils.saturation( color, parseFloat( tpy.substring(4) )));
+																}
 															}
 														}
 														else
@@ -1387,9 +1470,9 @@
 															if (CTOptions.debugOutput) Console.log("Error: Number property not found: " + nam + ":" + tpy );
 														}
 													}
-													
-													else{
-														ColorUtils.getRGBComponents( parseInt( "0x" + CTTools.pageItemTable[ pageItemName ]["value"].substring(1)), color);
+													else
+													{
+														ColorUtils.getRGBComponents( CssUtils.stringToColor( CTTools.pageItemTable[ pageItemName ]["value"] ), color);
 														
 														if ( tpy == "red" ) {
 															t2tstr = "" + color.r;
@@ -1399,13 +1482,25 @@
 															t2tstr = "" + color.b;
 														}else if ( tpy == "invert" ) {
 															t2tstr = "#" + ColorUtils.colorToString( ColorUtils.combineRGB( 255-color.r, 255-color.g, 255-color.b ), true) ;
+														}else if ( tpy == "sat" ) {
+															t2tnum = int( (color.r + color.g + color.b) / 3);
+															t2tstr = "#" + ColorUtils.colorToString( ColorUtils.combineRGB( t2tnum, t2tnum, t2tnum ), true);
+														}else{
+															t2ttmp = tpy.substring(0, 4);
+															
+															if ( t2ttmp == "mul " ) {
+																t2tstr = "#" +  ColorUtils.colorToString( ColorUtils.lightness( color, parseFloat( tpy.substring(4) )));
+															}else if ( t2ttmp == "sat " ) {
+																t2tstr = "#" +  ColorUtils.colorToString( ColorUtils.saturation( color, parseFloat( tpy.substring(4) )));
+															}
 														}
 													}
 												}catch(e:Error) {
 													if( CTOptions.debugOutput ) Console.log( e.toString() );
 												}
 												
-											}else if( defType == "video" ) {
+											}
+											else if( defType == "video" ) {
 												
 											
 											}else if( defType == "audio" ) {
@@ -1413,7 +1508,9 @@
 											
 											}else if( defType == "file" || defType == "pdf" ) {
 												
-											}else if( defType == "string" || defType == "text" || defType == "code" || defType == "richtext" ) {
+											}
+											else if ( defType == "string" || defType == "text" || defType == "code" ||  defType == "richtext" )
+											{
 												// string properties: length, toUpperCase..
 												try {
 													if ( pageItemName == "" ) 
@@ -1431,8 +1528,8 @@
 															if (CTOptions.debugOutput) Console.log("Error: String property not found: " + nam + ":" + tpy );
 														}
 													}
-													
-													else{
+													else
+													{
 														t2tstr = CTTools.pageItemTable[ pageItemName ]["value"][ tpy ];
 													}
 												}catch(e:Error) {
@@ -1453,7 +1550,6 @@
 									
 									if( sections && sections.length > 0 && propertiesByName[sections + "." +nam] )
 									{
-										
 										defValue = propertiesByName[sections + "." +nam].defValue;
 										defType = propertiesByName[sections + "." +nam].defType;
 										argv = propertiesByName[sections + "." +nam].argv;
@@ -1474,8 +1570,6 @@
 										}
 										
 										if( !smm ) {
-										
-										
 											defValue = propertiesByName[nam].defValue;
 											defType = propertiesByName[nam].defType;
 											argv = propertiesByName[nam].argv;
@@ -1510,7 +1604,6 @@
 										
 										if( template && args && args.length > 2 )
 										{
-											
 											// get reference vector list
 											vecProcVal = /* typeof template.dbProps[args[0]] == "object" ? */ template.dbProps[args[0]].value /*: template.dbProps[args[0]]*/;
 											
@@ -1598,13 +1691,11 @@
 										}
 										else if ( tpe == "number" || tpe == "integer" || tpe == "screennumber" || tpe == "screeninteger" )
 										{
-											
 											if( t2tstr ) {
 												StringMath.constants["c_"+t2tstr] = parseFloat( procVal );
 											}else{
 												StringMath.constants["c_"+nam] = parseFloat( procVal );
 											}
-											
 										}
 										else if( tpe == "text" || tpe == "richtext" )
 										{
@@ -1653,7 +1744,6 @@
 											
 											if( args && args.length > 4 )
 											{
-												
 												if(isNaN(Number(args[0]))) {
 													vecL = 0;
 													Console.log("Error: First Vector Argument is not a Number (len, type, wrap, separator, dynaLen, type_arguments.., default_values..): " + args );
@@ -1675,7 +1765,6 @@
 																								
 												if( vecType == "file" || vecType == "image" || vecType == "video" || vecType == "audio" || vecType == "pdf" )
 												{
-													
 													if( args.length > 5 ) defaultWWWFolder = args[5];
 													if( args.length > 6 ) defaultRename = args[6];
 													if( args.length > 7 ) defaultDescr = args[7];
@@ -1694,7 +1783,6 @@
 														
 														if( args.length > viStart+1)
 														{
-															
 															vecArgs.push(args[viStart+1]);
 															
 															if( args.length > viStart+2) {
@@ -1734,14 +1822,11 @@
 														}
 														
 														vecProcVal += vecWrapPre + vecValue + vecWrapPost;
-														
 													}
 												
 												}else if( vecType == "number" || vecType == "integer" || vecType == "screennumber" || vecType == "screeninteger" ) {
 													vecProcVal = procVal; // TODO...
 												}else{
-													
-													
 													// String or Text
 													for( vi=0; vi < vecL; vi++ )
 													{
@@ -1778,9 +1863,7 @@
 														}
 														
 														vecProcVal += vecWrapPre + vecValue + vecWrapPost;
-														
 													}
-													
 												}
 												
 												procVal = vecProcVal;
@@ -1789,9 +1872,7 @@
 										
 										tmpl_struct[sid] += procVal;
 										
-										
 									}else{
-										
 										// Replace Key with Template setting
 										tmpl_struct[sid] += defValue.replace(re, "<br/>");
 									}
@@ -1800,7 +1881,6 @@
 								i = en;
 								writeChar = false;
 							} // if en > 0
-							
 						}
 						
 						break;
@@ -1817,7 +1897,6 @@
 			pf.templateStruct = tmpl_struct;
 			pf.templateAreas = areas;
 			pf.templateProperties = properties;
-			
 		}
 	}
 }

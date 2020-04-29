@@ -11,7 +11,7 @@
 			var tf:TextField = new TextField();
 			tf.autoSize = TextFieldAutoSize.LEFT;
 			if( style ) {
-				var txtfmt:TextFormat = style.getTextFormat( ["*", "body", cssClass] );
+				var txtfmt:TextFormat = style.getTextFormat( ["*", "body", "p", cssClass] );
 				tf.defaultTextFormat = txtfmt;
 				tf.styleSheet = style;
 			}

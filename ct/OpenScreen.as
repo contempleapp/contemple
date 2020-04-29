@@ -60,8 +60,7 @@
 			openText.textField.autoSize = TextFieldAutoSize.LEFT;
 			openText.label = Language.getKeyword("Open Recent Project");
 			
-			recentProjects = new Popup( [ /*new IconFromFile( Options.iconDir + "/open-document.png",Options.iconSize,Options.iconSize)*/
-			new IconArrowDown( Application.instance.mainMenu.iconColor, 1, Options.iconSize, Options.iconSize*.5 ), Language.getKeyword("Select Recent Project") ], 0, 0, body, container.styleSheet, '','start-screen-popup', false);
+			recentProjects = new Popup( [ new IconArrowDown( Application.instance.mainMenu.iconColor, 1, Options.iconSize, Options.iconSize*.5 ), Language.getKeyword("Select Recent Project") ], 0, 0, body, container.styleSheet, '','start-screen-popup', false);
 			recentProjects.addEventListener( PopupEvent.SELECT, selectRecentProject );
 			
 			var ish:SharedObject = SharedObject.getLocal( CTOptions.installSharedObjectId );

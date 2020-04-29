@@ -6,7 +6,7 @@
 		// Template Areas can be used anywere in the template files to define space for database items (list)
 		// The items allowed inside the area can be restricted with the area-types
 		// 
-		//    AREA-NAME([icon:String=""],[description:String=""],[offset:int=0],[limit:int=-1],[link:String=""],[orig-st-name-1],[[linked-overwrite-st-name-1],[orig-st-name-2],[linked-overwrite-st-name-2]..]):area-types
+		//    AREA-NAME([icon:String=""],[options:String=""],[offset:int=0],[limit:int=-1],[link:String=""],[orig-st-name-1],[[linked-overwrite-st-name-1],[orig-st-name-2],[linked-overwrite-st-name-2]..]):area-types
 		//
 		// Area arguments can be set optional: icon:String, description:String, offset:int, limit:int, link:String, orig-sub-template1, new-sub-stemplate1, orig-substemple2, new-subtemplate2..
 		//
@@ -56,7 +56,8 @@
 					icon = CTTools.parseFilePath( _args[0] );
 				}
 				if( _args.length > 1 ) {
-					description = _args[1];
+					// description = _args[1];
+					options = _args[1];
 				}
 				
 				if( _args.length > 2 ) {
@@ -94,7 +95,8 @@
 		public var argv:String;
 		
 		public var icon:String="";
-		public var description:String = "";
+		//public var description:String = "";
+		public var options:String = "";
 		
 		public var link:String=""; // Use Page Items of another Area
 		public var limit:int=0; // limit page items in area..

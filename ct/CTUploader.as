@@ -142,7 +142,13 @@
 				forceExit = true;
 				uploadFinish();
 			}else{
-				dirInfoXml = new XML(dirInfo);
+				var xs:int = dirInfo.indexOf( "<?xml" );
+				if( xs >= 0 ) {
+					// ignore PHP Errors
+					dirInfoXml = new XML( dirInfo.substring(xs) );
+				}else{
+					dirInfoXml = new XML(dirInfo);
+				}
 				fileHashes = {};
 				
 				if( CTOptions.debugOutput ) {
@@ -188,6 +194,12 @@
 			if( CTTools.pages && CTTools.pages.length > 0 ){
 				for(i=0; i < CTTools.pages.length; i++) {
 					webFiles.push( CTTools.pages[i].filename );
+				}
+			}
+			
+			if( CTTools.articlePages && CTTools.articlePages.length > 0 ){
+				for (i = 0; i < CTTools.articlePages.length; i++) {
+					webFiles.push( CTTools.articlePages[i].filename );
 				}
 			}
 			
@@ -303,13 +315,13 @@
 		public static function pagesDone () :void {
 			if( forceExit ) return preExit();
 			
-			if( fileStore.length > 0 ) {
-				currFileStore = 0;
-				showProgress( 0.225 );
-				prgStep = 0.6 / fileStore.length;
-				setTimeout(nextFileStore, waitInterval);
+			if ( CTTools.articlePages && CTTools.articlePages.length > 0  ) {
+				currPage = 0;
+				showProgress( 0.21 );
+				prgStep = 0.3 / CTTools.articlePages.length;
+				setTimeout(checkArticlePage, waitInterval);
 			}else{
-				setTimeout(fileStoreDone, waitInterval);
+				setTimeout(articlePagesDone, waitInterval);
 			}
 		}
 		public static function checkPage () :void {
@@ -326,6 +338,34 @@
 				setTimeout( checkPage, waitInterval);
 			}
 		}
+		
+		public static function articlePagesDone () :void {
+			if( forceExit ) return preExit();
+			
+			if( fileStore.length > 0 ) {
+				currFileStore = 0;
+				showProgress( 0.225 );
+				prgStep = 0.3 / fileStore.length;
+				setTimeout(nextFileStore, waitInterval);
+			}else{
+				setTimeout(fileStoreDone, waitInterval);
+			}
+		}
+		public static function checkArticlePage () :void {
+			if ( forceExit ) return preExit();
+			
+			uploadFile(  CTTools.projectDir + CTOptions.urlSeparator + CTOptions.localUploadFolder, CTTools.articlePages[currPage].filename, currWebDir );
+			
+			currPage++;
+			showProgress( ltProgress + prgStep );
+			
+			if( currPage >= CTTools.articlePages.length ) {
+				setTimeout( articlePagesDone, waitInterval);
+			}else{
+				setTimeout( checkArticlePage, waitInterval);
+			}
+		}
+		
 		
 		public static function checkTemplateFile () :void {
 			if( forceExit ) return preExit();
@@ -555,6 +595,8 @@
 					uploadFile( CTTools.projectDir, CTOptions.projectFolderTemplate, "cthub/sync/tmpl/" );
 				}
 			}
+			
+			// TODO sync files for multi user support..
 		}
 		
 		private static var uploadURL:URLRequest;
@@ -692,8 +734,6 @@
 		
 		public static var forceExit:Boolean=false;
 		
-		
-		
 		public static function command (argv:String, cmdComplete:Function=null, cmdCompleteArgs:Array=null) :void {
 			var args:Array = argv2Array(argv);
 			var i:int;
@@ -712,13 +752,10 @@
 				
 				Application.instance.cmd( "Console show console" );
 				
-				
 				return;
 			}
-			
 			
 			complete(cmdComplete, cmdCompleteArgs);
 		}
 	}
-	
 }

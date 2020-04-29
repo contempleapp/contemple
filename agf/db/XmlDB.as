@@ -39,7 +39,6 @@
 		{
 			if( res  ) {
 				_db = new XML( String(res.obj) );
-				trace("DB LOADED: " + String(res.obj) );
 				dispatchEvent( new Event( DBAL.DB_LOADED ) );
 			}
 		}

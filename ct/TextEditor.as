@@ -1,5 +1,6 @@
 ﻿package ct
 {
+	import agf.utils.StringMath;
 	import flash.display.*;
 	import flash.text.*;
 	import flash.events.*;
@@ -13,6 +14,7 @@
 	import agf.tools.*;
 	import agf.icons.IconWindowDrag;
 	import agf.icons.IconWindowClose;
+	import agf.icons.IconFromFile;
 	import agf.events.PopupEvent;
 	import net.anirudh.as3syntaxhighlight.CodePrettyPrint;
 	
@@ -60,7 +62,6 @@
 				var err:String;
 			}
 			
-			
 			create();
 			
 			if( CTOptions.isMobile ) {
@@ -68,13 +69,10 @@
 				tf.addEventListener( SoftKeyboardEvent.SOFT_KEYBOARD_DEACTIVATE, CTTools.softKeyboardChange );
 			}
 			
-			
 			displayFiles();
 		}
 		private var tmpH:Number=0;
 		
-		
-        
 		public var container: Panel;
 		public var ib: ItemBar;
 		public var tf: TextField;
@@ -90,7 +88,35 @@
 		private var codeStyleSheet:StyleSheet;
 		private var codeFormat:CodePrettyPrint;
 		private var pp:Popup;
+		private var optionsPopup:Popup;
+		private var undoButton:Button;
+		private var redoButton:Button;
+		
 		private var scrollbar:Slider;
+		
+		public var history:Vector.<Object> = new Vector.<Object>();
+		public var future:Vector.<Object> = new Vector.<Object>();
+		
+		private var typeTimer:uint = 0;
+		private var lastUndo:uint = 0;
+		private var releaseTime:int = 1750; // max time between two keypress to store history
+		
+		public function historyPop () :Object {
+			var obj:Object = history.pop();
+			return obj;
+			
+		}
+		public function historyPush ( v:String, file:int=-1 ) :void {
+			history.push( {file:file == -1 ? CTTools.currFile : file, val:v} );
+			if ( history.length > CTOptions.textEditorUndos ) history.shift();
+		}
+		public function futurePop () :Object {
+			var obj:Object = future.pop();
+			return obj;
+		}
+		public function futurePush ( v:String, file:int=-1 ) :void {
+			future.push( {file:file ==-1?CTTools.currFile:file, val:v} );
+		}
 		
 		public function newSize(e: Event): void {
 			if (tf && container) {
@@ -98,9 +124,10 @@
 				var h:int = container.getHeight();
 				
 				var sbw:int = 0;
-				if(scrollbar){
-					scrollbar.setHeight( w );
-					scrollbar.x = w - scrollbar.cssSizeX;
+				if(scrollbar) {
+					scrollbar.setWidth( h );
+					scrollbar.x = w - 25;// scrollbar.getHeight();
+					sbw = scrollbar.getHeight();
 				}
 				var ibh: Number = ib.getHeight();
 				tf.width = w - (8 + sbw);
@@ -108,16 +135,37 @@
 				tf.x = 3;
 				tf.y = 8 + ibh;
 				ib.setWidth( w );
+				
 				displayFiles();
+			}
+		}
+		
+		private function textEnterFrame (e:Event) :void
+		{
+			if ( lastUndo != typeTimer )
+			{
+				var time:int = getTimer();
+				
+				if( time - typeTimer > releaseTime ) {
+					historyPush( tf.text );
+					lastUndo = typeTimer;
+				}
+			}
+			if ( textActive ) {
+				cursor1 = tf.selectionBeginIndex;
+				cursor2 = tf.selectionEndIndex;
 			}
 		}
 		
 		private function textChanged (e:Event) :void
 		{
 			if( CTTools.showTemplate && CTTools.currFile != -1 && CTTools.procFiles && CTTools.procFiles.length > CTTools.currFile )
-			{
+			{	
+				typeTimer = getTimer();
+				
 				ProjectFile( CTTools.procFiles[CTTools.currFile] ).setTemplate( tf.text );
 				scrollbar.maxValue = tf.numLines;
+				Console.log( "Cursor: " + cursor1 + ", " +cursor2);
 			}
 		}
 
@@ -133,10 +181,14 @@
 			
 			if ( !scrollbar ) {
 				scrollbar = new Slider(0, 0, container, container.styleSheet, '', 'text-scrollbar', false);
+				scrollbar.rotation = -90;
 				scrollbar.minValue = 0;
 				scrollbar.maxValue = tf.numLines;
 				scrollbar.setScrollerHeight( 50 );
-				scrollbar.setWidth( ScrollContainer.scrollbarWidth );
+				scrollbar.setHeight( ScrollContainer.scrollbarWidth );
+			}else{
+				scrollbar.maxValue = tf.numLines;
+				scrollbar.setHeight( ScrollContainer.scrollbarWidth );
 			}
 			
 			ib.margin = 0;
@@ -181,7 +233,6 @@
             }
 			
 			tf.multiline = true;
-            
 			tf.background = true;
             
             if( styles.backgroundColor ) {
@@ -197,21 +248,51 @@
 			tf.setTextFormat(fmt);
 			newSize(null);
 		}
+		private var textActive:Boolean = false;
+		protected function onDeactivate (e:Event) :void 
+		{
+			textActive = false;
+		}
 		
-		private function updateText(): void {
+		protected function onActivate (e:Event) :void {
+			textActive = true;
+		}
+		
+		private var cursor1:int = -1;
+		private var cursor2:int = -1;
+		
+		private function updateText(): void
+		{
 			if( CTTools.procFiles )
 			{
 				var pf:ProjectFile = ProjectFile( CTTools.procFiles[CTTools.currFile] );
 				tf.removeEventListener( Event.CHANGE, textChanged);
+				tf.removeEventListener( Event.ENTER_FRAME, textEnterFrame);
+				optionsPopup.visible = undoButton.visible = redoButton.visible = false;
+				
+				textActive = false;
+				
 				if( pf )
 				{
 					if( CTTools.showTemplate )
 					{
-						tf.text = pf.getTemplate();
+						tf.text = "";
 						tf.type = TextFieldType.INPUT;
 						tf.styleSheet = null;
 						tf.defaultTextFormat = fmt;
-						tf.setTextFormat( fmt );
+						tf.text = pf.getTemplate();
+						lastUndo = typeTimer = 0;
+						
+						if ( history && !(history.length > 0 && history[ history.length - 1 ] == tf.text) ) {
+							lastUndo = typeTimer;
+							historyPush( tf.text );
+						}
+						
+						tf.addEventListener( Event.ENTER_FRAME, textEnterFrame);
+						tf.addEventListener( FocusEvent.FOCUS_IN, onActivate);
+						tf.addEventListener( FocusEvent.FOCUS_OUT, onDeactivate );
+						optionsPopup.visible = undoButton.visible = redoButton.visible = true;
+						//tf.setTextFormat( fmt );
 					}
 					else
 					{
@@ -221,11 +302,12 @@
 							tf.styleSheet = codeStyleSheet;
 							tf.htmlText = "<body><textfield><p>"+colText+"</p></textfield></body>";
 						}else{
-							tf.text = CTTools.showCompact ? pf.getCompact() : pf.getText();
+							tf.text = "";
 							tf.type = TextFieldType.DYNAMIC;
 							tf.styleSheet = null;
 							tf.defaultTextFormat = fmt;
-							tf.setTextFormat(fmt);
+							tf.text = CTTools.showCompact ? pf.getCompact() : pf.getText();
+							//tf.setTextFormat(fmt);
 						}
 					}
 				}else{
@@ -233,44 +315,92 @@
 					tf.text = "";
 					tf.styleSheet = null;
 					tf.defaultTextFormat = fmt;
-					tf.setTextFormat(fmt);
+					tf.text = "";
+					//tf.setTextFormat(fmt);
 				}
 				if( scrollbar ) {
 					scrollbar.maxValue = tf.numLines;
 				}
 				tf.addEventListener( Event.CHANGE, textChanged);
+				
 			}
 		}
 		
-		public function displayFiles () :void {
+		public function displayFiles () :void
+		{
 			if( pp ) {
 				if( container.contains( pp ) ) container.removeChild(pp);
 				pp = null;
 			}
-				
+			if( optionsPopup ) {
+				if( container.contains( optionsPopup ) ) container.removeChild(optionsPopup);
+				optionsPopup = null;
+			}
+			
+			if ( undoButton ) {
+				if( container.contains( undoButton ) ) container.removeChild(undoButton);
+				undoButton = null;
+			}
+			if ( redoButton ) {
+				if( container.contains( redoButton ) ) container.removeChild(redoButton);
+				redoButton = null;
+			}
+			
 			if (CTTools.procFiles) {
 
 				var files: Array = CTTools.procFiles;
 
-				// Display last file
-				if (CTTools.currFile == -1) {
-					CTTools.currFile = 0;
-				}
+				// Display first file
+				if (CTTools.currFile == -1) CTTools.currFile = 0;
 				
 				ib.x = 0;
 				ib.y = 0;
-
 				ib.clearAllItems();
 				
 				var px:Number = offset_x;
 				
+				undoButton = new Button([ new IconFromFile(Options.iconDir+CTOptions.urlSeparator+"reply.png",Options.iconSize,Options.iconSize) ], 0, 0, container, ib.styleSheet, '', 'file-undo-button', false);
+				undoButton.addEventListener( MouseEvent.CLICK, undoClick );
+				
+				redoButton = new Button([ new IconFromFile(Options.iconDir+CTOptions.urlSeparator+"forward.png",Options.iconSize,Options.iconSize) ], 0, 0, container, ib.styleSheet, '', 'file-undo-button', false);
+				redoButton.addEventListener( MouseEvent.CLICK, redoClick );
+				
+				var pi:PopupItem;
+				optionsPopup = new Popup( [ new IconFromFile(Options.iconDir+CTOptions.urlSeparator+"create.png",Options.iconSize,Options.iconSize) ], 0, 0, container, ib.styleSheet, '', 'fileoptions', false);
+				optionsPopup.addEventListener( Event.SELECT, fileOptionsSelect );
+				pi = optionsPopup.rootNode.addItem( ["Content Area"], container.styleSheet);
+				pi.options.value = '{##AreaName("ico:/ufo.png"):content}';
+				pi = optionsPopup.rootNode.addItem( ["Linked Area"], container.styleSheet);
+				pi.options.value = '{##LinkAreaName("ico:/services.png","",0,3,"Another-Area","SubTemplate1","LinkSubtemplate1"):content}';
+				pi = optionsPopup.rootNode.addItem( ["#separator"], container.styleSheet);
+				pi = optionsPopup.rootNode.addItem( ["AreaList"], container.styleSheet);
+				pi.options.value = '{#MyAreas:AreaList}';
+				pi = optionsPopup.rootNode.addItem( ["Audio"], container.styleSheet);
+				pi.options.value = '{#MyAudio:Audio("directory","mp3-#INPUTNAME#.#EXTENSION#","MP3 Files:","*.MP3;")}';
+				pi = optionsPopup.rootNode.addItem( ["Color"], container.styleSheet);
+				pi.options.value = '{#MyColor:Color="#07F"}';
+				pi = optionsPopup.rootNode.addItem( ["File"], container.styleSheet);
+				pi.options.value = '{#MyFile:File("directory","file-#INPUTNAME#.#EXTENSION#","Files:","*.FF1;*.FF2;")}';
+				pi = optionsPopup.rootNode.addItem( ["Image"], container.styleSheet);
+				pi.options.value = '{#MyImage:Image("directory","img-#INPUTNAME#.#EXTENSION#","Image Files:","*.PNG;*.JPG;*.GIF;")}';
+				pi = optionsPopup.rootNode.addItem( ["Integer"], container.styleSheet);
+				pi.options.value = '{#MyInt:Integer(0,100,1)=100}';
+				pi = optionsPopup.rootNode.addItem( ["Number"], container.styleSheet);
+				pi.options.value = '{#MyNumber:Number(0,1,0.1)=1}';
+				pi = optionsPopup.rootNode.addItem( ["ScreenInteger"], container.styleSheet);
+				pi.options.value = '{#MyScreenInt:ScreenInteger(0,100,1)="100px"}';
+				pi = optionsPopup.rootNode.addItem( ["ScreenNumber"], container.styleSheet);
+				pi.options.value = '{#MyScreenNumber:ScreenNumber(0,1,0.1)="1em"}';
+				pi = optionsPopup.rootNode.addItem( ["Vector"], container.styleSheet);
+				pi.options.value = '{#MyNumber:Number(0,1,0.1)=1}';
+				pi = optionsPopup.rootNode.addItem( ["Video"], container.styleSheet);
+				pi.options.value = '{#MyVideo:Video("directory","video-#INPUTNAME#.#EXTENSION#","Video Files:","*.MP4;")}';
+				
 				pp = new Popup( [ new agf.icons.IconMenu(0xEEEFFF,1,10, 10) ], 0, 0, container, ib.styleSheet, '', 'filepopup', false);
 				pp.addEventListener( Event.SELECT, filePopupSelect );
 				
-				var pi:PopupItem;
 				var pf:ProjectFile;
 				var btarr:Array;
-				
 				var fileIcon:Boolean = false;
 				var iconClose:Boolean = true;
 				
@@ -282,7 +412,7 @@
 				if (files && files.length)
 				{
 					var bt: Button;
-
+					
 					for (var i: int = 0; i < files.length; i++)
 					{
 						pf = ProjectFile( files[i] );
@@ -319,14 +449,31 @@
 						
 						bt.x = px;
 						px += Math.ceil( bt.width );
+						
 					} // for files
 					
+					optionsPopup.setHeight( bt.getHeight() );
+					optionsPopup.x =  container.getWidth() - (optionsPopup.cssSizeX + pp.cssSizeX + undoButton.cssSizeX + redoButton.cssSizeX - 33);
+					optionsPopup.y = ib.cssTop;
+					optionsPopup.textAlign = "right";
+					optionsPopup.alignH = "right";
+					optionsPopup.alignV = "bottom";
+					
+					undoButton.setHeight( bt.getHeight() );
+					undoButton.x = container.getWidth() - (optionsPopup.cssSizeX + pp.cssSizeX + redoButton.cssSizeX - 22);
+					undoButton.y = ib.cssTop;
+					
+					redoButton.setHeight( bt.getHeight() );
+					redoButton.x = container.getWidth() - (optionsPopup.cssSizeX + pp.cssSizeX - 11);
+					redoButton.y = ib.cssTop;
+					
 					pp.setHeight( bt.getHeight() );
-					pp.x = container.getWidth() - pp.getWidth();
+					pp.x = container.getWidth() - pp.cssSizeX;
 					pp.y = ib.cssTop;
+					pp.textAlign = "right";
 					pp.alignH = "right";
 					pp.alignV = "bottom";
-								
+					
 				}else{
 					container.removeChild(pp);
 				}
@@ -345,6 +492,78 @@
 			}
 		}
 		
+		private function undoClick (e:MouseEvent) :void {
+			Console.log("Undo.. " + history.length + ", "  + future.length);
+			undoAction();
+		}
+		
+		private function redoClick (e:MouseEvent) :void {
+			Console.log("Redo.. " + history.length+ ", "  + future.length);
+			redoAction();
+		}
+		
+		private function undoAction () :void {
+			var obj:Object = historyPop();
+			
+			if ( obj && obj.file >= 0 )
+			{
+				var obj2:Object = historyPop();
+				if ( !obj2 ) {
+					// first
+					if ( obj.file < CTTools.procFiles.length ) {
+						CTTools.procFiles[ obj.file ].setTemplate( obj.val );
+					}
+					setCurrentFile( obj.file );
+				}
+				else
+				{
+					futurePush( obj.val, obj.file );
+					if ( obj2.file < CTTools.procFiles.length ) {
+						CTTools.procFiles[ obj2.file ].setTemplate( obj2.val );
+					}
+					setCurrentFile( obj2.file );
+				}
+			}
+				
+		}
+		
+		private function redoAction () :void {
+			var obj:Object = futurePop();
+			
+			if ( obj && obj.file >= 0 )
+			{
+				var obj2:Object = futurePop();
+				
+				if ( !obj2 )
+				{
+					// first
+					if ( obj.file < CTTools.procFiles.length ) {
+						CTTools.procFiles[ obj.file ].setTemplate( obj.val );
+					}
+					setCurrentFile( obj.file );
+				}
+				else
+				{
+					historyPush( obj.val, obj.file );
+					
+					if ( obj2.file < CTTools.procFiles.length ) {
+						CTTools.procFiles[ obj2.file ].setTemplate( obj2.val );
+					}
+					setCurrentFile( obj2.file );
+				}
+			}
+				
+		}
+		
+		private function fileOptionsSelect (e:PopupEvent) :void
+		{	
+			if( CTTools.showTemplate && CTTools.currFile != -1 && CTTools.procFiles && CTTools.procFiles.length > CTTools.currFile ) {	
+				var s:String =  tf.text.substring(0, cursor1) + e.selectedItem.options.value + tf.text.substring(cursor1);
+				tf.text = s;
+				ProjectFile( CTTools.procFiles[CTTools.currFile] ).setTemplate( s );
+			}
+		}
+		
 		private function filePopupSelect (e:PopupEvent) :void {
 			
 			setCurrentFile( e.currentPopup.rootNode.children.indexOf( e.selectedItem ) );
@@ -352,10 +571,10 @@
 			if( CTTools.currFile >= 0 ) {
 				
 				var bt:Button = Button(ib.getChildByName( "" + CTTools.currFile) );
-				
-				if( CTTools.currFile == 0 ) offset_x = 0;
-				else offset_x = - bt.x + bt.getWidth() + offset_x;
-				
+				if( bt ) {
+					if( CTTools.currFile == 0 ) offset_x = 0;
+					else offset_x = - bt.x + bt.getWidth() + offset_x;
+				}
 				displayFiles();
 			}
 		}
@@ -372,14 +591,12 @@
 		private function fileCloseStageMove (e: MouseEvent): void {
 			if (!dragging) {
 				if ( getTimer() - startClickTime > startDragAfter ) {
-
 					// Initialize Drag
 					dragging = true;
 					dragObj.swapState("normal");
 					dragObj.alpha = 0.5;
 					newIndex = -1;
 					oldIndex = ib.removeItem(dragObj, true);
-
 					Main(Application.instance).topContent.addChild(dragObj);
 				}
 			}

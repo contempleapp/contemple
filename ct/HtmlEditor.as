@@ -236,11 +236,14 @@
 					adresBar.y = Math.floor( (tbh - adresBar.height) * .5 );
 				}
 				
-				if( webView && webView.stage ) {
+				var stw:Number = Application.instance.mainMenu.cssSizeY + tbh;
+				var sth:Number = container.stage.stageHeight - (Application.instance.mainMenu.cssSizeY + 2 + tbh);
+				
+				if( webView && webView.stage && sth > 0 && stw > 0 ) {
 					webView.viewPort = new Rectangle( 	w * editor_w + 4, 
-														Application.instance.mainMenu.cssSizeY + tbh, 
+														stw, 
 														pvwidth - 2, 
-														container.stage.stageHeight - (Application.instance.mainMenu.cssSizeY + 2 + tbh) );
+														sth );
 				}
 			}
 		
@@ -252,14 +255,14 @@
 			}
 		}
 		private function resizeEditor (e:MouseEvent) :void {
-			if( CTOptions.previewAtBottom ) {
+			//if( CTOptions.previewAtBottom ) {
 				
-			}else{
-				if( editor.mouseX > editor.getWidth() -9 && editor.mouseX < editor.getWidth() + 9 ) {
+			//}else{
+				if( editor.mouseX > editor.getWidth() -12 && editor.mouseX < editor.getWidth() + 12 ) {
 					stage.addEventListener( MouseEvent.MOUSE_MOVE, resizeEditorMove);
 					stage.addEventListener( MouseEvent.MOUSE_UP, resizeEditorUp);
 				}
-			}
+			//}
 		}
 		private function clamp (v:Number, min:Number, max:Number) :Number {
 			if( v < min ) v = min;

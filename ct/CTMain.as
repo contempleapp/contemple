@@ -193,7 +193,7 @@
 			
 			if( CTTools.activeTemplate ) {
 				Console.log(CTTools.activeTemplate.name + " " + CTTools.activeTemplate.version);
-				if( stage && stage.nativeWindow ) stage.nativeWindow.title = CTOptions.appName + " " + CTTools.activeTemplate.version; //CTOptions.version;
+				if( stage && stage.nativeWindow ) stage.nativeWindow.title = CTOptions.appName + " " + CTTools.activeTemplate.version;
 			}else{
 				if( stage && stage.nativeWindow ) stage.nativeWindow.title = CTOptions.appName + " " + CTOptions.version;
 			}
@@ -261,10 +261,9 @@
 			if ( host != "" )
 			{
 				var ish:SharedObject = SharedObject.getLocal(CTOptions.installSharedObjectId);
-				//var main:CTMain = CTMain(Application.instance);
 				if( ish ) {
 					// store entered web uri
-					ish.data.hostInfoUrl = /*main.*/tmpHost;
+					ish.data.hostInfoUrl = tmpHost;
 					ish.flush();
 				}
 				
@@ -311,25 +310,30 @@
 			if( x )
 			{
 				// Override options by install.xml:
-				
-				if( x.@name != undefined ) {
-					if( CTTools.activeTemplate ) {
+				if( CTTools.activeTemplate ) {
+					if( x.@name != undefined ) {
 						CTTools.activeTemplate.name = x.@name.toString();
 					}
+					if( x.@templateUpdateUrl != undefined) {
+						CTTools.activeTemplate.update = x.@templateUpdateUrl.toString();
+					}
 				}
+				
 				if( x.@projectName != undefined)            CTOptions.projectName = x.@projectName.toString();
 				if( x.@hubScriptFilename != undefined)      CTOptions.hubScriptFilename = x.@hubScriptFilename.toString();
-				if( x.@cacheDownloads != undefined)      CTOptions.cacheDownloads =  CssUtils.stringToBool( x.@cacheDownloads.toString() );
+				if( x.@cacheDownloads != undefined)      	CTOptions.cacheDownloads =  CssUtils.stringToBool( x.@cacheDownloads.toString() );
 				if( x.@overrideInstallDB != undefined)      CTOptions.overrideInstallDB = x.@overrideInstallDB.toString();
-				// if( x.@debugOutput != undefined)            CTOptions.debugOutput = CssUtils.stringToBool( x.@debugOutput.toString() );
+				if( x.@debugOutput != undefined)            CTOptions.debugOutput = CssUtils.stringToBool( x.@debugOutput.toString() );
+				
 				if( x.@appName != undefined)                CTOptions.appName = x.@appName.toString();
-				if( x.@version != undefined)                CTOptions.version = x.@version.toString();
+				//if( x.@version != undefined)                CTOptions.version = x.@version.toString();
+				
 				// if( x.@installTemplate != undefined)        CTOptions.installTemplate = x.@installTemplate.toString();
 				if( x.@localSharedObjectId != undefined)    CTOptions.localSharedObjectId = x.@localSharedObjectId.toString();
-				//if( x.@homeAreaName != undefined)           CTOptions.homeAreaName = x.@homeAreaName.toString();
+				if( x.@homeAreaName != undefined)           CTOptions.homeAreaName = x.@homeAreaName.toString();
 				if( x.@dbInitFileName != undefined)         CTOptions.dbInitFileName = x.@dbInitFileName.toString();
 				if( x.@uploadViewShowFileInfo != undefined) CTOptions.uploadViewShowFileInfo = CssUtils.stringToBool( x.@uploadViewShowFileInfo.toString() );
-				//if( x.@reverseAreasPopup != undefined)      CTOptions.reverseAreasPopup = CssUtils.stringToBool( x.@reverseAreasPopup.toString() );
+				if( x.@reverseAreasPopup != undefined)      CTOptions.reverseAreasPopup = CssUtils.stringToBool( x.@reverseAreasPopup.toString() );
 				//if( x.@animateBackground != undefined)      CTOptions.animateBackground = CssUtils.stringToBool( x.@animateBackground.toString() );
 				//if( x.@animateBackgroundMin != undefined)   CTOptions.animateBackgroundMin = Number( x.@animateBackgroundMin.toString() );
 				//if( x.@animateBackgroundMax != undefined)   CTOptions.animateBackgroundMax = Number( x.@animateBackgroundMax.toString() );
@@ -337,9 +341,10 @@
 				if( x.@uploadMethod != undefined)           CTOptions.uploadMethod = x.@uploadMethod.toString();
 				if( x.@uploadScript != undefined)           CTOptions.uploadScript = x.@uploadScript.toString();
 				if( x.@updateUrl != undefined)              CTOptions.updateUrl = x.@updateUrl.toString();
+				
 				if( x.@hashCompareAlgorithm != undefined)   CTOptions.hashCompareAlgorithm = x.@hashCompareAlgorithm.toString();
 				if( x.@mobileProjectFolderName != undefined) CTOptions.mobileProjectFolderName = x.@mobileProjectFolderName.toString();
-				if( x.@richTextCssClasses != undefined) CTOptions.richTextCssClasses = x.@richTextCssClasses.toString().split(",");
+				if( x.@richTextCssClasses != undefined) 	CTOptions.richTextCssClasses = x.@richTextCssClasses.toString().split(",");
 			}
 		}
 		
@@ -726,11 +731,8 @@
 						
 						try 
 						{
-							trace("Copy File: " + CTOptions.overrideInstallDB, sh.data.lastProjectDir + CTOptions.urlSeparator + nm);
 							CTTools.copyFile( CTOptions.overrideInstallDB, sh.data.lastProjectDir + CTOptions.urlSeparator + nm, overrideComplete );
-							trace("Copied");
 							return;
-							
 						}catch(e:Error) {
 							Console.log("Database Override Error: " + e);
 						}
@@ -762,7 +764,6 @@
 							rv = CTTools.open(startupOpenHandler);
 						}
 					}
-					
 				}
 			}
 			

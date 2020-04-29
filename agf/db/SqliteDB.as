@@ -103,8 +103,6 @@
 			{
 				if ( !pendingQuerys ) pendingQuerys = [];
 				pendingQuerys.push( { sql:sql, params: params, resultHandler:resultHandler } );
-				// trace("Store Pending Query: " + sql );
-			//	Console.log("ERROR DB already in use..");
 			}
 			return true;
 		}

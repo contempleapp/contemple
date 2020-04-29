@@ -42,8 +42,6 @@
 				var j:int;
 				var langs:XMLList;
 				var ids:String;
-				/*var idlist:Array;
-				var k:int;*/
 				
 				for(var i:int=0; i<L; i++) {
 					if( xo[i].@name ) {
@@ -52,15 +50,7 @@
 						for(j=0; j<L2; j++) 
 						{
 							ids = xo[i].@name.toString();
-							/*if(ids.indexOf(",")>=0) {
-								idlist = ids.split(",");
-								for(k=0; k<idlist.length;k++) {
-									trace("Add key:" +  idlist[k]+":"+ langs[j].@value.toString());
-									addKeyword( idlist[k], langs[j].@value.toString(), langs[j].@name.toString(), storeId );
-								}
-							}else{*/
-								addKeyword( ids, langs[j].@value.toString(), langs[j].@name.toString(), storeId );
-							//}
+							addKeyword( ids, langs[j].@value.toString(), langs[j].@name.toString(), storeId );
 						}
 					}
 				}

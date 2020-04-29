@@ -85,9 +85,7 @@
 		 *	Returns the numeric value of a html color string <br/>
 		 * 	The string should be trimmed with trim
 		 *	#F00, #FF0000 returns the number for full red
-		 *	rgb(255, 255, 255) returns the number for white
-		 * var col1:int = CssStyleRenderer.getColor( "#F93" );
-		 * var col2:int = CssStyleRenderer.getColor( "rgb(255, 155, 0)" );
+		 *	rgb(255,255,255) returns the number for white
 		 */
 		public static function stringToColor (str:String) :int 
 		{

@@ -15,11 +15,13 @@
 				if( sp1 >= 0 ) {
 					fi.separator = "\\";
 				}else{
-					//sp1 = 0; // no path
+					sp1 = -1; // no path
 					fi.path = "";
 				}
 			}
-			if( sp1 >= 0 ) fi.path = url.substring( 0, sp1 );
+			if ( sp1 >= 0 ) {
+				fi.path = url.substring( 0, sp1 );
+			}
 			
 			var dot:int = url.lastIndexOf( "." );
 			var extension:String="";
@@ -48,11 +50,19 @@
 			}else{
 				extension = "";
 			}
+			
 			fi.extension = extension;
 			
-			var st:int = url.lastIndexOf( fi.separator ) + 1;
-			fi.name = url.substring( st, dot );
-			fi.filename = url.substring( st );
+			if ( sp1 == -1 ) {
+				fi.name = url.substring( 0, dot );
+				fi.filename = url;
+			}
+			else
+			{
+				var st:int = url.lastIndexOf( fi.separator ) + 1;
+				fi.name = url.substring( st, dot );
+				fi.filename = url.substring( st );
+			}
 			
 			return fi;
 		}

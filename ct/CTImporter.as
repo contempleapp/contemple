@@ -26,16 +26,7 @@
                 ResourceMgr.getInstance().loadResource( CTOptions.updateUrl, onUpdateCFG, true );
             }
         }
-        
-        public static function lookForTemplateUpdate () :void
-        {
-            if( CTTools.activeTemplate && CTTools.activeTemplate.update ) {
-                if(CTOptions.debugOutput) Console.log("Downloading template update information from "+CTTools.activeTemplate.update);
-                ResourceMgr.getInstance().loadResource(CTTools.activeTemplate.update, onTemplateUpdateCFG, true );
-            }
-        }
-		
-		
+		// App Update
 		private static function onUpdateCFG (res:Resource) :void {
 			if( res && res.loaded == 1 ) {
 				var x:XML = new XML( String(res.obj) );
@@ -71,6 +62,17 @@
 				}
 			}
 		}
+		
+		
+		   
+        public static function lookForTemplateUpdate () :void
+        {
+            if( CTTools.activeTemplate && CTTools.activeTemplate.update )
+			{
+				if(CTOptions.debugOutput) Console.log("Downloading template update information from " + CTTools.activeTemplate.update);
+				ResourceMgr.getInstance().loadResource(CTTools.activeTemplate.update, onTemplateUpdateCFG, true );
+            }
+        }
 		
 		private static function onTemplateUpdateCFG (res:Resource) :void {
 			if( res && res.loaded == 1 )
@@ -126,7 +128,7 @@
 			var iv:InstallView = InstallView( Application.instance.view.panel.src );
 			if( iv ) {
 				iv.showProgress( 0.25 );
-				iv.setLabel( Language.getKeyword( "Downloading Template Uptade" ) );
+				iv.setLabel( Language.getKeyword( "Downloading Template Update" ) );
 			}
 			ResourceMgr.getInstance().loadResource( src, onZipFile, true, true );
 		}

@@ -1,5 +1,6 @@
 ﻿package ct
 {
+	import agf.utils.StringMath;
 	import flash.display.*;
 	import flash.text.*;
 	import agf.Main;
@@ -121,15 +122,6 @@
 				cont.init();
 				
 				body = new CssSprite( container.getWidth(), container.getHeight(), cont, container.styleSheet, 'div', '', 'editor page-editor', false);
-				//addChild(body);
-				//body._parentNode = container;
-				//body.init();
-				
-				//body.setWidth( container.getWidth() - body.cssBoxX );
-				//body.setHeight( container.getHeight() - body.cssBoxY );
-				
-				//body.x = container.cssLeft;
-				//body.y = container.cssTop;
 			}
 		}
 		
@@ -165,11 +157,11 @@
 			pageCtrls = new Vector.<PageCtrl>;
 			
 			var pgc:PageCtrl;
-			
-			
 			var yp:Number = plusButton.cssSizeY;
 			var margin:Number = 2;
-			for(var i:int=0; i<pages.length; i++) {
+			
+			for(var i:int = 0; i < pages.length; i++)
+			{
 				pgc = new PageCtrl( pages[i].name, pages[i].title, pages[i].type, pages[i].template, pages[i].crdate, pages[i].uid, 0,0, itemList, container.styleSheet, '', 'show-page-ctrl', false);
 				pageCtrls.push( pgc );
 				itemList.addItem( pgc );
@@ -182,9 +174,6 @@
 			
 			body.setChildIndex( plusButton, body.numChildren-2 );
 			body.setChildIndex( title, body.numChildren-1 );
-			
-		//	scrollpane.setHeight( container.getHeight() - scrollpane.y );
-		//	scrollpane.contentHeightChange();
 			
 			newSize();
 		}
@@ -220,29 +209,33 @@
 			}
 			
 			scrollpane = new ScrollContainer(0,0,body,styleSheet,'','pageeditor-container',false);
-			scrollpane.y = body.cssTop; //plusButton.y + plusButton.cssSizeY;
+			scrollpane.y = body.cssTop;
 			scrollpane.x = body.cssLeft;
 			
 			itemList = new ItemList(0,0,scrollpane.content,container.styleSheet,'','pageeditor-list',true);
 			
-			pageName = new NameCtrl( "Name", "name", "name", "", null, null, 0, 32, itemList, container.styleSheet,'', 'area-insert-prop', false);
+			pageName = new NameCtrl( "Name", "name", "name", "", null, null, 0, 32, itemList, container.styleSheet, '', 'area-insert-prop', false);
+			
 			if( page == -1 ){
-				pageName.deleteButton.visible = false;
+				pageName.showDeleteButton(false);// .visible = false;
 				pageName.label.label = Language.getKeyword( "New Page") + ":";
 				pageName.textBox.value = "Page_" + CTTools.pages.length;
 			}else{
 				pageName.label.label = Language.getKeyword( "Edit Page") + ":";
 				pageName.addEventListener( "delete", deleteClick );
-				// disable name chnages:
+				// disable name changes:
 				pageName.textBox.textField.type = TextFieldType.DYNAMIC;
 			}
 			
-			pageName.saveAndCloseButton.visible = false;
+			pageName.showSaveAndCloseButton(false);// .visible = false;
+			pageName.showNextButton(false);
+			pageName.showPrevButton(false);
+			
 			pageName.addEventListener( "saveInline", saveClick );
 			pageName.addEventListener( "close", closeClick);
 			
 			
-			pageType = new PropertyCtrl( "Type", "pageType", "list", "Dynamic", null, ["Dynamic","Static","External","Internal"], 0, 0, itemList, container.styleSheet,'','',false);
+			pageType = new PropertyCtrl( "Type", "pageType", "list", "Dynamic", null, ["Dynamic","Static","External","Internal","Article"], 0, 0, itemList, container.styleSheet,'','',false);
 			pageTitle = new PropertyCtrl( "Title", "pageTitle", "string", "New Title", null, [], 0, 0, itemList, container.styleSheet,'','',false);
 			pageTemplate = new PropertyCtrl( "Template", "pageTemplate", "list", templates.length > 0 ? templates[0] : "", null, templates, 0, 0, itemList, container.styleSheet,'','',false);
 			pageWebDir = new PropertyCtrl( "Directory", "pageWebDir", "string", "/", null, [], 0, 0, itemList, container.styleSheet,'','',false);
@@ -287,88 +280,181 @@
 		
 		private function deleteClick (e:Event) :void
 		{
+			deletePage( pageName.textBox.value, deleteCompleteFunc );
+			
+		}
+		private function deleteCompleteFunc ( success:Boolean ) :void {
+			showPages();
+		}
+		
+		public static function deletePage (name:String, completeHandler:Function=null):void 
+		{
+			_name = name;
+			_complete = completeHandler;
+			
 			var pms:Object = {};
-			pms[":name"] = pageName.textBox.value;
-			pms[":name"] = pageName.textBox.value; 
+			pms[":name"] = name;
 			
 			if( ! CTTools.db.deleteQuery( deletePageHandler, "page", "name=:name", pms) ) {
 				Console.log( "Error: Delete Page");
-				showPages();
+				if( typeof(_complete) == "function" ) _complete( false );
 				return;
 			}
 			Application.instance.showLoading();
 		}
 		
-		private function deletePageHandler (res:DBResult) :void
+		private static function deletePageHandler (res:DBResult) :void
 		{
 			if( res && res.rowsAffected ) {
-				CTTools.clearPage( pageName.textBox.value );
-			}
+				CTTools.clearPage( _name );
+				if( typeof(_complete) == "function" ) _complete( true );
+			}else if( typeof(_complete) == "function" ) _complete( false );
+			
 			Application.instance.hideLoading();
-			showPages();
 		}
 		
 		private function closeClick (e:Event) :void {
 			showPages();
 		}
 		
+		 
+		internal static var _ltPage:Page=null;
+		internal static var _name:String;
+		internal static var _visible:Boolean
+		internal static var _title:String;
+		internal static var _type:String;
+		internal static var _template:String;
+		internal static var _parent:String;
+		internal static var _webdir:String;
+		internal static var _date:String="now";
+		internal static var _complete:Function=null;
+		internal static var _props:Object=null;
+		
+		private function saveCompleteFunc ( success:Boolean ) :void {
+			if( success && !pagesCreated ) pagesCreated = true;
+			showPages();
+		}
+		
 		private function saveClick (e:Event) :void {
-			if( pageName ) {
+			if( pageName )
+			{
 				if(!pageName.textBox.value ) {
 					pageName.textBox.value = "New-Page";
 				}
-				var pms:Object = {};
-				pms[":name"] = pageName.textBox.value; 
-				if( ! CTTools.db.selectQuery( insertPageSelectHandler, "uid,name", "page", "name=:name", '','','', pms) ) {
-					Console.log("Error: Insert Page Select " + pageName.textBox.value );
-					showPages();
-					return;
-				}
-				
-				Application.instance.showLoading();
+				createPage( pageName.textBox.value, 
+						pageName.visibleStatus, 
+						pageTitle.textBox.value,
+						pageType.textBox.value,
+						pageTemplate.textBox.value,
+						pageParent.textBox.value,
+						pageWebDir.textBox.value,
+						"now", saveCompleteFunc, null );
 			}
 		}
-		private var ltFilename:String="";
 		
-		private function insertPageSelectHandler (res:DBResult) :void {
-			var pms:Object = {};
-			pms[":name"] = pageName.textBox.value;
-			pms[":visible"] = pageName.visibleStatus;
-			pms[":title"] = pageTitle.textBox.value;
-			pms[":type"] = pageType.textBox.value;
-			pms[":template"] = pageTemplate.textBox.value;
-			pms[":parent"] = pageParent.textBox.value;
-			pms[":webdir"] = pageWebDir.textBox.value;
-			pms[":date"] = "now";
+		public static function createPage ( name:String, visible:Boolean, title:String, type:String,
+											template:String, parent:String, webdir:String,
+											date:String = "now", completeHandler:Function = null, props:Object = null) :Boolean
+		{
+			_name = name;
+			_visible = visible;
+			_title = title;
+			_type = type;
+			_template = template;
+			_parent = parent;
+			_webdir = webdir;
+			_date = date;
+			_complete = completeHandler;
+			_props = props;
+			_ltPage = null;
 			
-			var est:int = pageTemplate.textBox.value.lastIndexOf(".");
+			var pms:Object = {};
+			pms[":name"] = _name;
+			
+			if( ! CTTools.db.selectQuery( insertPageSelectHandler, "uid,name", "page", "name=:name", '', '', '', pms) )
+			{
+				Console.log("Error: Insert Page Select " + _name );
+				
+				if( typeof(_complete) == "function" ) _complete( false );
+				return false;
+			}
+			
+			Application.instance.showLoading();
+			return true;
+		}
+		
+		private static var ltFilename:String="";
+		
+		private static function insertPageSelectHandler (res:DBResult) :void {
+			var pms:Object = {};
+			pms[":name"] = _name;
+			pms[":visible"] = _visible;
+			pms[":title"] = _title;
+			pms[":type"] = _type;
+			pms[":template"] = _template;
+			pms[":parent"] = _parent;
+			pms[":webdir"] = _webdir;
+			pms[":date"] = _date;
+			
+			var est:int = _template.lastIndexOf(".");
+			
 			if( est >= 0 ) {
-				pms[":filename"] = pageName.textBox.value.toLowerCase() + pageTemplate.textBox.value.substring(est).toLowerCase();
+				pms[":filename"] = _name.toLowerCase() + _template.substring(est).toLowerCase();
 			}else{
-				pms[":filename"] = pageName.textBox.value.toLowerCase();
+				pms[":filename"] = _name.toLowerCase();
 			}
 			ltFilename = pms[":filename"];
 			
-			if( res && res.data && res.data.length > 0 ) {
-				var L:int = CTTools.pages.length;
-				for( var i:int=0; i<L; i++) {
-					if(CTTools.pages[i].uid == res.data[0].uid ) {
-						// Update page:
-						CTTools.pages[i].name = pms[":name"];
-						CTTools.pages[i].title = pms[":title"];
-						CTTools.pages[i].type = pms[":type"];
-						CTTools.pages[i].template = pms[":template"];
-						CTTools.pages[i].parent = pms[":parent"];
-						CTTools.pages[i].webdir = pms[":webdir"];
-						CTTools.pages[i].filename = ltFilename;
-						CTTools.createPage( CTTools.pages[i] );
-						break;
+			if( res && res.data && res.data.length > 0 )
+			{
+				// Update
+				
+				var L:int;
+				var i:int;
+				
+				if( pms[":type"].toLowerCase() == "article" ) {
+					L = CTTools.articlePages.length;
+					for( i = 0; i < L; i++)
+					{
+						if(CTTools.articlePages[i].uid == res.data[0].uid )
+						{
+							CTTools.articlePages[i].name = pms[":name"];
+							CTTools.articlePages[i].title = pms[":title"];
+							CTTools.articlePages[i].type = pms[":type"];
+							CTTools.articlePages[i].template = pms[":template"];
+							CTTools.articlePages[i].parent = pms[":parent"];
+							CTTools.articlePages[i].webdir = pms[":webdir"];
+							CTTools.articlePages[i].filename = ltFilename;
+							_ltPage = CTTools.articlePages[i];
+							CTTools.createPage( CTTools.articlePages[i], _props );
+							break;
+						}
+					}
+
+				}else{
+					L = CTTools.pages.length;
+					for( i = 0; i < L; i++)
+					{
+						if(CTTools.pages[i].uid == res.data[0].uid )
+						{
+							CTTools.pages[i].name = pms[":name"];
+							CTTools.pages[i].title = pms[":title"];
+							CTTools.pages[i].type = pms[":type"];
+							CTTools.pages[i].template = pms[":template"];
+							CTTools.pages[i].parent = pms[":parent"];
+							CTTools.pages[i].webdir = pms[":webdir"];
+							CTTools.pages[i].filename = ltFilename;
+							_ltPage = CTTools.pages[i];
+							CTTools.createPage( CTTools.pages[i], _props );
+							break;
+						}
 					}
 				}
-				// Update page...
+				
 				if(!CTTools.db.updateQuery( insertPageUpdateHandler, "page", "name=:name", "name=:name,visible=:visible,title=:title,type=:type,template==:template,crdate=:date,parent=:parent,webdir=:webdir,filename=:filename", pms)) {
 					agf.tools.Console.log( "ERROR in UPDATE -> Curr Page");
 					Application.instance.hideLoading();
+					if( typeof(_complete) == "function" ) _complete( false );
 				}
 				return;
 			}
@@ -376,31 +462,46 @@
 			if(! CTTools.db.insertQuery( insertPageInsertHandler, "page", "name,visible,title,type,template,crdate,parent,webdir,filename",":name,:visible,:title,:type,:template,:date,:parent,:webdir,:filename", pms)) {
 				agf.tools.Console.log( "ERROR in Insert -> Curr Page");
 				Application.instance.hideLoading();
+				if( typeof(_complete) == "function" ) _complete( false );
 			}
 		}
 		
-		private function insertPageInsertHandler (res:DBResult) :void {
+		private static function insertPageInsertHandler (res:DBResult) :void {
 			if(res && res.rowsAffected )
 			{
-				pagesCreated = true;
-				var rv:int = CTTools.pages.push( new Page( pageName.textBox.value, res.lastInsertRowID, pageType.textBox.value, pageTitle.textBox.value, pageTemplate.textBox.value, "Now", pageName.visibleStatus, pageParent.textBox.value, pageWebDir.textBox.value, ltFilename ) );//, crdate: pms[":crdate"], 
-				CTTools.createPage( CTTools.pages[rv-1] );
+				var pg:Page = new Page( 
+								_name, 
+								res.lastInsertRowID,
+								_type, 
+								_title, 
+								_template, 
+								"Now",
+								_visible,
+								_parent,
+								_webdir,
+								ltFilename );
+				_ltPage = pg;
+				CTTools.createPage( pg, _props );				
+				if( typeof(_complete) == "function" ) _complete( true );
 			}
 			else
 			{
 				Console.log( "ERROR Insert page into database");
+				if( typeof(_complete) == "function" ) _complete( false );
 			}
+			
 			Application.instance.hideLoading();
-			showPages();
 		}
 		
-		private function insertPageUpdateHandler (res:DBResult) :void {
-			if(res && res.rowsAffected )
-			{
-				pagesCreated = true;
+		private static function insertPageUpdateHandler (res:DBResult) :void {
+			if( typeof(_complete) == "function" ) {
+				if(res && res.rowsAffected ) {
+					 _complete( true );
+				}else{
+					 _complete( false );
+				}
 			}
 			Application.instance.hideLoading();
-			showPages();
 		}
 		
 	}

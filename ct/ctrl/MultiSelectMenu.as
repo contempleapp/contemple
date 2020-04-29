@@ -50,7 +50,6 @@
 			pasteBtn = new Button( [new IconFromFile(Options.iconDir + "/trash3-32.png",Options.btnSize,Options.btnSize) ], 0, 0, this, styleSheet, '', 'multisel-paste-button', false);
 			pasteBtn.addEventListener( MouseEvent.CLICK, pasteClick );
 			
-			
 			moveToPP = new Popup( [ new IconFromFile(Options.iconDir + "/reply18.png", 18, 18 ) ], 0, 0, this, styleSheet, '', 'multisel-move-to-pp', false);
 			moveToPP.addEventListener( PopupEvent.SELECT, moveToAreaSelect );
 			

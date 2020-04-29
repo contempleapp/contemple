@@ -50,7 +50,7 @@
 		
 		// TODO:
 		// Input Types: TextStyle, BackgroundStyle, ContainerStyle -> generates css for margin, border, padding, background, color, font-properties etc
-		// type can be intern, hiddem, name, string, code, richtext, number, integer, screennumber, screeninteger, boolean, color, list, listappend, listmultiple, labellist, arealist, pagelist, nodestyle, styleclass, vector<T>, vectorlink, file, files, image, audio, video, pdf, or directory
+		// type can be intern, hidden, name, string, code, richtext, number, integer, screennumber, screeninteger, boolean, color, list, listappend, listmultiple, labellist, arealist, pagelist, nodestyle, styleclass, vector<T>, vectorlink, file, files, image, audio, video, pdf, or directory
 		public function InputTextBox ( __type:String="line", type_args:Array=null, prop_obj:Object=null, avalue:String="", w:Number=0, h:Number=0, parentCS:CssSprite=null, css:CssStyleSheet=null,cssId:String='', cssClasses:String='', noInit:Boolean=false)
 		{
 			super(w, h, parentCS, css, "textbox", cssId, cssClasses, true);
@@ -62,7 +62,8 @@
 			propObj = prop_obj;
 			textField = new TextField();
 			create();
-			value = avalue ;
+			
+			value = avalue;
 			
 			var cssclasses:Array;
 			if( CTTools.templateConstants && CTTools.templateConstants["richTextCssClasses"] != undefined ) {
@@ -79,7 +80,8 @@
 				}
 			}
 			
-			richTextButtons = [ cssclasses, specialChars, ".Heading", ".List", ".Bold", ".Italic", ".Link", ".Undo", ".Redo" ]
+			richTextButtons = [ cssclasses, specialChars, ".Heading", ".List", ".Bold", ".Italic", ".Link", ".Undo", ".Redo" ];
+			
 			setType(__type);
 		}
 		
@@ -145,7 +147,7 @@
 		public var www_filename:String;
 		public var fileFilterDescription:String=""; // "Text/XML";
 		public var allowed_extensions:String=""; // "gif,jpg,png,mp3,mp4,flv,swf,htm,html,css,js,php,xml";
-		public var rename_template:String="";    // "uploaded-file-#NAME#-#UID#-#YEAR#-#MONTH#-#DAY#-#HOUR#-#MINUTE#-#SECOND#.#EXTENSION#";
+		public var rename_template:String="";    // "uploaded-file-#INPUTNAME#-#UID#-#YEAR#-#MONTH#-#DAY#-#HOUR#-#MINUTE#-#SECOND#.#EXTENSION#";
 		public var generic_file:String;
 		private static var lastSelectedFiles:Object={};
 		public static var screenUnits:Array = ["rem","em","px","%","vw","vh"];
@@ -175,7 +177,7 @@
 		public var history:Vector.<String> = new Vector.<String>();
 		public var future:Vector.<String> = new Vector.<String>();
 		
-		private var activateValue:String="";
+		internal var activateValue:String="";
 		private static var tmp_bool_value:Boolean=false;
 		private var _color:uint=0;
 		private var _dir:String="";
@@ -202,8 +204,8 @@
 			future.push( v );
 			toggleUndoButtons();
 		}
-		private function toggleUndoButtons () :void {
-			
+		private function toggleUndoButtons () :void
+		{
 			if( itemList )
 			{
 				// Show Undo/Redo Button
@@ -230,50 +232,68 @@
 				}
 			}
 		}
-		public var specialCharIcons: Object = {
-			/*name: new IconFromFile( Options.iconDir + CTOptions.urlSeparator + "zehn-schluessel.png", Options.iconSize, Options.iconSize),
-			whitespace: new IconEmpty(12, 12),
-			alpha: new IconFromHtml( "&#945;", null, "", 12, 12 ),
-			beta: new IconFromHtml( "&#946;", null, "", 12, 12 ),
-			copyright: new IconFromHtml( "&#169;", null, "", 12, 12 ),
-			delta: new IconFromHtml( "&#948;", null, "", 12, 12 ),
-			gamma: new IconFromHtml( "&#947;", null, "", 12, 12 ),
-			micro: new IconFromHtml( "&#181;", null, "", 12, 12 ),
-			promil: new IconFromHtml( "&#8240;", null, "", 12, 12 ),
-			omega: new IconFromHtml( "&#937;", null, "", 12, 12 ),
-			pi: new IconFromHtml( "&#960;", null, "", 12, 12 ),
-			quote: new IconFromHtml( "&#34;", null, "", 12, 12 ),
-			radic: new IconFromHtml( "&8730;", null, "", 12, 12 ),
-			theta: new IconFromHtml( "&952;", null, "", 12, 12 ),
-			delta: new IconFromHtml( "&#914;", null, "", 12, 12 ),
-			lambda: new IconFromHtml( "&#916;", null, "", 12, 12 ),
-			sigma: new IconFromHtml( "&#931;", null, "", 12, 12 ),
-			ypsilon: new IconFromHtml( "&#933;", null, "", 12, 12 ),
-			xi: new IconFromHtml( "&#926;", null, "", 12, 12 )
-			*/
-		};
+		public var specialCharIcons: Object = {};
 		
 		public static var specialChars:Object = {
 			name:".Special Chars",
 			whitespace: "&nbsp;",
 			alpha: "&#945;",
+			angle:"&#8736;",
+			bullet:"&#8226;",
+			middot:"&#183;",
+			diamond:"&#9830;",
+			heart:"&#9829;",
+			club:"&#9827;",
+			spade:"&#9824;",
+			quarter:"&#188;",
+			half:"&#189;",
+			division:"&#247;",
+			perpendicular:"&#8869;",
+			ampersand:"&#38;",
+			empty:"&#8709;",
 			beta: "&#946;",
 			copyright: "&#169;",
 			delta: "&#948;",
+			exist:"&#8707;",
+			nabla:"&#8711;",
+			verticalbar:"&#166;",
 			gamma: "&#947;",
 			micro:"&#181;",
 			promil:"&#8240;",
+			infinity:"&#8734;",
+			plusminus:"&#177;",
 			omega:"&#937;",
 			pi:"&#960;",
-			quote:"&#34;",
-			singlequote:"&#39;",
+			degree:"&#176;",
+			aquoteleft:"&#171;",
+			aquoteright:"&#187;",
+			registered:"&#174;",
+			lowast:"&#8727;",
+			quotation:"&#34;",
+			apostrophe:"&#39;",
+			leftquote:"&#8220;",
+			rightquote:"&#8221;",
+			lowerquote:"&#8222;",
+			trademark:"&#8482;",
+			arrowright:"&#8594;",
+			arrowleft:"&#8592;",
+			arrowup:"&#8593;",
+			arrowdown:"&#8595;",
+			arrowlr:"&#8596;",
+			carriagereturn:"&#8629;",
+			less:"&#60;",
+			greater:"&#62;",
 			radic: "&#8730;",
 			theta: "&#952;",
 			delta:"&#914;",
 			lambda:"&#916;",
 			sigma:" &#931;",
 			ypsilon: "&#933;",
-			xi:"&#926;"
+			xi:"&#926;",
+			euro:"&#8364;",
+			yen:"&#165;",
+			pound:"&#163;",
+			cent:"&#162;"
 		}
 		
 		public var richTextCssIcons: Array = [new IconArrowDown(0xFFFFFF, 1, Options.iconSize, int(Options.iconSize))];
@@ -351,7 +371,6 @@
 			var tmp:String = tf.text;
 			tf.text = "VGgyYÖÜ";
 			tf.height = tf.textHeight + 4;
-			
 			tf.text = tmp;
 			tf.x = cssLeft;
 			tf.y = cssTop;
@@ -359,46 +378,12 @@
 			if( _onDeactivate != null )  tf.addEventListener( FocusEvent.FOCUS_OUT, _onDeactivate );
 			if( _onChange != null  )     tf.addEventListener( Event.CHANGE, _onChange );
 			
-			if( CTOptions.isMobile ) {
+			if( CTOptions.isMobile && CTOptions.softKeyboard ) {
 				tf.addEventListener( SoftKeyboardEvent.SOFT_KEYBOARD_ACTIVATE, CTTools.softKeyboardChange );
 				tf.addEventListener( SoftKeyboardEvent.SOFT_KEYBOARD_DEACTIVATE, CTTools.softKeyboardChange );
 			}
 			addChild(tf);
 		}
-		
-		//private var tmpH:Number=0;
-		/*
-		private function softKeyboardChange (e:SoftKeyboardEvent) :void
-		{
-			var ctm:CTMain = CTMain(Application.instance);
-			
-			if( stage && stage.softKeyboardRect.width == 0 || stage.softKeyboardRect.height == 0 )
-			{
-				// deactivate
-				// parent.y = tmpY;
-				ctm.setSize( stage.stageWidth, stage.stageHeight );
-			}
-			else
-			{
-				var h:int = stage.softKeyboardRect.y - ctm.mainMenu.cssSizeY;
-				
-				ctm.setSize( stage.stageWidth, h );
-				
-				try {
-					// tmpH = CssSprite( ctm.view.panel.src ).getHeight();
-					// var ht:HtmlEditor = HtmlEditor( ctm.view.panel.src );
-					// ctm.view.setHeight( h );
-					// ctm.view.panel.setHeight( h );
-					Object(ctm.view.panel.src).newSize(null); //setHeight( stage.softKeyboardRect.y - ctm.view.panel.src.y );
-					
-					// ctm.view.panel.setHeight( ctm.getHeight() - ctm.mainMenu.cssSizeY );
-					
-				}catch(e:Error) {
-					Console.log("Error setting SoftKeyboard Size");
-				}
-				
-			}
-		}*/
 		
 		private function onImageLoaded ( _res:Resource ) :void
 		{
@@ -475,6 +460,40 @@
 			mediaContainer.addChild( sp );
 				
 			setHeight( textField.height );	
+		}
+		
+		private var dateFormat:String="d. m. y";
+		private function enterDate (d:Date) :void
+		{
+			if( dateFormat )
+			{
+				var L:int = dateFormat.length;
+				var c:String;
+				var rv:String="";
+				
+				for(var i=0; i<L; i++ ) {
+					c = dateFormat.charAt(i).toLowerCase();
+					if( c == "d" ) {
+						rv += d.getDate();
+					}else if( c == "m" ) {
+						rv += d.getMonth()+1;
+					}else if( c == "y" ) {
+						rv += d.getFullYear();
+					}else if( c == "h" ) {
+						rv += d.getHours();
+					}else if( c == "i" ) {
+						rv += d.getMinutes();
+					}else if( c == "s" ) {
+						rv += d.getSeconds();
+					}else if( c == "t" ) {
+						rv += d.getTimezoneOffset();
+					}else{
+						rv += c;
+					}
+				}
+				
+				value = rv;
+			}
 		}
 		
 		//      ..........
@@ -622,6 +641,17 @@
 				textField.autoSize = TextFieldAutoSize.NONE;
 				
 				setHeight( tfh + 2 );
+			}
+			else if ( tp == "date" )
+			{
+				if( args ) {
+					L = args.length;
+					if( L > 0 ) dateFormat = args[0];
+				}
+				if( !value ) {
+					enterDate( new Date() );
+					activateValue = "";
+				}
 			}
 			else if ( tp == "boolean" )
 			{
@@ -915,6 +945,7 @@
 				textField.multiline = true;
 				textField.wordWrap = true;
 				
+				/*
 				specialCharIcons = {
 					name: new IconFromFile( Options.iconDir + CTOptions.urlSeparator + "zehn-schluessel.png", Options.iconSize, Options.iconSize ),
 					whitespace: new IconEmpty(Options.iconSize, Options.iconSize),
@@ -935,7 +966,19 @@
 					sigma: new IconFromHtml( '<p class="special-char-icon">&#931;</p>', styleSheet, "",Options.iconSize, Options.iconSize ),
 					ypsilon: new IconFromHtml( '<p class="special-char-icon">&#933;</p>', styleSheet, "",Options.iconSize, Options.iconSize ),
 					xi: new IconFromHtml( '<p class="special-char-icon">&#926;</p>', styleSheet, "",Options.iconSize, Options.iconSize )
-				};
+					
+					
+				};*/
+				
+				specialCharIcons = {
+					name: new IconFromFile( Options.iconDir + CTOptions.urlSeparator + "zehn-schluessel.png", Options.iconSize, Options.iconSize )
+				}
+				
+				for (var icname:String in specialChars ) {
+					if ( icname != "name" ) {
+						specialCharIcons[ icname ] = new IconFromHtml( '<p class="special-char-icon">' + specialChars[icname] + '</p>', styleSheet, "special-char-icon", Options.iconSize, Options.iconSize );
+					}
+				}
 				richTextIcons =  [	richTextCssIcons, specialCharIcons,
 									new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "kopfzeile.png",Options.iconSize, Options.iconSize), 
 									new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "li.png",Options.iconSize, Options.iconSize), 
@@ -994,11 +1037,12 @@
 						btn.addEventListener(MouseEvent.MOUSE_DOWN, richtTextBtnHandler);
 						itemList.addItem(btn, true);
 					
-					}else if( richTextButtons[i] is Object ) {
+					}else if ( richTextButtons[i] is Object ) {
 						if( richTextButtons[i].name.charAt(0) == "." ) {
 							icons = [];
 						}else{
 							icons = [richTextButtons[i].name];
+
 						}
 						if( richTextIcons && richTextIcons.length > i ) {
 							if( richTextIcons[i] is Object && richTextIcons[i]["name"] != undefined ) {
@@ -1012,12 +1056,16 @@
 						
 						for( n in richTextButtons[i] ) {
 							if( n != "name" ) {
-								icons = [""+n];
+								//icons = [""+n];
+								icons = [];
+								
 								if( richTextIcons && richTextIcons.length > i ) {
 									if( richTextIcons[i] is Object && richTextIcons[i][n] != undefined ) {
 										icons.push( richTextIcons[i][n] );
 									}
 								}
+								icons.push("" + n);
+								
 								ppi = btnpp.rootNode.addItem( icons, cssStyleSheet);
 								ppi.options.overrideVal = richTextButtons[i][n];
 							}
@@ -1027,7 +1075,7 @@
 					}
 				}
 				
-				itemList.format(true);
+				itemList.format(false);
 				historyPush( textField.text );
 				textField.autoSize = TextFieldAutoSize.LEFT;
 				textField.width = getWidth() - ( itemList.width + 4);
@@ -1207,7 +1255,7 @@
 						for(i=0; i<L; i++) {
 							// filter pages by key/val - args[0]/args[1]
 							if( pages[i][key] == val ) {
-								pages.push( CTTools.pages[i].name );
+								pages.push( CTTools.pages[i].filename );
 							}
 						}
 						if( pages.length > 0 )
@@ -1233,7 +1281,7 @@
 					{
 						// show all pages
 						for(i=0; i<L; i++) {
-							pages.push( CTTools.pages[i].name );
+							pages.push( CTTools.pages[i].filename );
 						}
 					}
 				}
@@ -1529,7 +1577,7 @@
 							// not in markup code..
 							// add empty tag..
 							historyPush( value );
-							
+								
 							value = textField.text.substring(0, beginid) + '[' + rtNodeName + ' class="'+lb+'"][/' + rtNodeName + ']'+ textField.text.substring( endid );
 							tp = beginid + 11 + rtNodeName.length + lb.length;
 							textEnter();
@@ -2260,7 +2308,7 @@
 		
 		public function set value ( v:String ) :void {
 			
-			textField.text = v;
+			textField.text = v || "";
 			
 			if ( _type == "boolean" && tfBtn) {
 				boolIcon( v == boolYes || CssUtils.stringToBool(v) );
@@ -2308,6 +2356,9 @@
 			}else if( _type == "color" ){
 				colorValue = v;
 				drawCurrentColor();
+			//}else if( _type == "date" ){
+				//colorValue = v;
+				//drawCurrentColor();
 			}else if( _type == "boolean" ){
 				boolValue = v == boolYes || v == "1" || v.toLowerCase() == "true" ? true : false;
 				textField.text = boolValue ? boolYes : boolNo;
@@ -2471,7 +2522,7 @@
 				directory.browseForDirectory("Select Directory");
 				directory.addEventListener(Event.SELECT, dirSelected);
 			}catch (error:Error){
-				//trace("Failed:", error.message);
+				//s("Failed:", error.message);
 			}
 		}
 		private function dirSelected (event:Event) :void {

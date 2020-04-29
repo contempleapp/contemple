@@ -334,7 +334,7 @@
 									}
 									else if( !secj && tmpl.dbProps[ propName ] )
 									{
-										propVal = /* typeof tmpl.dbProps[ propName ] == "object" ?*/ tmpl.dbProps[ propName ].value /*: tmpl.dbProps[ propName ]*/;
+										propVal = typeof tmpl.dbProps[ propName ] == "object" ? tmpl.dbProps[ propName ].value : tmpl.dbProps[ propName ];
 									}
 									else
 									{

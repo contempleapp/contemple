@@ -103,11 +103,6 @@
 		public function addItem ( item:DisplayObject, noFormat:Boolean=false ) :void {
 			itemList.addItem( item, noFormat );
 		}
-		/*public override function addItemAt ( item:Sprite, id:uint, noFormat:Boolean=false ) :void {
-			super.addItemAt ( item, id, noFormat );
-			_content.addChild( item );
-		}*/
-		
 		public function removeItem ( item:DisplayObject, noFormat:Boolean=false ) :int {
 			return itemList.removeItem( item, noFormat );
 		}
@@ -116,7 +111,6 @@
 		}
 		
 		public function format (forceSameWidth:Boolean=false) :void {
-			//itemList.format(forceSameWidth);
 			fsw = forceSameWidth;
 			treeFormat( itemList, forceSameWidth );
 		}

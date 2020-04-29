@@ -78,7 +78,7 @@
 			// Set default config options
 			
 			CTOptions.appName = "Contemple-CMS";
-			CTOptions.version = "1.0.8";
+			CTOptions.version = "1.0.11";
 			
 			CTOptions.userMode = true;
 			CTOptions.startConfig = "ct-config-user.css";
@@ -94,7 +94,7 @@
 			CTOptions.localSharedObjectId = "app.contemple.1.0.6";
 			CTOptions.installSharedObjectId = "app.contemple.1.0.6";
 			CTOptions.uploadViewShowFileInfo = false;
-			CTOptions.reverseAreasPopup = false;
+			CTOptions.reverseAreasPopup = true;
 			
 			CTOptions.animateBackground = true;
 			CTOptions.animateBackgroundMin = .48;

@@ -58,10 +58,17 @@
 		private static var internSubTempl:Template;
 		private static var internSubTemplLoadComplete:Function;
 		private static var internSubTemplCreateComplete:Function;
+		
 		public static var pages:Array;
-		public static var pageItems:Array;
 		public static var pageTable:Object;
+		
+		public static var articlePages:Array;	// Page
+		public static var articlePageTable:Object;
+		
+		public static var pageItems:Array;
 		public static var pageItemTable:Object;
+		public static var articleProcFiles:Array; // ProjectFile
+		
 		private static var internSubTemplData:Array;
 		private static var internCurrSubTempl:int=0;
 		private static var internPageItemData:Array;
@@ -457,7 +464,7 @@
 							{
 								pth = internSubTempl.jsfiles[i].src;
 								
-								if(!copyFile(  internSubTempl.genericPath + CTOptions.urlSeparator + pth, 
+								if(!copyFile( internSubTempl.genericPath + CTOptions.urlSeparator + pth, 
 									projectDir + CTOptions.urlSeparator + CTOptions.projectFolderTemplate + CTOptions.urlSeparator + CTOptions.subtemplateFolder + CTOptions.urlSeparator + internSubTempl.name + CTOptions.urlSeparator + pth)) {
 										Console.log("Error: Subtemplate embed js file copy error " + internSubTempl.name + ": " + pth );
 									}
@@ -474,13 +481,21 @@
 							{
 								pth = internSubTempl.cssfiles[i].src;
 								
-								if(!copyFile(  internSubTempl.genericPath + CTOptions.urlSeparator + pth, 
+								if(!copyFile( internSubTempl.genericPath + CTOptions.urlSeparator + pth, 
 									projectDir + CTOptions.urlSeparator + CTOptions.projectFolderTemplate + CTOptions.urlSeparator + CTOptions.subtemplateFolder + CTOptions.urlSeparator + internSubTempl.name + CTOptions.urlSeparator + pth)) {
 										Console.log("Error: Subtemplate embed css file copy error " + internSubTempl.name + ": " + pth );
 									}
 							}
 						}
 					}
+					if( internSubTempl.articlepage ) {
+						if(!copyFile( internSubTempl.genericPath + CTOptions.urlSeparator +  internSubTempl.articlepage, 
+							projectDir + CTOptions.urlSeparator + CTOptions.projectFolderTemplate + CTOptions.urlSeparator + CTOptions.subtemplateFolder + CTOptions.urlSeparator + 
+							internSubTempl.name + CTOptions.urlSeparator + internSubTempl.articlepage )) {
+								Console.log("Error: Subtemplate article page copy error " + internSubTempl.name + ": " + internSubTempl.articlepage );
+							}
+					}
+					
 					// Insert sub template into db:
 					var pm:Object = {};
 					pm[":name"] = internSubTempl.name;
@@ -609,6 +624,8 @@
 				
 				if( txo.template.@tables != undefined  && txo.template.@tables != "") tmpl.tables = txo.template.@tables.toString();
 				if( txo.template.@fields != undefined  && txo.template.@fields != "") tmpl.fields = txo.template.@fields.toString();
+				if( txo.template.@articlepage != undefined  && txo.template.@articlepage != "") tmpl.articlepage = txo.template.@articlepage.toString();
+				if( txo.template.@articlename != undefined  && txo.template.@articlename != "") tmpl.articlename = txo.template.@articlename.toString();
 				if( txo.template.@staticfiles != undefined  && txo.template.@staticfiles != "") tmpl.staticfiles = txo.template.@staticfiles.toString();
 				if( txo.template.@folders != undefined && txo.template.@folders != "" ) tmpl.folders = txo.template.@folders.toString();
 				if( txo.template.@templatefolders != undefined  && txo.template.@templatefolders != "") tmpl.templatefolders = txo.template.@templatefolders.toString();
@@ -650,7 +667,6 @@
 				
 				if( scr )
 				{
-					
 					tmpl.jsfiles = new Vector.<EmbedFile>();
 					jf = tmpl.jsfiles;
 					L = scr.length();
@@ -666,8 +682,7 @@
 				}
 				
 				scr = txo.template.embedstyle;
-				if( scr )
-					
+				if( scr )	
 				{
 					tmpl.cssfiles = new Vector.<EmbedFile>();
 					jf = tmpl.cssfiles;
@@ -773,22 +788,40 @@
 					}
 				}
 				
-				if( !tistr ) Console.log("TEMPLATE-ERROR No Template Index File Found: '"+ CTOptions.templateIndexFile +"'  In: " + path);
+				if ( !tistr )
+				{
+					Console.log("TEMPLATE-ERROR No Template Index File Found: '" + CTOptions.templateIndexFile +"'  In: " + path);
+					Application.instance.window.InfoWindow( "TmplLoadError", Language.getKeyword("Error"), Language.getKeyword("Template-Load-Error"), { allowCancel: false, autoHeight:true}, '' );
+				}
+				else
+				{
 				
-				saveFirstHandler(true);
+					saveFirstHandler(true);
+				}
 			}
 		}
 		
 		public static function compareVersions ( oldVersion:String, newVersion:String ) :String {
 			var currVersion:Array = oldVersion.split(".");
 			var version:Array = newVersion.split(".");
-			
 			var updateType:String = "none";
 			
-			if( version[0] > currVersion[0] ) {
+			if( currVersion.length == 0 ) return updateType;
+			currVersion[0] = parseInt(currVersion[0]);
+			if( currVersion.length > 1 ) currVersion[1] = parseInt(currVersion[1]);
+			if( currVersion.length > 2 ) currVersion[2] = parseInt(currVersion[2]);
+			
+			if( version.length == 0 ) return updateType;
+			version[0] = parseInt(version[0]);
+			if( version.length > 1 ) version[1] = parseInt(version[1]);
+			if( version.length > 2 ) version[2] = parseInt(version[2]);
+			
+			if( version[0] > currVersion[0] )
+			{
 				// mayor update...
 				updateType = "Major";
-			}else if( version[0] == currVersion[0] ) {
+			}
+			else if( version[0] == currVersion[0] ) {
 				if( version[1] > currVersion[1] ) {
 					// minor update
 					updateType = "Minor";
@@ -1159,7 +1192,6 @@
 					
 					// TODO: bugfix with new subtemplates missing in old DB.. 
 					// requires merge databases or compare subtemplates
-					Console.log("Test Exit 1..");
 					
 					if( CTOptions.debugOutput ) Console.log("OVERRIDE DONE: SH-ID: " +CTOptions.localSharedObjectId  + ", value: " +  sh.data.overrideDBDone + ", " + CTOptions.overrideInstallDB );
 					if( sh && sh.data && sh.data.overrideDBDone != true ) {
@@ -1288,20 +1320,58 @@
 			var rv:Boolean = db.query( onPagesDBLoad, sql, null );
 			if( !rv) Console.log( "DB-ERROR: SELECT ON pages failed");
 		}
-		private static function onPagesDBLoad ( res:DBResult ):void {	
-			if( res && res.data && res.data.length > 0 ) {
+		private static function onPagesDBLoad ( res:DBResult ):void
+		{	
+			if( res && res.data && res.data.length > 0 )
+			{
 				pages = [];
 				pageTable = {};
+				
+				// articlePages = [];
+				// articlePageTable = {};
+				
 				var L:int = res.data.length;
 				var n:String;
+				var tp:String;
+				var newFile:String;
+				var prjFile:ProjectFile;
+				var tmp:String;
 				
 				for(var i:int=0; i<L; i++)
 				{
 					n = res.data[i].name;
-					if( pageTable[ n ] != null) continue;
-					pageTable[ n ] = new Page(n, res.data[i].uid, res.data[i].type, res.data[i].title, res.data[i].template, res.data[i].crdate, true, res.data[i].parent, res.data[i].webdir, res.data[i].filename  );
-					pages.push( pageTable[ n ] );
-					loadPage( pageTable[ n ] );
+					
+					tp = res.data[i].type.toLowerCase();
+					
+					if( tp == "article" ) {
+						if( articlePageTable[ n ] != null) continue;
+						articlePageTable[ n ] = new Page(n, res.data[i].uid, res.data[i].type, res.data[i].title, res.data[i].template, res.data[i].crdate, true, res.data[i].parent, res.data[i].webdir, res.data[i].filename  );
+						articlePages.push( articlePageTable[ n ] );
+						loadArticlePage( articlePageTable[ n ], res.data[i].parent );
+						
+						/*
+						// parse file to know areas
+						if ( !articlePageTable[ n ].webdir ) {
+							newFile = projectDir + CTOptions.urlSeparator + CTOptions.projectFolderTemplate + CTOptions.urlSeparator + articlePageTable[ n ].filename;
+						}else{
+							newFile = projectDir + CTOptions.urlSeparator + CTOptions.projectFolderTemplate + CTOptions.urlSeparator + articlePageTable[ n ].webdir + CTOptions.urlSeparator + articlePageTable[ n ].filename;
+						}
+						prjFile = findArticleProjectFile( newFile, "path" );
+						
+						if ( prjFile ) {
+							prjFile.allDirty();
+							CTTools.saveArticleFile( prjFile, articlePageTable[ n ].webdir );
+						}
+						*/
+						//
+						
+					}else{
+						if( pageTable[ n ] != null) continue;
+						
+						pageTable[ n ] = new Page(n, res.data[i].uid, res.data[i].type, res.data[i].title, res.data[i].template, res.data[i].crdate, true, res.data[i].parent, res.data[i].webdir, res.data[i].filename  );
+						pages.push( pageTable[ n ] );
+						loadPage( pageTable[ n ] );
+					}
 				}
 			}
 			// load subtemplates
@@ -1309,7 +1379,6 @@
 			var rv:Boolean = db.query( onSubtemplatesDBLoad, sql, null );
 			if( !rv) Console.log( "DB-ERROR: SELECT ON active-template properties failed");
 		}
-		
 		private static function onSubtemplatesDBLoad ( res:DBResult ):void {
 			if(res && res.data && res.data.length > 1) {
 				internSubTemplData = res.data;
@@ -1356,7 +1425,7 @@
 					nm = res.data[i].name;
 					sec = res.data[i].section;
 					
-					internSubTempl.dbProps[nm] = { name:nm, type: res.data[i].type, value:res.data[i].value, section: sec /*"" */};
+					internSubTempl.dbProps[nm] = { name:nm, type: res.data[i].type, value:res.data[i].value, section: sec};
 						
 					if( sec != "" ) {
 						internSubTempl.dbProps[sec + "." + nm] =  {name:nm, type: res.data[i].type, value:res.data[i].value, section:sec};
@@ -1408,6 +1477,9 @@
 			var piobj:Object = {};
 			CTTools.cloneTo( r, piobj );
 			
+			if( piobj.visible ) piobj.visible = CssUtils.stringToBool( piobj.visible );
+			piobj.inputname = piobj.name;
+			
 			CTTools.pageItemTable[ r.name ] = piobj;
 			CTTools.pageItems.push( piobj );
 			
@@ -1449,6 +1521,19 @@
 			pagelist = p;
 		}
 		
+		public static var articlepagelist:String="";
+		
+		public static function genArticlePageList () :void {
+			var p:String = "";
+			if( articlePages && articlePages.length > 0 ) {
+				for(var i:int=0; i<articlePages.length-1; i++) { 
+					p += articlePages[i].filename+",";
+				}
+				p += articlePages[articlePages.length-1].filename;
+			}
+			articlepagelist = p;
+		}
+		
 		public static function loadPage ( page:Object ) :void {
 			addFile( projectDir + CTOptions.urlSeparator + CTOptions.projectFolderTemplate + CTOptions.urlSeparator + page.filename );
 			genPageList();
@@ -1466,22 +1551,192 @@
 				delete pageTable[name];
 			}
 		}
-		public static function createPage ( page:Object ) :void
+		public static function createPage ( page:Page, props:Object=null) :void
 		{
-			// test if template html file exists...
-			var f:File = new File( projectDir + CTOptions.urlSeparator + CTOptions.projectFolderTemplate + CTOptions.urlSeparator + page.template );
-			var newFile:String = projectDir + CTOptions.urlSeparator + CTOptions.projectFolderTemplate + CTOptions.urlSeparator + page.filename;
-		
-			if( f.exists ) {
-				var txt:String = readTextFile( f.url );
-				var rt:String = TemplateTools.rewritePage( txt, page.name );
-				writeTextFile( newFile, rt );
-				loadPage( page );
-			}else{
-				Console.log("Error: Page Template File Error");
+			if ( CTOptions.debugOutput )
+			{
+				Console.log( "CreatePage: " 
+				+ "\nname: " + page.name 
+				+ "\ntitle: " + page.title 
+				+ "\ntype: "+ page.type 
+				+ "\ntemplate: "+ page.template 
+				+ "\nparent: "+ page.parent 
+				+ "\nwebdir: "+ page.webdir 
+				+ "\nfilename: " + page.filename );
+			}
+			
+			var f:File;
+			var txt:String;
+			var rt:String;
+			var newFile:String;
+			
+			if( props && props["inputname"] )
+			{
+				// article page
+				if ( articlePages.indexOf( page ) == -1 ) {
+					var found:Boolean = false;
+					for(var i:int=articlePages.length-1; i>=0; i--) {
+						if( articlePages[i].name == page.name ) {
+							found = true;
+						}
+					}
+					if( !found ) {
+						articlePages.push( page );
+					}
+				}
+				
+				// loadArticlePage( page );
+				var sp:int = page.template.indexOf(":");
+			
+				if( sp == -1 ) {
+					Console.log("Error: Article Page Template not found: " + page.template );
+				}else{
+					var tmplname:String = page.template.substring( 0, sp );
+					var tmpl:String = page.template.substring( sp + 1 );
+					
+					// template source file
+					f = new File(projectDir + CTOptions.urlSeparator + CTOptions.projectFolderTemplate + CTOptions.urlSeparator + CTOptions.subtemplateFolder + CTOptions.urlSeparator + tmplname + CTOptions.urlSeparator + tmpl);
+					
+					if( f.exists )
+					{
+						txt = readTextFile( f.url );
+						rt = TemplateTools.rewritePage( txt, page.name, props );
+						
+						if ( !page.webdir ) {
+							newFile = projectDir + CTOptions.urlSeparator + CTOptions.projectFolderTemplate + CTOptions.urlSeparator + page.filename;
+						}else{
+							newFile = projectDir + CTOptions.urlSeparator + CTOptions.projectFolderTemplate + CTOptions.urlSeparator + page.webdir + CTOptions.urlSeparator + page.filename;
+						}
+						if ( CTOptions.debugOutput ) {
+							Console.log("Write Article Page: " + newFile);
+						}
+						
+						writeTextFile( newFile, rt );
+						loadArticlePage( page, props["inputname"] );
+					}
+					else
+					{
+						Console.log("Error: Article Page Template File Error " + f);
+					}
+				}
+			}
+			else
+			{
+				// template source file
+				f = new File( projectDir + CTOptions.urlSeparator + CTOptions.projectFolderTemplate + CTOptions.urlSeparator + page.template );
+				
+				if( f.exists )
+				{
+					txt = readTextFile( f.url );
+					rt = TemplateTools.rewritePage( txt, page.name, props );
+					newFile = projectDir + CTOptions.urlSeparator + CTOptions.projectFolderTemplate + CTOptions.urlSeparator + page.filename;
+					
+					if ( CTOptions.debugOutput )
+					{
+						Console.log("Write Page: " + newFile);
+					}
+					
+					writeTextFile( newFile, rt );
+					
+					if ( pages.indexOf( page ) == -1 )
+					{
+						pages.push( page );
+						loadPage( page );
+						
+						if ( CTOptions.debugOutput )
+						{
+							Console.log("Page Loaded: " + newFile);
+						}
+					}
+				}
+				else
+				{
+					Console.log("Error: Page Template File Error " + f);
+				}
 			}
 		}
 		
+		public static function loadArticlePage ( page:Page, itemName:String ) :void {
+			addArticleFile( page, itemName );
+			genArticlePageList();
+		}
+		
+		// create article prj file if not available
+		private static function addArticleFile ( page:Page, itemName:String ) :void
+		{
+			if( page )
+			{
+				if(!articleProcFiles) articleProcFiles = [];
+				
+				var sp:int = page.template.indexOf(":");
+			
+				if( sp == -1 ) {
+					Console.log("Error: Article Page Template not found: " + page.template );
+				}else{
+					var tmplname:String = page.template.substring( 0, sp );
+					var tmpl:String = page.template.substring( sp + 1 );
+					var newFile:String;
+					if ( !page.webdir ) {
+						newFile = projectDir + CTOptions.urlSeparator + CTOptions.projectFolderTemplate + CTOptions.urlSeparator + page.filename;
+					}else{
+						newFile = projectDir + CTOptions.urlSeparator + CTOptions.projectFolderTemplate + CTOptions.urlSeparator + page.webdir + CTOptions.urlSeparator + page.filename;
+					}
+					var prjFile:ProjectFile = findArticleProjectFile( newFile, "path" );
+					var str:String = readTextFile( newFile );
+					
+					if( prjFile == null )
+					{
+						var pf:ProjectFile = new ProjectFile( tmplname );
+						pf.setUrl( newFile );
+						pf.setTemplate( str, itemName );
+						pf.allDirty();
+						articleProcFiles.push( pf );
+					}
+					else
+					{
+						// Update
+						prjFile.setTemplate( str, itemName );
+						prjFile.allDirty();
+					}
+				}
+			}
+		}
+		
+		public static function saveArticleFile ( pf:ProjectFile, webdir:String ) :void
+		{
+			var file2:File = new File( projectDir + CTOptions.urlSeparator + CTOptions.projectFolderRaw + (webdir ? CTOptions.urlSeparator + webdir : "") + CTOptions.urlSeparator + pf.filename );
+			var fileStream2:FileStream = new FileStream();
+			fileStream2.open( file2, FileMode.WRITE );
+			
+			var rawtext:String = pf.getText();
+			fileStream2.writeMultiByte( rawtext, CTOptions.charset );
+			fileStream2.close();
+			
+			var minurl:String = projectDir + CTOptions.urlSeparator + CTOptions.projectFolderMinified + (webdir ? CTOptions.urlSeparator + webdir : "") + CTOptions.urlSeparator + pf.filename;
+			var file3:File = new File( minurl );
+			var fileStream3:FileStream = new FileStream();
+			fileStream3.open( file3, FileMode.WRITE );
+					
+			fileStream3.writeMultiByte( pf.getCompact(), CTOptions.charset );
+			fileStream3.close();
+			
+			pf.textSaveDirty = false;
+		}
+		
+		internal static function findArticleProjectFile ( value:String, key:String = "name" ) :ProjectFile
+		{
+			if( articleProcFiles ) {
+				var L:int = articleProcFiles.length;
+				
+				for( var i:int = 0; i < L; i++ )
+				{
+					if( articleProcFiles[i][key] == value ) {
+						return ProjectFile( articleProcFiles[i] );
+					}
+				}
+			}
+			return null;
+		}
 		
 		public static function cloneTo (srcit:Object, dest:Object, extUid:Boolean=false) :void {
 			var n:String;
@@ -2682,16 +2937,19 @@
 			subTemplates = new Vector.<Template>();
 			currFile = -1;
 			pages=[];
+			articlePages=[];
 			pageItems=[];
 			pageTable={};
+			articlePageTable={};
 			pageItemTable={};
 			templateConstants={};
 			saveAsFirst = false;
 			saveDirty = false;
 			
-			Template.randoms = {};
+			articlePages = [];
+			articlePageTable = {};
 			
-			//Language.clear();
+			Template.randoms = {};
 		}
 		public static var showRequireSaveHandler:Function;
 		
@@ -2927,7 +3185,7 @@
 			{
 				if( s.substring(0, 10) == "template:/" ) 
 				{
-					return CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderTemplate + CTOptions.urlSeparator +s.substring(10);
+					return CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderTemplate + CTOptions.urlSeparator + s.substring(10);
 				}
 			}
 			return s;	
@@ -3095,6 +3353,26 @@
 			displayFiles();
 		}
 		
+		public static function webFileName ( filename:String, obj:Object ) :String
+		{
+			var d:Date = new Date();
+			obj.extension = "";
+			var pid:int = filename.lastIndexOf(".");
+			if( pid >= 0 ) obj.extension = filename.substring(pid+1);
+			
+			obj.year = d.fullYear;
+			obj.month = d.month+1;
+			obj.day = d.day;
+			obj.date = d.date;
+			obj.hours = d.hours;
+			obj.minutes = d.minutes;
+			obj.seconds = d.seconds;
+			obj.milliseconds = d.milliseconds;
+			obj.time = d.time;
+			obj.timezoneOffset = d.timezoneOffset;
+			
+			return TemplateTools.obj2Text ( filename, "#", obj );
+		}
 		
 		public static function softKeyboardChange (e:SoftKeyboardEvent) :void
 		{
@@ -3111,7 +3389,7 @@
 				ctm.setSize( ctm.stage.stageWidth, h );
 				
 				try {
-					Object(ctm.view.panel.src).newSize(null); //setHeight( stage.softKeyboardRect.y - ctm.view.panel.src.y );
+					Object(ctm.view.panel.src).newSize(null);
 				}catch(e:Error) {
 					Console.log("Error setting SoftKeyboard Size");
 				}

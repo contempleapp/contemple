@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ct>
 	
+	<item name="Template-Load-Error">
+		<lang name="en" value="Template Error"/>
+		<lang name="de" value="Template Error"/>
+	</item>
 	<item name="Developer">
 		<lang name="en" value="Developer"/>
 		<lang name="de" value="Entwickler"/>

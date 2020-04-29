@@ -8,7 +8,6 @@
 
 		public static function command (argv:String, cmdComplete:Function=null, cmdCompleteArgs:Array=null) :void 
 		{
-			// Nothing to do here ...
 			var args:Array = argv2Array(argv);
 			
 			var ind:int = args.indexOf( "newproject" );

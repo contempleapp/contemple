@@ -148,20 +148,20 @@
 		}
 		
 		/**
-		* Rewrite a page template'S areas and properties
+		* Rewrite a page template areas and properties
 		* example on Blog Page with name "Blog":
 		*
 		* Areas:
 		* 
-		* {##page#CONTENT("ico:/falcon.png"):content} -> {##Blog-CONTENT("ico:/blog.png"):content}
-		* {##10.Folder.10.page#CONTENT:content} -> {##10.Folder.10.Blog-CONTENT}
+		* {##page#-CONTENT("ico:/falcon.png"):content} -> {##Blog-CONTENT("ico:/blog.png"):content}
+		* {##10.Folder.10.page#-CONTENT:content} -> {##10.Folder.10.Blog-CONTENT}
 		*
 		* Properties:
 		*
-		* {page#BG:Image} -> {#Blog-BG:Image}
-		* {#Folder.10.page#BG:Image} -> {#Folder.10.Blog-BG:Image}
+		* {page#-BG:Image} -> {#Blog-BG:Image}
+		* {#Folder.10.page#-BG:Image} -> {#Folder.10.Blog-BG:Image}
 		**/
-		public static function rewritePage (txt:String, pageName:String) :String
+		public static function rewritePage (txt:String, pageName:String, props:Object=null) :String
 		{
 			var src:String = "page#";
 			
@@ -170,9 +170,29 @@
 				txt = txt.substring(0,st) + pageName + txt.substring( st+5 );
 				st = txt.indexOf( src, st );
 			}
+			
+			src = "page-uid#";
+			var id:int = CTTools.pages.length;
+			
+			st = txt.indexOf( src );
+			while( st >= 0 ) {
+				txt = txt.substring(0,st) + id + txt.substring( st+9 );
+				st = txt.indexOf( src, st );
+			}
+			
+			if ( props ) {
+				for( var n:String in props ) 
+				{
+					src = "{#" + n + "}";
+					st = txt.indexOf( src );
+					while ( st >= 0 ) {
+						txt = txt.substring(0,st) + props[n] + txt.substring( st+3+n.length );
+						st = txt.indexOf( src, st );
+					}
+				}
+			}
 			return txt;
 		}
-		
 		
 		public static function installTemplate (url:String) :void {
 			installingTemplate = true;
@@ -487,7 +507,7 @@
 				}
 				else Console.log("TEMPLATE-ERROR No Template Node Found: Missing In " + T.genericPath );
 			}
-			else Console.log("TEMPLATE-ERROR No Template Index File Found: 'ti.xml' Missing In " + T.genericPath );
+			else Console.log("TEMPLATE-ERROR No Template Index File Found: 'config.xml' Missing In " + T.genericPath );
 			return "";
 		}
 		
@@ -1247,7 +1267,7 @@
 									if ( props && props[nm] != undefined ) {
 										val = props[nm];
 									}else if( nm == "quote") {
-										val =  isHtml ? "&quote;" : '"';
+										val =  isHtml ? "&quot;" : '"';
 									}else if( nm == "squote") {
 										val = isHtml ? "&apos;" : "'";
 									}else if( nm == "at") {

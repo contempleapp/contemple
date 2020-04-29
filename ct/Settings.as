@@ -28,9 +28,9 @@
 		{
 			container = Application.instance.view.panel;
 			container.addEventListener(Event.RESIZE, newSize);
-			
 			create();
 		}
+		
 		private function create () :void
 		{
 			var w:int = container.getWidth();
@@ -54,14 +54,26 @@
 			title.label = Language.getKeyword( "Application Settings" );
 			title.textField.autoSize = TextFieldAutoSize.LEFT;
 			
-			monitorFilesLabel = new Label(w,20, scrollpane.content, container.styleSheet, '', 'preferences-label', false );
-			monitorFilesLabel.label = Language.getKeyword( "Monitor Files" );
-			monitorFilesLabel.textField.autoSize = TextFieldAutoSize.LEFT;
-			
-			monitorFilesValue = new Toggle([CTOptions.monitorFiles ? "On":"Off"], 0, 0, scrollpane.content, container.styleSheet, '', 'preferences-toggle', false );
-			monitorFilesValue.value = CTOptions.monitorFiles;
-			monitorFilesValue.addEventListener( Event.CHANGE, monitorFilesClick );
-			
+			if ( !CTOptions.isMobile )
+			{
+				monitorFilesLabel = new Label(w,20, scrollpane.content, container.styleSheet, '', 'preferences-label', false );
+				monitorFilesLabel.label = Language.getKeyword( "Monitor Files" );
+				monitorFilesLabel.textField.autoSize = TextFieldAutoSize.LEFT;
+				
+				monitorFilesValue = new Toggle([CTOptions.monitorFiles ? "On":"Off"], 0, 0, scrollpane.content, container.styleSheet, '', 'preferences-toggle', false );
+				monitorFilesValue.value = CTOptions.monitorFiles;
+				monitorFilesValue.addEventListener( Event.CHANGE, monitorFilesClick );
+			}
+			else
+			{
+				softKeyboardLabel = new Label(w,20, scrollpane.content, container.styleSheet, '', 'preferences-label', false );
+				softKeyboardLabel.label = Language.getKeyword( "Recognize Soft Keyboard" );
+				softKeyboardLabel.textField.autoSize = TextFieldAutoSize.LEFT;
+				
+				softKeyboardValue = new Toggle([CTOptions.softKeyboard ? "On":"Off"], 0, 0, scrollpane.content, container.styleSheet, '', 'preferences-toggle', false );
+				softKeyboardValue.value = CTOptions.softKeyboard;
+				softKeyboardValue.addEventListener( Event.CHANGE, softKeyboardClick );
+			}
 			
 			autoSaveLabel = new Label(w,20, scrollpane.content, container.styleSheet, '', 'preferences-label', false );
 			autoSaveLabel.label = Language.getKeyword( "Auto Save" );
@@ -70,7 +82,7 @@
 			autoSaveValue = new Toggle([CTOptions.autoSave ? "On":"Off"], 0, 0, scrollpane.content, container.styleSheet, '', 'preferences-toggle', false );
 			autoSaveValue.value = CTOptions.autoSave;
 			autoSaveValue.addEventListener( Event.CHANGE, autoSaveClick );
-
+			
 			
 			debugOutLabel = new Label(w,20, scrollpane.content, container.styleSheet, '', 'preferences-label', false );
 			debugOutLabel.label = Language.getKeyword( "Debug Output" );
@@ -80,16 +92,16 @@
 			debugOutValue.value = CTOptions.debugOutput;
 			debugOutValue.addEventListener( Event.CHANGE, debugOutClick );
 			
-			
+			if ( !CTOptions.isMobile )
+			{
+				nativePreviewLabel = new Label(w,20, scrollpane.content, container.styleSheet, '', 'preferences-label', false );
+				nativePreviewLabel.label = Language.getKeyword( "Use System Browser for Preview" );
+				nativePreviewLabel.textField.autoSize = TextFieldAutoSize.LEFT;
 				
-			nativePreviewLabel = new Label(w,20, scrollpane.content, container.styleSheet, '', 'preferences-label', false );
-			nativePreviewLabel.label = Language.getKeyword( "Use System Browser for Preview" );
-			nativePreviewLabel.textField.autoSize = TextFieldAutoSize.LEFT;
-			
-			nativePreviewValue = new Toggle([CTOptions.nativePreview ? "On":"Off"], 0, 0, scrollpane.content, container.styleSheet, '', 'preferences-toggle', false );
-			nativePreviewValue.value = CTOptions.nativePreview;
-			nativePreviewValue.addEventListener( Event.CHANGE, nativePreviewClick );
-			
+				nativePreviewValue = new Toggle([CTOptions.nativePreview ? "On":"Off"], 0, 0, scrollpane.content, container.styleSheet, '', 'preferences-toggle', false );
+				nativePreviewValue.value = CTOptions.nativePreview;
+				nativePreviewValue.addEventListener( Event.CHANGE, nativePreviewClick );
+			}
 			
 			restartLabel = new Label(w,20, scrollpane.content, container.styleSheet, '', 'preferences-label', false );
 			restartLabel.label = Language.getKeyword( "Restart Application" );
@@ -97,15 +109,6 @@
 			
 			restartBtn = new Button(["Restart"], 0, 0, scrollpane.content, container.styleSheet, '', 'preferences-button', false );
 			restartBtn.addEventListener( MouseEvent.CLICK, restartClick );
-			
-			/*	
-			monitorFilesValue.setWidth( monitorFilesValue.labelSprite.textField.textWidth );
-			autoSaveValue.setWidth( autoSaveValue.labelSprite.textField.textWidth );
-			debugOutValue.setWidth( debugOutValue.labelSprite.textField.textWidth );
-			monitorFilesValue.init();
-			autoSaveValue.init();
-			debugOutValue.init();
-			*/
 			
 			newSize(null);
 		}
@@ -147,6 +150,17 @@
 			}
 		}
 		
+		private function softKeyboardClick (e:Event) :void {
+			if ( softKeyboardValue.value ) {
+				softKeyboardValue.label = "On";
+				CTOptions.softKeyboard = true;
+				softKeyboardValue.swapState("active");
+			}else{
+				softKeyboardValue.label = "Off";
+				CTOptions.softKeyboard = false;
+			}
+		}
+		
 		private function monitorFilesClick (e:Event) :void {
 			if ( monitorFilesValue.value ) {
 				monitorFilesValue.label = "On";
@@ -170,6 +184,9 @@
 		
 		public var monitorFilesLabel:Label;
 		public var monitorFilesValue:Toggle;
+		
+		public var softKeyboardLabel:Label;
+		public var softKeyboardValue:Toggle;
 		
 		public var autoSaveLabel:Label;
 		public var autoSaveValue:Toggle;
@@ -215,6 +232,17 @@
 					monitorFilesValue.x = body.cssLeft + marginX;
 					monitorFilesValue.y = cy;
 					cy += monitorFilesValue.cssSizeY + monitorFilesValue.cssMarginBottom + margin;
+				}
+				
+				if ( softKeyboardLabel && softKeyboardValue )
+				{
+					softKeyboardLabel.x = body.cssLeft + softKeyboardLabel.cssMarginLeft;
+					softKeyboardLabel.y = cy;
+					cy += softKeyboardLabel.height + softKeyboardLabel.cssMarginBottom + margin;
+					
+					softKeyboardValue.x = body.cssLeft + marginX;
+					softKeyboardValue.y = cy;
+					cy += softKeyboardValue.cssSizeY + softKeyboardValue.cssMarginBottom + margin;
 				}
 				
 				if ( autoSaveLabel && autoSaveValue )

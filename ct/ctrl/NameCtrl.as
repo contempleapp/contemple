@@ -27,9 +27,19 @@
 		}
 		
 		public var deleteButton:Button;
+		private var deleteButtonVisible:Boolean=true;
 		public var saveButton:Button;
+		private var saveButtonVisible:Boolean=true;
 		public var saveAndCloseButton:Button;
+		private var saveAndCloseButtonVisible:Boolean=true;
 		public var closeButton:Button;
+		private var closeButtonVisible:Boolean=true;
+		public var prevButton:Button;
+		private var prevButtonVisible:Boolean=true;
+		public var nextButton:Button;
+		private var nextButtonVisible:Boolean=true;
+		public var areaPopup:Popup;
+		public var minSizePopup:Popup;
 		
 		public var visibleBtn:Button;
 		
@@ -40,6 +50,22 @@
 			if( visibleBtn ) {
 				visibleBtn.clips = [ new IconFromFile(  (v ? Options.iconDir + CTOptions.urlSeparator + "eye-btn.png" : Options.iconDir + CTOptions.urlSeparator + "hide-btn.png"), Options.btnSize, Options.btnSize) ];
 			}
+		}
+		
+		public function showSaveAndCloseButton (val:Boolean) :void {
+			saveAndCloseButtonVisible = saveAndCloseButton.visible = val;
+		}
+		public function showSaveButton (val:Boolean) :void {
+			saveButtonVisible = saveButton.visible = val;
+		}
+		public function showDeleteButton (val:Boolean) :void {
+			deleteButtonVisible = deleteButton.visible = val;
+		}
+		public function showNextButton (val:Boolean) :void {
+			nextButtonVisible = nextButton.visible = val;
+		}
+		public function showPrevButton (val:Boolean) :void {
+			prevButtonVisible = prevButton.visible = val;
 		}
 		
 		public override function create (alabel:String= "", aname:String="", atype:String="", avalue:String="", propObj:Object=null, args:Array=null) :void
@@ -69,16 +95,40 @@
 			saveAndCloseButton = new Button( [new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "save-close-btn.png",Options.btnSize,Options.btnSize) ], 0, 0, this, styleSheet, '', 'name-save-and-close-button', false);
 			saveAndCloseButton.addEventListener( MouseEvent.CLICK, saveClick );
 	 	
+			prevButton = new Button( [new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "navi-left-btn.png",Options.btnSize,Options.btnSize) ], 0, 0, this, styleSheet, '', 'name-prev-button', false);
+			prevButton.addEventListener( MouseEvent.CLICK, prevClick );
+			
+			nextButton = new Button( [new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "navi-right-btn.png",Options.btnSize,Options.btnSize) ], 0, 0, this, styleSheet, '', 'name-next-button', false);
+			nextButton.addEventListener( MouseEvent.CLICK, nextClick );
+			
 			closeButton = new Button( [new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "close-btn.png",Options.btnSize,Options.btnSize) ], 0, 0, this, styleSheet, '', 'name-close-button', false);
 			closeButton.addEventListener( MouseEvent.CLICK, closeClick );
 			
+			areaPopup = new Popup( [ new IconArrowDown( Application.instance.mainMenu.iconColor) ], 0, 0, this, styleSheet, '', 'name-area-popup', false);
+			areaPopup.alignH = "right";
+			areaPopup.textAlign = "right";
+			
+			minSizePopup = new Popup( [ new IconFromFile(Options.iconDir + CTOptions.urlSeparator+"settings-btn.png", Options.btnSize,Options.btnSize) ], 0, 0, this, styleSheet, '', 'min-size-popup', false);
+			minSizePopup.visible = false;
+			minSizePopup.alignH = "right";
+			minSizePopup.textAlign = "right";
+			
+			minSizePopup.addEventListener( PopupEvent.SELECT, minSizeClick );
+			
 			setWidth( getWidth() );
-			setHeight( Math.max( textBox.cssSizeY, visibleBtn.cssSizeY) + Math.max( deleteButton.cssSizeY, closeButton.cssSizeY, saveButton.cssSizeY, saveAndCloseButton.cssSizeY) );
+			setHeight( Math.max( textBox.cssSizeY, visibleBtn.cssSizeY) + Math.max( deleteButton.cssSizeY, closeButton.cssSizeY, nextButton.cssSizeY, prevButton.cssSizeY, saveButton.cssSizeY, saveAndCloseButton.cssSizeY) );
 			
 		}
 		protected function closeClick (e:MouseEvent) :void {
 			dispatchEvent( new Event("close") );
 		}
+		protected function nextClick (e:MouseEvent) :void {
+			dispatchEvent( new Event("next") );
+		}
+		protected function prevClick (e:MouseEvent) :void {
+			dispatchEvent( new Event("prev") );
+		}
+		
 		protected function saveClick (e:MouseEvent) :void {
 			dispatchEvent( new Event("save") );
 		}
@@ -93,10 +143,10 @@
 			if( textBox ) textBox.textEnter();
 		}
 		
-		public override function setHeight (h:int) :void {
-			super.setHeight(h);
-			if( textBox ) {
-				textBox.y = h - textBox.cssSizeY + textBox.cssMarginBottom;
+		private function minSizeClick (e:PopupEvent) :void {
+			var curr:PopupItem = e.selectedItem;
+			if ( typeof(this[curr.options.action]) == "function" ) {
+				this[curr.options.action]( null );
 			}
 		}
 		
@@ -108,45 +158,175 @@
 			super.setWidth(w);
 			
 			if( visibleBtn ) {
-				if( textBox ) textBox.setWidth( w );
+				if( textBox ) textBox.setWidth( w - visibleBtn.cssSizeX );
 				visibleBtn.x = w - visibleBtn.cssSizeX;
 			}
 			var yofs:int = -4;
-			
 			var ofs:int = 0;
 			var mh:int = 0;
 			
-			if( saveAndCloseButton && saveAndCloseButton.visible ) {
-				ofs += saveAndCloseButton.cssSizeX;
-				if( saveAndCloseButton.cssSizeY > mh ) mh = saveAndCloseButton.cssSizeY;
-				saveAndCloseButton.x = w - ofs;
-				saveAndCloseButton.y = cssTop + yofs;
-			}
-			if( saveButton && saveButton.visible ) {
-				ofs += saveButton.cssSizeX;
-				if( saveButton.cssSizeY > mh ) mh = saveButton.cssSizeY;
-				saveButton.x = w - ofs;
-				saveButton.y = cssTop + yofs;
-			}
-			if( deleteButton && deleteButton.visible ) {
-				ofs += deleteButton.cssSizeX;
-				if( deleteButton.cssSizeY > mh ) mh = deleteButton.cssSizeY;
-				deleteButton.x = w - ofs;
-				deleteButton.y = cssTop + yofs;
-			}
-			if( closeButton && closeButton.visible ) {
-				ofs += closeButton.cssSizeX;
-				if( closeButton.cssSizeY > mh ) mh = closeButton.cssSizeY;
-				closeButton.x = w - ofs;
-				closeButton.y = cssTop + yofs;
-			}
-			if( label ) { 
-				label.setWidth( w - ofs );
+			minSizePopup.rootNode.removeItems();
+			
+			var minSize:Boolean = false;
+			var spc:Number = w - label.getWidth();
+			var p1:Number = label.getWidth() + minSizePopup.cssSizeX;
+			var ppi:PopupItem;
+			
+			if ( saveAndCloseButton && saveAndCloseButtonVisible )
+			{
+				if ( minSize || w - (ofs + saveAndCloseButton.cssSizeX) < p1 )
+				{
+					minSize = true;
+					saveAndCloseButton.visible = false;
+					
+					ppi = minSizePopup.rootNode.addItem( [new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "save-close.png", Options.iconSize, Options.iconSize), "Save and Close"], styleSheet );
+					ppi.options.action = "saveClick";
+				}
+				else
+				{
+					saveAndCloseButton.visible = true;
+					ofs += saveAndCloseButton.cssSizeX;
+					if ( saveAndCloseButton.cssSizeY > mh ) mh = saveAndCloseButton.cssSizeY;
+					saveAndCloseButton.x = w - ofs;
+					saveAndCloseButton.y = cssTop + yofs;
+				}
 			}
 			
-			if( textBox ) textBox.y = mh + cssTop;
-			if( visibleBtn ) visibleBtn.y = mh + cssTop -3;
+			if ( saveButton && saveButtonVisible )
+			{
+				if ( minSize || w - (ofs + saveButton.cssSizeX) < p1 )
+				{
+					minSize = true;
+					saveButton.visible = false;
+					
+					ppi = minSizePopup.rootNode.addItem( [new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "save.png", Options.iconSize, Options.iconSize), "Save"], styleSheet );
+					ppi.options.action = "saveInlineClick";
+				}
+				else
+				{
+					saveButton.visible = true;
+					ofs += saveButton.cssSizeX;
+					if( saveButton.cssSizeY > mh ) mh = saveButton.cssSizeY;
+					saveButton.x = w - ofs;
+					saveButton.y = cssTop + yofs;
+				}
+			}
 			
+			if ( closeButton && closeButtonVisible )
+			{
+				if ( minSize || w - (ofs + closeButton.cssSizeX) < p1 )
+				{
+					minSize = true;
+					closeButton.visible = false;
+					
+					ppi = minSizePopup.rootNode.addItem( [new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "close.png", Options.iconSize, Options.iconSize), "Close"], styleSheet );
+					ppi.options.action = "closeClick";
+				}
+				else
+				{
+					closeButton.visible = true;
+					ofs += closeButton.cssSizeX;
+					if( closeButton.cssSizeY > mh ) mh = closeButton.cssSizeY;
+					closeButton.x = w - ofs;
+					closeButton.y = cssTop + yofs;
+				}
+			}
+			
+			if ( nextButton && nextButtonVisible )
+			{
+				if ( minSize || w - (ofs + nextButton.cssSizeX) < p1 )
+				{
+					minSize = true;
+					nextButton.visible = false;
+					
+					ppi = minSizePopup.rootNode.addItem( [new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "navi-right.png", Options.iconSize, Options.iconSize), "Goto Next"], styleSheet );
+					ppi.options.action = "nextClick";
+				}
+				else
+				{
+					nextButton.visible = true;
+					ofs += nextButton.cssSizeX;
+					if( nextButton.cssSizeY > mh ) mh = nextButton.cssSizeY;
+					nextButton.x = w - ofs;
+					nextButton.y = cssTop + yofs;
+				}
+			}
+			
+			if ( prevButton && prevButtonVisible )
+			{
+				if ( minSize || w - (ofs + prevButton.cssSizeX) < p1 )
+				{
+					minSize = true;
+					prevButton.visible = false;
+					
+					ppi = minSizePopup.rootNode.addItem( [new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "navi-left.png", Options.iconSize, Options.iconSize), "Goto Previous"], styleSheet );
+					ppi.options.action = "prevClick";
+				}
+				else
+				{
+					prevButton.visible = true;
+					ofs += prevButton.cssSizeX;
+					if( prevButton.cssSizeY > mh ) mh = prevButton.cssSizeY;
+					prevButton.x = w - ofs;
+					prevButton.y = cssTop + yofs;
+				}
+			}
+			
+			if ( deleteButton && deleteButtonVisible )
+			{
+				if ( minSize || w - (ofs + deleteButton.cssSizeX) < p1 )
+				{
+					minSize = true;
+					deleteButton.visible = false;
+					
+					ppi = minSizePopup.rootNode.addItem( [new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "trash.png", Options.iconSize, Options.iconSize), "Delete"], styleSheet );
+					ppi.options.action = "deleteClick";
+				}
+				else
+				{
+					deleteButton.visible = true;
+					ofs += deleteButton.cssSizeX;
+					if( deleteButton.cssSizeY > mh ) mh = deleteButton.cssSizeY;
+					deleteButton.x = w - ofs;
+					deleteButton.y = cssTop + yofs;
+				}
+			}
+			
+			if ( areaPopup )
+			{
+				if ( areaPopup.rootNode.children && areaPopup.rootNode.children.length > 0 ) {
+					areaPopup.visible = true;
+				}else{
+					areaPopup.visible = false;
+				}
+				if( areaPopup.visible ) {
+					ofs += areaPopup.cssSizeX;
+					if( areaPopup.cssSizeY > mh ) mh = areaPopup.cssSizeY;
+					areaPopup.x = w - ofs;
+					areaPopup.y = cssTop + yofs;
+				}
+			}
+			
+			if ( minSize ) {
+				minSizePopup.visible = true;
+				minSizePopup.x = w - (ofs + minSizePopup.cssSizeX );
+				minSizePopup.y = cssTop + yofs;
+				if ( mh == 0 ) {
+					mh = minSizePopup.cssSizeY;
+				}
+			}else{
+				minSizePopup.visible = false;
+			}
+			
+			if ( textBox )
+			{
+				textBox.y = mh + cssTop;
+			
+				if ( visibleBtn )
+				{
+					visibleBtn.y = mh + cssTop + (textBox.cssSizeY-visibleBtn.cssSizeY);
+				}
+			}
 		}
 		
 	}
