@@ -65,12 +65,23 @@
 				infoText.border = false;
 				infoText.defaultTextFormat = container.styleSheet.getTextFormat( ["*", "body", ".upload-container", ".upload-text", ".upload-info"] );
 				
-				var info:String = "Information\n\n";
-				info += "Server-Path:  " + CTOptions.uploadScript  + "\n";
-				if( ( CTOptions.debugOutput || CTOptions.verboseMode ) && !CTOptions.userMode ) {
+				var info:String = "";
+				
+				if( CTOptions.uploadScript == "" )
+				{
+					startBtn.visible = false;
+					infoText.y = startBtn.y;
+					info += "\n"+Language.getKeyword("Upload not possible")+"\n"+Language.getKeyword("Requires Connect To Website..") + "\n";
+				}
+				else
+				{
+					info += "Information\n\n";
+					info += "Server-Path:  " + CTOptions.uploadScript  + "\n";
+				}
+				
+				if( CTOptions.verboseMode) {
 					info += "Method:       " + CTOptions.uploadMethod.toUpperCase() + "\n";
 					info += "Folder:       " + CTTools.projectDir + CTOptions.urlSeparator + CTOptions.localUploadFolder  + "\n";
-					info += "Send List:    " + CTOptions.uploadSendFileList  + "\n";
 					info += "Template:     " + CTTools.activeTemplate.name + " " + CTTools.activeTemplate.version + "\n";
 					info +=  CTOptions.appName  + " " +CTOptions.version + "\n"
 				}

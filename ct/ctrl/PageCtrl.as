@@ -19,7 +19,8 @@
 										w:Number=0, h:Number=0, 
 										parentCS:CssSprite=null, style:CssStyleSheet=null,
 										cssId:String='', cssClasses:String='',
-										noInit:Boolean=false) {
+										noInit:Boolean=false)
+		{
 			super(w, h, parentCS, style, "propctrl", cssId, cssClasses, noInit);
 			create(aname, atitle, atype, atemplate, acrdate, uid);
 		}

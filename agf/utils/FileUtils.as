@@ -1,10 +1,11 @@
-﻿package agf.utils {
-	
-	public class FileUtils {
-		
+﻿package agf.utils
+{	
+	public class FileUtils
+	{	
 		private static var fi:FileInfo;
 		
-		public static function fileInfo ( url:String ) :FileInfo {
+		public static function fileInfo ( url:String ) :FileInfo
+		{
 			if( !fi ) fi = new FileInfo();
 			
 			var sp1:int = url.lastIndexOf( "/" );
@@ -17,10 +18,17 @@
 				}else{
 					sp1 = -1; // no path
 					fi.path = "";
+					fi.directory = "";
 				}
 			}
 			if ( sp1 >= 0 ) {
 				fi.path = url.substring( 0, sp1 );
+			}
+			if( fi.path ) {
+				var sp2:int = fi.path.lastIndexOf(fi.separator);
+				if( sp2 >= 0 ) {
+					fi.directory = fi.path.substring( sp2+1 );
+				}
 			}
 			
 			var dot:int = url.lastIndexOf( "." );
@@ -36,10 +44,14 @@
 					fi.type = "script";
 				}else if(extension == "txt" || extension == "md" || extension == "tf"){
 					fi.type = "text";
-				}else if(extension == "jpg" || extension == "png" || extension == "gif"){
-					fi.type = "image";
-				}else if(extension == "svg" ){
-					fi.type = "svg";
+				}else if(extension == "jpg" || extension == "jpeg" || extension == "jp2" || extension == "jpe" ||  extension == "jif" ||  extension == "jfif" ||  extension == "jfi" || extension == "j2k" ||  extension == "jpf" ||  extension == "jpx" ||  extension == "jpm" ) {  
+					fi.type = "image/jpg";
+				}else if(extension == "png") {
+					fi.type = "image/png";
+				}else if(extension == "gif" ){
+					fi.type = "image/gif";
+				}else if(extension == "svg" || extension == "svgz" ){
+					fi.type = "image/svg";
 				}else if(extension == "db" ){
 					fi.type = "database";
 				}else if(extension == "pdf" ){
@@ -66,7 +78,6 @@
 			
 			return fi;
 		}
+		
 	}
-	
-	
 }

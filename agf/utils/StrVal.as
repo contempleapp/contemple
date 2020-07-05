@@ -8,6 +8,16 @@
 	import flash.xml.XMLDocument;
 	import flash.xml.XMLNode;
 	
+	/**
+	 * Eval like Solution for AS3
+	 * 
+	 * strval( "{*ct.CTTools}" ) -> returns class object
+	 * 
+	 * strval( "{*ct.CTTools.projectDir}" ); -> return string url
+	 * 
+	 * strval( "{*ct.CTOptions.appName+ version: +*ct.CTOptions.version}" ); -> Contemple version: 1.0.12
+	 * 
+	 */
 	public class StrVal 
 	{
 		public static var swfRoot:MovieClip;

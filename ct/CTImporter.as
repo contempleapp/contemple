@@ -1,5 +1,6 @@
 ﻿package ct
 {
+	import agf.utils.StringMath;
 	import deng.fzip.FZip;
     import deng.fzip.FZipFile;
     import deng.fzip.FZipErrorEvent;
@@ -21,22 +22,30 @@
 		
 		public static function lookForAppUpdate () :void
         {
-            if( CTOptions.updateUrl ) {
-                if(CTOptions.debugOutput) Console.log( "Load Update Info from " + CTOptions.updateUrl );
-                ResourceMgr.getInstance().loadResource( CTOptions.updateUrl, onUpdateCFG, true );
+            if ( CTOptions.updateUrl )
+			{
+                if(CTOptions.debugOutput) Console.log( "Load Update Info From " + CTOptions.updateUrl );
+                ResourceMgr.getInstance().loadResource( CTOptions.updateUrl, onUpdateCFG, true, false, true );
             }
+			else
+			{
+				Console.log( "Application-Update URL Is Not Set. Please Navigate To WWW.CONTEMPLE.APP To Download The Latest Version");
+			}
         }
+		
 		// App Update
-		private static function onUpdateCFG (res:Resource) :void {
+		private static function onUpdateCFG (res:Resource) :void
+		{
 			if( res && res.loaded == 1 ) {
 				var x:XML = new XML( String(res.obj) );
 				if( x.update.@version != undefined )
 				{
 					var updateType:String = CTTools.compareVersions( CTOptions.version,  x.update.@version.toString() );
 					
-					if( updateType != "none" ) {
+					if( updateType != "none" )
+					{
 						// Display update info and download link...
-						Application.instance.cmd("Console log Update Available: "+ x.update.@name + " " +x.update.@date + ": " + updateType + " " + x.update.@version + " download at "  + x.update.@src ); 
+						Application.instance.cmd("Console log Update Available: "+ x.update.@name + " " +x.update.@date + ": " + updateType + " " + x.update.@version + " Download At "  + x.update.@src ); 
 						
 						var msg:String =  Language.getKeyword("CT-Update-MSG");
 						var obj:Object = { name:x.update.@name.toString(), date: x.update.@date.toString(), type:updateType, version:x.update.@version.toString(), src:x.update.@src.toString() };
@@ -58,99 +67,103 @@
 						
 						Main(Application.instance).windows.addChild( win );
 					}
-				
 				}
 			}
 		}
 		
-		
-		   
         public static function lookForTemplateUpdate () :void
         {
-            if( CTTools.activeTemplate && CTTools.activeTemplate.update )
+			// load update xml from hub
+			if ( CTOptions.uploadScript )
 			{
-				if(CTOptions.debugOutput) Console.log("Downloading template update information from " + CTTools.activeTemplate.update);
-				ResourceMgr.getInstance().loadResource(CTTools.activeTemplate.update, onTemplateUpdateCFG, true );
-            }
+				var pwd:String = "";
+				var sh:SharedObject = SharedObject.getLocal( CTOptions.localSharedObjectId );
+				if ( sh )
+				{
+					if( sh.data && sh.data.userPwd ) {
+						pwd = sh.data.userPwd;
+					}else{
+						Application.instance.cmd( "CTTools get-password", lookForTemplateUpdate);
+						return;
+					}
+				}
+				
+				// get zip file from cthub by template-name
+				var res:Resource = new Resource();
+				var vars:URLVariables = new URLVariables();
+				vars.update = 1;
+				vars.name = CTTools.activeTemplate.name;
+				vars.pwd = pwd;
+				
+				// dowload zip file..
+				res.load( CTOptions.uploadScript, true, onTemplateUpdateCFG, vars, true );
+			}
         }
 		
-		private static function onTemplateUpdateCFG (res:Resource) :void {
+		private static function onTemplateUpdateCFG (e:Event, res:Resource) :void
+		{
 			if( res && res.loaded == 1 )
 			{
-				var x:XML = new XML( String(res.obj) );
-				var win:Window;
+				var x:XML;
+				var s:String = String( res.obj );
 				
-				if( x.update.@version != undefined )
+				var st:int = s.indexOf( "<?xml" );
+				
+				if ( st >= 0 )
 				{
-					var updateType:String = CTTools.compareVersions( CTTools.activeTemplate.version, x.update.@version.toString() );
+					s = s.substring( st ) ;
 					
-					if( updateType != "none" ) {
-						// Display update info and download link...
-						if( CTOptions.debugOutput || CTOptions.verboseMode ) Console.log("Template Update Available:"+ x.update.@name + " " + x.update.@date + ": " + updateType + ": " + x.update.@type + " " + x.update.@version + " download: "  + x.update.@src ); 
+					try {
+						x = new XML( s );
+					}catch (e:Event) {
+						Console.log("Error Update XML: " + e );
+					}
+				}
+				
+				if( x ) {
+					var win:Window;
 					
-						var msg:String = Language.getKeyword("CT-Template-Update-MSG");
-						var obj:Object = { name:x.update.@name.toString(), date: x.update.@date.toString(), type:x.update.@type.toString(), version:x.update.@version.toString(), src:x.update.@src.toString() };
-						msg = ct.TemplateTools.obj2Text( msg, '#', obj);
+					if( x.update.@version != undefined )
+					{
+						Console.log("Compare Versions: Current: " + CTTools.activeTemplate.version +" - Online: " + x.update.@version.toString() );
 						
-						win = Window( Main(Application.instance).window.GetBooleanWindow( "TemplateUpdateWindow", Language.getKeyword("Template Update"), msg, {
-						complete: function (bool:Boolean) { 
-							if (bool) {
-								CTImporter.downloadUpdate( x.update.@src.toString() );
-							}
-						},
-						continueLabel: Language.getKeyword("Install Update"),
-						allowCancel: true,
-						autoWidth:false,
-						autoHeight:true,
-						cancelLabel: Language.getKeyword("Cancel")
-						}, 'template-update-window') );
+						var updateType:String = CTTools.compareVersions( CTTools.activeTemplate.version, x.update.@version.toString() );
 						
-						Main(Application.instance).windows.addChild( win );
-					}else{
-						if( CTOptions.debugOutput || CTOptions.verboseMode ) Console.log("Template up to date");
-						win = Window( Main(Application.instance).window.InfoWindow( "TemplateUpdateWindow2", Language.getKeyword("Template Update"), Language.getKeyword("Template up to date"), {
-						continueLabel: Language.getKeyword("Ok"),
-						autoWidth:false,
-						autoHeight:true
-						}, 'template-update-window-2') );
+						if( updateType != "none" ) {
+							// Display update info and download link...
+							if( CTOptions.debugOutput || CTOptions.verboseMode ) Console.log("Template Update Available:"+ x.update.@name + " " + x.update.@date + ": " + updateType + ": " + x.update.@type + " " + x.update.@version ); 
 						
+							var msg:String = Language.getKeyword("CT-Template-Update-MSG");
+							var obj:Object = { name:x.update.@name.toString(), date: x.update.@date.toString(), type:x.update.@type.toString(), version:x.update.@version.toString() };
+							msg = ct.TemplateTools.obj2Text( msg, '#', obj);
+							
+							win = Window( Main(Application.instance).window.GetBooleanWindow( "TemplateUpdateWindow", Language.getKeyword("Template Update"), msg, {
+							complete: function (bool:Boolean) { 
+								if (bool) {
+									TemplateTools.updateTemplate(  x.update.@src.toString() );
+								}
+							},
+							continueLabel: Language.getKeyword("Install Update"),
+							allowCancel: true,
+							autoWidth:false,
+							autoHeight:true,
+							cancelLabel: Language.getKeyword("Cancel")
+							}, 'template-update-window') );
+							
+							Main(Application.instance).windows.addChild( win );
+						}else{
+							if( CTOptions.debugOutput || CTOptions.verboseMode ) Console.log("Template Up To Date");
+							win = Window( Main(Application.instance).window.InfoWindow( "TemplateUpdateWindow2", Language.getKeyword("Template Update"), Language.getKeyword("Template up to date"), {
+							continueLabel: Language.getKeyword("Ok"),
+							autoWidth:false,
+							autoHeight:true
+							}, 'template-update-window-2') );
+							
+						}
 					}
 				}
 			}
 		}
-	
-		public static function downloadUpdate (src:String) :void {
-			try {
-				Application.instance.cmd( "Application view InstallView" );
-			}catch( e:Error ) {
-				Console.log("Error: No InstallView View found in menu");
-			}
-			var iv:InstallView = InstallView( Application.instance.view.panel.src );
-			if( iv ) {
-				iv.showProgress( 0.25 );
-				iv.setLabel( Language.getKeyword( "Downloading Template Update" ) );
-			}
-			ResourceMgr.getInstance().loadResource( src, onZipFile, true, true );
-		}
-		
-		private static function onZipFile (res:Resource) :void {
-			if( res && res.loaded == 1 ) {
-				var f:File = File.applicationStorageDirectory.resolvePath ( CTOptions.tmpDir + CTOptions.urlSeparator + FileUtils.fileInfo( res.url ).filename);
-				var fs:FileStream = new FileStream();
-				fs.open( f, FileMode.WRITE );
-				fs.writeBytes( ByteArray(res.obj) );
-				fs.close();
-				
-				var iv:InstallView = InstallView( Application.instance.view.panel.src );
-				if( iv ) {
-					iv.showProgress( 0.5 );
-				}
-				
-				TemplateTools.updateTemplate( f.url );
-			}
-		}
-		
-		
 		
 		/// ////////////////////////////////////// ///
 		public static var ziplib:String = "fzip"; // fzip, zip-ane
@@ -169,6 +182,8 @@
 		
 		private static var extracting:Boolean = false;
 		
+		public static function get isExtracting () :Boolean { return extracting; }
+		
 		// FZip Vars
 		private static var zip:FZip;
 		private static var numFiles:int = 0;
@@ -176,18 +191,21 @@
 		private static var done:Boolean = false;
 		private static var parentDir:File;
 		private static var cwd:File;
-		private static var step:int=0;
+	//	private static var step:int=0;
 		private static var rootCwd:File;
-		private static var frameTime:int = 100;
+		private static var frameTime:int = 0;
 		private static var _complete:Function;
+		private static var _showInstallView:Boolean;
 		
-		private static function fzipExtract ( url:URLRequest, parentDirectory:File, complete:Function=null ) :String
+		private static function fzipExtract ( url:URLRequest, parentDirectory:File, complete:Function=null, showInstallView:Boolean=true ) :String
 		{
 			if( extracting ) return "";
 			
+			_showInstallView = showInstallView;
+			
 			parentDir = parentDirectory;
 			done = false;
-			numFiles = numFilesLoaded = step = progress = 0;
+			numFiles = numFilesLoaded /*= step*/ = progress = 0;
 			
 			var filename:String = "";
 			_complete = complete;
@@ -216,8 +234,26 @@
 				zip.addEventListener(IOErrorEvent.IO_ERROR, onIoError);
 				zip.addEventListener(Event.COMPLETE, onComplete);
 				
-				
 				zip.load( url );
+				
+				if( _showInstallView )
+				{
+					var iv:InstallView;
+					try {
+						iv = InstallView( Application.instance.view.panel.src );
+					}
+					catch(e:Error)
+					{
+						Application.command( "view InstallView");
+						iv = InstallView( Application.instance.view.panel.src );
+					}
+					if( iv ) {
+						iv.showProgress( 0 );
+						iv.setLabel( Language.getKeyword("Extracting files") );
+					}
+				}
+				
+				
 			}else{
 				throw new Error("No Parent Directory to extract " + url.url);
 			}
@@ -250,30 +286,29 @@
 		{
 			var cid:int, eid:int;
 			var filename:String;
-			step++;
+			//step++;
 			
 			progress = ( numFiles / zip.getFileCount() ) * 100;
 			
-			if( CTOptions.verboseMode ||  CTOptions.debugOutput )
+			/*if( CTOptions.verboseMode || CTOptions.debugOutput )
 			{
 				Console.log("Extract: " + Math.floor(progress) +"%");
-				
-				if( progress > 30 && !prginc) {
-					prginc = true;
-					try {
-						var iv:InstallView;
-						iv = InstallView( Application.instance.view.panel.src );
-						iv.showProgress( 0.1 + progress/50 );
-						iv.setLabel( Language.getKeyword("Extracting template files") );
-					}catch(e:Error) {
-						
-					}
+			}*/
+			
+			if( _showInstallView && progress > 0)
+			{
+				var iv:InstallView;
+				try{
+					iv = InstallView( Application.instance.view.panel.src );
+					iv.showProgress( progress / 100 );
+					iv.setLabel( Language.getKeyword("Extracting files") );
+				}catch(e:Error){
+					_showInstallView = false;
 				}
 			}
-			
-			//Only load few files per frame, to save processing power
-			for(var i:int = 0; i < 16; i++)
-			{
+			//for(var i:int = 0; i < 1; i++)
+			//{
+
 				if(zip.getFileCount() > numFiles)
 				{
 					var file:FZipFile = zip.getFileAt(numFiles);
@@ -288,7 +323,11 @@
 								cwd = rootCwd.resolvePath( file.filename.substring(0,eid) );
 								cwd.createDirectory();
 								numFiles++;
-								continue;
+								//continue;
+								if( extracting ) {
+									setTimeout( onFrame, frameTime );
+								}
+								return;
 							}else{ // set cwd
 								cwd = rootCwd.resolvePath( file.filename.substring(0, eid) );
 								filename = file.filename.substring(eid+1);
@@ -299,7 +338,11 @@
 						}
 						if( filename.charAt(0) == "." ) { // ignore hidden files..
 							numFiles++;
-							continue;
+							//continue;
+							if( extracting ) {
+								setTimeout( onFrame, frameTime );
+							}
+							return;
 						}
 						if( CTTools.writeBinaryFile(cwd.resolvePath(filename).url, file.content) ) numFilesLoaded++;
 						numFiles++;
@@ -312,13 +355,13 @@
 					
 				}else{
 					if(done) {
-						if( CTOptions.verboseMode || CTOptions.debugOutput ) Console.log( numFilesLoaded +" files extracted to " + rootCwd.url );
+						if( CTOptions.verboseMode || CTOptions.debugOutput ) Console.log( numFilesLoaded +" Files Extracted To " + rootCwd.url );
 						extracting = false;
 						if( typeof(_complete) == "function" ) _complete();
 					}
-					break;
+					// break;
 				}
-			}
+			//}
 			
 			if( extracting ) {
 				setTimeout( onFrame, frameTime );

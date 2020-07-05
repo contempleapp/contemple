@@ -3,7 +3,6 @@
 	import flash.display.*;
 	import flash.events.*;
 	import flash.utils.setTimeout;
-	
 	import agf.icons.IconArrowDown;
 	import agf.events.PopupEvent;
 	import agf.html.*;
@@ -19,10 +18,10 @@
 			addEventListener( MouseEvent.MOUSE_DOWN, open);
 		}
 		public var blockBackground:Boolean=true;
-		
+		public static var blocker:Sprite;
 		public var defaultIcons:Boolean = true;
-		public var alignV:String = "left"; // left center current mouse right.. todo..
-		public var alignH:String = "bottom"; // top center current mouse bottom.. todo..
+		public var alignV:String = "bottom";  // top center current mouse bottom.. todo..
+		public var alignH:String = "right"; // left center current mouse right.. todo..
 		public var openList:Vector.<PopupItem>;
 		public static var topContainer:CssSprite;
 		public var rootNode:PopupItem;
@@ -44,8 +43,6 @@
 			}
 		}
 		
-		public static var blocker:Sprite;
-		
 		private static function removeAllPopups () :void {
 			if( topContainer ) {
 				var d:DisplayObject;
@@ -55,7 +52,6 @@
 					if( d is PopupItem )
 					{
 						PopupItem(d).popup.close();
-						//topContainer.removeChild( d );
 					}
 				}
 			}

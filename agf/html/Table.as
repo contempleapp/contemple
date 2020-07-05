@@ -7,7 +7,6 @@
 	{
 		public function Table (w:Number=0, h:Number=0, parentCS:CssSprite=null, style:CssStyleSheet=null, noInit:Boolean=false) {
 			super(w, h, parentCS, style,"table",'','', noInit);
-			//if(!noInit) init();
 		}
 		
 		public var marginX:Number = 1;

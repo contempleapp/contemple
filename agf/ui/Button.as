@@ -23,12 +23,10 @@
 			if(!noInit) init();
 		}
 		
-		//> Todo for mobile main menu load icon-top and bottom with align from menu.xml
 		public var iconTop:Sprite;
 		public var iconBottom:Sprite;
 		public var iconTopAlign:String="left"; // left,center,right,label,icon-left,icon-right,icon-left-2,..icon-right-N
-		public var iconBottomAlign:String="left";
-		//>
+		public var iconBottomAlign:String = "left";
 		
 		public var margin:Number = 7;
 		public var clipSpacing:Number=4;
@@ -97,7 +95,7 @@
 								}
 								
 								if( !lc ) cp.x = clipSpacing;
-								else cp.x = lc.x + lc.width + clipSpacing;
+								else cp.x = int(lc.x + lc.width + clipSpacing);
 								lc = cp;
 							}
 							else if( typeof _clips[i] == "string" )
@@ -166,11 +164,11 @@
 		public override function init (dontDraw:Boolean=false) :void
 		{
 			super.init(dontDraw);
-			if(!dontDraw) swapState( "normal" );
+			if(!dontDraw) swapState( state );
 		}
 		
 		public override function setHeight ( h:int ) :void {
-			if(_label) _label.y = cssTop;
+			if(_label) _label.y = int(cssTop);
 			cssHeight=0;
 			super.setHeight( h-cssBoxY );
 			
@@ -181,8 +179,8 @@
 		{			
 			super.setWidth( w);
 			
-			var l:Number = cssLeft;
-			var r:Number = cssRight;
+			var l:int = cssLeft;
+			var r:int = cssRight;
 			
 			if( contLeft ) {
 				l += contLeft.width + margin;
@@ -195,7 +193,7 @@
 			if( _label ) {
 				
 				if( contRight ) {
-					_label.setWidth( contRight.x - _label.x );
+					_label.setWidth( r - _label.x );
 				}else{
 					_label.setWidth( cssRight - _label.x );
 				}
@@ -207,7 +205,7 @@
 						}
 						if( contLeft ) {
 							//center icon..
-							contLeft.x = cssLeft + Math.floor( (w - contLeft.width)*.5 );
+							contLeft.x = int( cssLeft + Math.floor( (w - contLeft.width)*.5 ) );
 						}
 						
 					}else {
@@ -225,7 +223,6 @@
 				}else if( textAlign == "right" ) {
 					_label.x = Math.round( r - _label.width );
 				}
-				
 			}
 			posIconTB();
 			init();
@@ -243,7 +240,7 @@
 					iconTop.x = Math.round(cssRight-iconTop.width);
 				}
 				else if( iconTopAlign == "label" ) {
-					iconTop.x = _label ? _label.x : Math.round(cssLeft);
+					iconTop.x = _label ? int(_label.x) : Math.round(cssLeft);
 				}
 			}
 			
@@ -258,13 +255,12 @@
 					iconBottom.x = Math.round(cssRight-iconBottom.width);
 				}
 				else if( iconBottomAlign == "label" ) {
-					iconBottom.x = _label ? _label.x : Math.round(cssLeft);
+					iconBottom.x = _label ? int(_label.x) : Math.round(cssLeft);
 				}
 			}
 		}
 		public override function swapState ( state:String = "normal" ) :void 
 		{
-			//super.swapState(state);
 			var i:int;
 			
 			if(_label && _hasLabel) 
@@ -278,15 +274,17 @@
 					
 					var cs:Array;
 					var arr:Array = [];
-					for(i=0; i< stylesArray.length; i++) {
-						arr.push( stylesArray[i], stylesArray[i]+":"+state);
+					
+					if( stylesArray ) {
+						for(i=0; i< stylesArray.length; i++) {
+							arr.push( stylesArray[i], stylesArray[i]+":"+state);
+						}
 					}
 					cs = cssStyleSheet.getStyleArray(arr);
 					var tmp:StyleSheet = new StyleSheet();
 					if(cs.length > 0) {
 						for(i=0; i < cs.length; i++) {
 							st[cs[i][0]] = cs[i][1];
-							
 						}
 					}
 					
@@ -306,8 +304,7 @@
 			
 			// Align to minimum width
 			if( _hasLeftClips ) {
-				contLeft.x = cssLeft;
-				//contLeft.y = cssTop;
+				contLeft.x = int(cssLeft);
 				cntW += contLeft.width;
 				cntH = contLeft.height;
 			}
@@ -318,17 +315,17 @@
 				cntW += _label.width;
 				tmpH = _label.height;
 				if( tmpH > cntH ) cntH = tmpH;
-				if(_hasLeftClips) _label.x = cssLeft + contLeft.width + margin;
-				else _label.x = cssLeft;
+				if(_hasLeftClips) _label.x = int(cssLeft + contLeft.width + margin);
+				else _label.x = int(cssLeft);
 			}
 			
 			if( _hasRightClips ) {
 				cntW += contRight.width;
 				tmpH = contRight.height;
 				if( tmpH > cntH ) cntH = tmpH;
-				if(_hasLeftClips) contRight.x = cssLeft + contLeft.width + margin;
-				else contRight.x = cssLeft;
-				if(_hasLabel) contRight.x += _label.width + margin;
+				if(_hasLeftClips) contRight.x = int(cssLeft + contLeft.width + margin);
+				else contRight.x = int(cssLeft);
+				if(_hasLabel) contRight.x += int(_label.width + margin);
 			}
 			
 			// re-align
@@ -345,29 +342,29 @@
 			var hgt:Number = cssSizeY;
 			
 			if(_hasLeftClips) {
-				contLeft.x = cssLeft;
+				contLeft.x = int(cssLeft);
 				contLeft.y = 0;
 				L = contLeft.numChildren;
 				if( verticalAlign == "middle" || verticalAlign == "bottom" ) {
 					for(i=0; i < L; i++) {
 						d = contLeft.getChildAt(i);
-						d.y = (verticalAlign == "middle" ? (hgt/2 - d.height/2) : (hgt - d.height));
+						d.y = int( (verticalAlign == "middle" ? (hgt/2 - d.height/2) : (hgt - d.height)) );
 					}
 				}else{
 					for(i=0; i < L; i++) {
-						contLeft.getChildAt(i).y = 0;
+						contLeft.getChildAt(i).y = int( cssTop );
 					}
 				}
 			}
 			if(_hasLabel) 
 			{
 				if(_hasLeftClips) _label.x = cssLeft + contLeft.width + margin;
-				else _label.x = cssLeft;
+				else _label.x = int(cssLeft);
 				
 				if( verticalAlign == "middle" || verticalAlign == "bottom" ) {
-					_label.y = ( verticalAlign == "middle" ? ((hgt/2 - _label.getHeight()/2 ) ) : (hgt - _label.getHeight()));
+					_label.y = int( ( verticalAlign == "middle" ? ((hgt/2 - _label.getHeight()/2 ) ) : (hgt - _label.getHeight())) );
 				}else{
-					_label.y = cssTop;
+					_label.y = int( cssTop );
 				}
 				if(!contains(_label)) addChild(_label);
 			}else{
@@ -375,18 +372,18 @@
 			}
 			
 			if(_hasRightClips) {
-				contRight.x = cssRight - contRight.width;
+				contRight.x = int( cssRight - contRight.width );
 				contRight.y = 0;
 				L = contRight.numChildren;
 				if( verticalAlign == "middle" || verticalAlign == "bottom" ) {
 					
 					for(i=0; i < L; i++) {
 						d = contRight.getChildAt(i);
-						d.y = (verticalAlign == "middle" ? (hgt/2 - d.height/2) : (hgt - d.height));
+						d.y = int( (verticalAlign == "middle" ? (hgt/2 - d.height/2) : (hgt - d.height)) );
 					}
 				}else{
 					for(i=0; i < L; i++) {
-						contRight.getChildAt(i).y = 0;
+						contRight.getChildAt(i).y = int( cssTop );
 					}
 				}
 			}
@@ -394,12 +391,12 @@
 			if( iconTop != null ) {
 				iconTop.y = cssTop;
 				if(!contains(iconTop)) addChild(iconTop);
-				if(contLeft) contLeft.y += iconTop.height;
-				if(contRight) contRight.y += iconTop.height;
-				if(_label) _label.y += iconTop.height;
+				if(contLeft) contLeft.y += int(iconTop.height);
+				if(contRight) contRight.y += int(iconTop.height);
+				if(_label) _label.y += int(iconTop.height);
 			}
 			if( iconBottom != null) {
-				iconBottom.y = cntH-iconBottom.height-cssBoxBottom;
+				iconBottom.y = int(cntH-iconBottom.height-cssBoxBottom);
 				if(!contains(iconBottom)) addChild(iconBottom);
 			}
 			if( iconTop || iconBottom ) {

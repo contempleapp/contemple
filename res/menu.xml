@@ -13,33 +13,35 @@
             <item name="English"  iconleft="ico:/great-britain.png" cmd="SetValue String agf.ui.Language.language en;Application restart"/>
             <item name="German"  iconleft="ico:/germany.png" cmd="SetValue String agf.ui.Language.language de;Application restart"/>
         </item>
-        <!-- <item name="Workspace"  iconleft="ico:/one-way.png">
-             <item name="User"  iconleft="ico:/user.png" cmd="SetValue String app._config  app:/ctres/ct-config-user.css;SetValue Boolean CTOptions.userMode true;Application restart"/>
-            <item name="Developer"  iconleft="ico:/git.png" cmd="SetValue String app._config app:/ctres/ct-config.css;SetValue Boolean CTOptions.userMode false;Application restart"/>
-        </item> -->
         <item name="Password" iconleft="ico:/access.png">
             <item name="Reset Password" iconleft="ico:/papiermuell.png" cmd="CTTools reset-password"/>
             <item name="Change Password" iconleft="ico:/key.png" cmd="CTTools new-password"/>
         </item>
         <item name="Developer" iconleft="ico:/falcon.png">
-            <item name="Console"  iconleft="ico:/console.png" cmd="CTUploader server-info;Console show console"/>
+            <item name="Console"  iconleft="ico:/console.png" cmd="Console show console"/>
             <item name="#separator"/>
             <item name="Code Output" iconleft="ico:/paste2.png" cmd="SetValue Boolean CTTools.showCompact false;SetValue Boolean CTTools.showTemplate false;Application view TextView;"/>
             <item name="Compact Output" iconleft="ico:/paste.png" cmd="SetValue Boolean CTTools.showCompact true;SetValue Boolean CTTools.showTemplate false;Application view TextView;"/>
             <item name="#separator"/>
             <item name="Edit Template" iconleft="ico:/high-priority.png" cmd="SetValue Boolean CTTools.showCompact false;SetValue Boolean CTTools.showTemplate true;Application view TextView;"/>
-            <item name="#separator"/>
-            <item name="New Template" iconleft="ico:/create-document.png" cmd="TemplateTools create-template" />
-	        <item name="#separator"/>
-            <item name="Process Command" iconleft="ico:/process.png" cmd="CTTools commander"/>
-             <item name="#separator"/>
+            <item name="Commands" iconleft="ico:/blatter.png">
+                <item name="Process Command" iconleft="ico:/process.png" cmd="CTTools commander"/>
+                <item name="Export Content" iconleft="ico:/responsive.png" cmd="Console clear show console;TemplateTools export-all"/>
+                <item name="#separator"/>
+                <item name="Kickstarter" iconleft="ico:/create-document.png" cmd="Application view TemplateScreen"/>
+                <item name="Clear Console" iconleft="ico:/erase.png" cmd="Console clear"/>
+                <item name="Clear Data" iconleft="ico:/broom.png">
+                    <item name="Clear Project References" cmd="CTTools clear-project-reference"/>
+                </item>
+            </item>
             <item name="App Settings" iconleft="ico:/services.png" cmd="Application view Settings"/>
+            <item name="Help" iconleft="ico:/info.png" cmd="CTTools show-url https://contemple.app/docs/reference.html"/>
         </item>
         <item name="Pages" iconleft="ico:/book-stack.png" cmd="Application view PageView"/>
         <item name="Preview in Browser"  iconleft="ico:/website.png" cmd="CTTools browser-preview"/>
         <item name="#separator"/>
-        
-        <item name="Look For Updates" iconleft="ico:/netzwerk-laufwerk.png" cmd="CTTools app-update;CTTools update;"/>
+        <item name="Publish History" iconleft="ico:/tm.png" cmd="TemplateTools publish-history"/>
+        <item name="Look For Updates" iconleft="ico:/netzwerk-laufwerk.png" cmd="CTTools update"/>
         <item name="#separator"/>
         <item name="Quit CT"  iconleft="ico:/sun.png" cmd="Application quit"/>
     </item>
@@ -53,6 +55,7 @@
 <view  name="HtmlView" vm="panel" src="{*ct.HtmlEditor}" />
 <view  name="StartScreen" vm="panel" src="{*ct.StartScreen}" />
 <view  name="OpenScreen" vm="panel" src="{*ct.OpenScreen}" />
+<view  name="TemplateScreen" vm="panel" src="{*ct.TemplateScreen}" />
 <view  name="TextView" vm="panel" src="{*ct.TextEditor}" />
 <view  name="PageView" vm="panel" src="{*ct.PageEditor}" />
 <view  name="PreView" vm="panel" src="{*ct.Preview}" />
@@ -60,4 +63,5 @@
 <view  name="UploadView" vm="panel" src="{*ct.UploadView}" />
 <view  name="InstallView" vm="panel" src="{*ct.InstallView}" />
 <view  name="console" vm="console" />
+
 </agf>

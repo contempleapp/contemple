@@ -2,6 +2,7 @@
 {
 	import flash.display.*;
 	import flash.events.*;
+	import flash.utils.setTimeout;
 	
 	import agf.html.CssSprite;
 	import agf.html.CssStyleSheet;
@@ -20,7 +21,7 @@
 		
 		public var content:CssSprite;
 		private var scrollbar:Slider;
-		public static var scrollbarWidth:Number=8;
+		public static var scrollbarWidth:Number=12;
 		public var friction:Number = 2.7;
 		
 		public function get slider () :Slider { return scrollbar; }
@@ -42,7 +43,7 @@
 		
 		public function applyScrollValue ( val:Number ) :void {
 			scrollbar.value = val;
-			content.y = -scrollbar.value;
+			content.y = int( -scrollbar.value );
 		}
 		
 		public function setScrollerWidth (w:int) :void {
@@ -74,10 +75,10 @@
 			scrollRect = new Rectangle( cssLeft, cssTop, getWidth(), getHeight() );
 		}
 		
-		private var toY:Number;
+		private var toY:int;
 		private function animPos (e:Event) :void {
 			if( Math.abs(toY-content.y) > 0 ) {
-				content.y = Math.round( content.y + (toY-content.y)/friction );
+				content.y = int( content.y + (toY-content.y)/friction );
 			}else{
 				content.y = toY;
 				removeEventListener( Event.ENTER_FRAME, animPos);
@@ -85,7 +86,7 @@
 		}
 		public function scrollbarChange (e:Event=null) :void {
 			if( friction <= 1 ) {
-				content.y = -scrollbar.value;
+				content.y = int(-scrollbar.value);
 			}else{
 				toY = -scrollbar.value;
 				addEventListener(Event.ENTER_FRAME, animPos);
@@ -94,16 +95,17 @@
 		
 		public function contentHeightChange () :void {
 			var ch:Number = content.getHeight();
-			var overflow:Number = content.height - cssSizeY;
+			var overflow:Number = ch - cssSizeY;
 			if( overflow > 0 ) {
-				scrollbar.maxValue = overflow;
+				scrollbar.maxValue = int(overflow);
 				var h:Number = scrollbar.getHeight();
-				scrollbar.wheelStepSize = (h*.32) /  Math.round( ch / h );
+				scrollbar.wheelStepSize = int( (h*.32) /  Math.round( ch / h ) );
 				scrollbar.visible = true;
 			}else{
 				scrollbar.maxValue = 0.0001;
 				scrollbar.visible = false;
 			}
+			var tmp:Number = friction;
 			applyScrollValue( slider.value );
 		}
 	}

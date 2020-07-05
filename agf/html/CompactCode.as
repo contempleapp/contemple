@@ -118,7 +118,6 @@
 					strst = i;
 					for(i++; i<L; i++) {
 						if( code.charCodeAt(i) == cc ) {
-							//i++;
 							rstr += code.substring( strst, i+1 );
 							break;
 						}
@@ -144,13 +143,11 @@
 							{
 								fd = true;
 								
-								
 								// PARSE Longer Comment keywords than two characters: <!-- --> etc
 								for( s = 2; s < mco; s++) 
 								{
 									if( !(L > i + s + 1 && code.charAt( i+s ) === multiOpen.charAt(s)) ) 
 									{
-										
 										fd = false;
 										break;
 									}
@@ -293,13 +290,7 @@
 								
 if(!compactOperator || (cc2 != 59 && cc2 != 125 && cc2 != 123 && cc2 != 44 && cc2 != 61 && cc2 != 58 && cc2 != 42 && cc2 != 47 && cc2 != 43 && cc2 != 45 && cc2 != 60 && cc2 != 62) ) {
 								
-									//if ( leaveWhiteAroundBrackets ) {
-										str += code.charAt(i);
-									/*}else {
-										if(ltc != 40 && ltc != 41 ) { 
-											str += code.charAt(i);
-										}
-									}*/
+									str += code.charAt(i);
 								}
 							}else{
 							
@@ -309,7 +300,6 @@ if(!compactOperator || (cc2 != 59 && cc2 != 125 && cc2 != 123 && cc2 != 44 && cc
 				}
 				
 				ccm1 = cc;
-				//if( cc > 32 ) ltc = cc;
 			}
 			return str;
 		}
@@ -386,7 +376,6 @@ if(!compactOperator || (cc2 != 59 && cc2 != 125 && cc2 != 123 && cc2 != 44 && cc
 			return compact(style);
 		}
 		public static function compactSql (sql:String) :String {
-			//inlineScript = false;
 			trimWhite = true;
 			trimSingleComment = true;
 			trimMultiComment = true;
@@ -412,7 +401,19 @@ if(!compactOperator || (cc2 != 59 && cc2 != 125 && cc2 != 123 && cc2 != 44 && cc
 			
 			return compact(htm);
 		}
-		
+		public static function removeHtmlComments (htm:String) :String {
+			// TODO: support inline scripts in html files etc. inlineScript = true;
+			trimWhite = false;
+			trimSingleComment = false;
+			trimMultiComment = true;
+			compactOperator = false; // leave white around ",= etc
+			leaveWhiteAroundBrackets = true;
+			multiOpenFollowAbort = "";// "<>[/";
+			multiOpen = "<!--";
+			multiClose = "-->";
+			
+			return compact(htm);
+		}
 		private static var inlineScript:Boolean=false;
 		private static var inlineStyle:Boolean=false;
 		public static var inlineScriptOP:Array = ["<script..>","</script>","<?php "," ?>", "<? ", " ?>", "<% ", " %>"];

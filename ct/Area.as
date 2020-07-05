@@ -1,5 +1,5 @@
-﻿package  ct {
-	
+﻿package ct
+{
 	public class Area
 	{
 		//
@@ -39,7 +39,7 @@
 		// {##SIDEBAR2:page,sidebar}
 		// {##AUDIO-PLAYER:audio}
 		//
-		public function Area (_st:int, _en:int, _sections:Array, _priority:int, _name:String, _type:String, _types:Vector.<String>, _args:Array, _argv:String)
+		public function Area (_st:int=0, _en:int=0, _sections:Array=null, _priority:int=0, _name:String="", _type:String="", _types:Vector.<String>=null, _args:Array=null, _argv:String="")
 		{
 			st = _st;
 			en = _en;
@@ -56,7 +56,6 @@
 					icon = CTTools.parseFilePath( _args[0] );
 				}
 				if( _args.length > 1 ) {
-					// description = _args[1];
 					options = _args[1];
 				}
 				
@@ -93,16 +92,11 @@
 		public var types:Vector.<String>;
 		public var args:Array;
 		public var argv:String;
-		
 		public var icon:String="";
-		//public var description:String = "";
 		public var options:String = "";
-		
 		public var link:String=""; // Use Page Items of another Area
 		public var limit:int=0; // limit page items in area..
 		public var offset:int=0; // start offset in page item list
 		public var linkOverrides = null; // override sub template name in link areas ( linkOverrides[ orig-name ] = new-name )
-		
 	}
-	
 }

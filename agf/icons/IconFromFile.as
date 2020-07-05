@@ -20,22 +20,18 @@
 		private function loadFile (url:String, w:Number=16, h:Number=16):void
 		{
 			ResourceMgr.getInstance().loadResource( url, onLoaded, false );
-			/*
-			graphics.clear();
-			graphics.beginFill(0x0, 0);
-			graphics.drawRect(0, 0, w, h);
-			graphics.endFill();*/
-			
 		}
 		
 		private var _res:Resource;
 		private var bmd:BitmapData;
 		private var bmp:Bitmap;
 		
-		private function onLoaded (res:Resource) :void {
+		private function onLoaded (res:Resource) :void
+		{
 			_res = res;
 			var sp:DisplayObject = DisplayObject( _res.obj);
-			if(sp) {
+			if (sp)
+			{
 				var scx:Number=1;
 				var scy:Number=1;
 				
@@ -50,10 +46,8 @@
 				var m:Matrix = new Matrix();
 				m.scale( s, s );
 				
-				//graphics.clear();
 				bmd.fillRect( bmd.rect, 0x00000000 );
 				bmd.draw( sp, m );
-				//addChild( sp );
 			}
 		}
 		

@@ -1,4 +1,4 @@
-﻿ package ct
+﻿package ct
  {
 	import agf.html.*;
 	import agf.tools.*;
@@ -8,6 +8,7 @@
 	import flash.utils.getTimer;
 	import flash.display.Sprite;
 	import flash.events.*;
+	import flash.geom.Rectangle;
 	
 	public class AreaView extends CssSprite
 	{
@@ -58,6 +59,7 @@
 			scrollpane1.content.addEventListener( MouseEvent.MOUSE_DOWN, btnDown );
 			
 			itemList1 = new ItemTree( null, ["root"], 0, 0, scrollpane1.content, styleSheet, '', 'areaview-container', false );
+			itemList1.itemList.margin = 0;
 			
 			scrollpane2 = new ScrollContainer( 0,0, this, styleSheet, '', 'areaview-scroll-container', false );
 			if(CTOptions.isMobile ) {
@@ -179,22 +181,20 @@
 			var i:int;
 			var L:int;
 			var sbw:int;
+			var itm:CssSprite;
 			
 			if( scrollpane1 ) {
 				sbw = 0;
 				if( scrollpane1.slider.visible ) sbw = 10;
 				
 				scrollpane1.setWidth ( w );
+				
 				if( itemList1 && itemList1.itemList.items) {
 					L = itemList1.itemList.items.length;
-					var itm:CssSprite;
-					
 					for(i=0; i<L; i++) {
 						itm = CssSprite( itemList1.itemList.items[i] );
-						itm.setWidth( w - (sbw + itm.cssPaddingLeft + cssPaddingLeft + cssLeft) );
+						itm.setWidth( w - (sbw + itm.cssBoxX ) );
 					}
-					itemList1.itemList.setWidth(0);
-					itemList1.itemList.init();
 				}
 			}
 			if( scrollpane2 ) {
@@ -274,6 +274,7 @@
 			clickY = mouseY;
 		}
 		
+		// resizing height 
 		private function viewSizeDown (e:MouseEvent) :void {
 			if( stage ) {
 				stage.addEventListener( MouseEvent.MOUSE_UP, viewSizeUp );
@@ -281,14 +282,12 @@
 				viewSizeStartY = mouseY;
 			}
 		}
-		
 		private function viewSizeUp (e:MouseEvent) :void {
 			if( stage ) {
 				stage.removeEventListener( MouseEvent.MOUSE_UP, viewSizeUp );
 				removeEventListener( Event.ENTER_FRAME, viewSizeFrame );
 			}
 		}
-		
 		private function viewSizeFrame (e:Event) :void {
 			var my:Number = getHeight() - mouseY;
 			if( my > minH ) {
@@ -303,6 +302,5 @@
 			setHeight( getHeight() );
 			setWidth(getWidth());
 		}
-
 	}
 }

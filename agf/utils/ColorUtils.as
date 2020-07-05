@@ -1,5 +1,5 @@
-﻿package agf.utils {
-	
+﻿package agf.utils
+{	
 	public class ColorUtils
 	{
 		private static var strcol:Object={};
@@ -61,7 +61,7 @@
 			if( a > 255 ) a = 255;
 			
 			var rv:uint = a << 24;
-			rv |= r << 16 ;
+			rv |= r << 16;
 			rv |= g << 8;
 			rv |= b;
 		

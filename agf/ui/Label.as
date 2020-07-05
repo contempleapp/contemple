@@ -1,8 +1,6 @@
 ﻿package agf.ui
 {
-	import flash.text.TextField;
-	import flash.text.TextFieldAutoSize;
-	import flash.text.AntiAliasType;
+	import flash.text.*;
 	import agf.Options;
 	import agf.html.CssSprite;
 	import agf.html.CssStyleSheet;
@@ -35,8 +33,8 @@
 		
 		public override function init (dontDraw:Boolean=false):void {
 			super.init(dontDraw);
-			textField.x = cssLeft;
-			textField.y = cssTop;
+			textField.x = int(cssLeft);
+			textField.y = int(cssTop);
 		}
 		public override function setWidth ( w:int) :void {
 			cssWidth = 0;

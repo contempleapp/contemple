@@ -4,6 +4,7 @@
 	import flash.text.*;
 	import agf.tools.*;
 	import agf.ui.*;
+	import agf.events.*;
 	
 	public class CommandEditor extends Window {
 
@@ -33,6 +34,11 @@
 			
 			commandPP.y = title.cssSizeY + body.cssTop + cssTop;
 			commandPP.x = body.getWidth() - commandPP.cssSizeX;
+			commandPP.addEventListener( Event.SELECT, ppClick );
+			
+			processButton = new Button( ["Execute"], 0, 0, body, styleSheet, '', 'command-editor-process-btn', false);
+			processButton.x = cssLeft + body.cssLeft + (body.getWidth() - processButton.cssSizeX) * 0.5;
+			processButton.y = body.getHeight() - processButton.cssSizeY;
 			
 			commandTF = new TextField();
 			commandTF.x = cssLeft + body.cssLeft;
@@ -40,15 +46,28 @@
 			commandTF.width = body.getWidth() - commandPP.cssSizeX;
 			commandTF.text = "yYvVÜÖpP1!$";
 			commandTF.height = commandTF.textHeight;
-			commandTF.text = "";
+			commandTF.text = "CTTools";
 			
 			body.addChild( commandTF );
-			
-			processButton = new Button( ["Execute"], 0, 0, body, styleSheet, '', 'command-editor-process-btn', false);
-			processButton.x = cssLeft + body.cssLeft + (body.getWidth() - processButton.cssSizeX) * 0.5;
-			processButton.y = body.getHeight() - processButton.cssSizeY;
 		}
 		
+		
+		private function ppClick (e:PopupEvent) :void {
+			var curr:PopupItem = e.selectedItem;
+			var lb:String = curr.label;
+			
+			if( commandTF )
+			{
+				for( var i:int = 0; i<allcmds.length; i++ )
+				{
+					if( lb == allcmds.name )
+					{
+						commandTF.text = allcmds[i].cmd;
+						break;
+					}
+				}
+			}
+		}
 		
 		public static var allcmds:Array = [
 			{ name: "", cmd: "", info:"" },

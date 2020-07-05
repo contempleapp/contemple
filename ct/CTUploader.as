@@ -38,7 +38,7 @@
 		
 		internal static var viewPanel:UploadView;
 		internal static var ltProgress:Number = 0;
-		private static var waitInterval:int = 70;
+		private static var waitInterval:int = 150;
 		
 		private static var prgStep:Number;
 		
@@ -50,6 +50,7 @@
 			ltProgress = v;
 			if( viewPanel ) viewPanel.showProgress(v);
 		}
+		
 		public static function uploadSite ( completeHandler:Function ) :void
 		{
 			if( uploading ) return;
@@ -69,7 +70,7 @@
 					showProgress(0);
 				}
 				
-				Console.log( "Downloading Directory Info with algo '" + CTOptions.hashCompareAlgorithm  +"' from " + CTOptions.uploadScript );
+				Console.log( "Downloading Directory Info With Algo '" + CTOptions.hashCompareAlgorithm  +"' From " + CTOptions.uploadScript );
 				
 				var pwd:String = "";
 				var sh:SharedObject = SharedObject.getLocal( CTOptions.localSharedObjectId );
@@ -134,7 +135,7 @@
 			}
 			
 			if( dirInfo == "" ) {
-				Console.log( "Error connecting to web server: " + CTOptions.uploadScript);
+				Console.log( "Error Connecting To Web Server: " + CTOptions.uploadScript);
 				if( viewPanel ) {
 					// Show error...
 					viewPanel.log("Error connecting to web server."); 
@@ -152,7 +153,7 @@
 				fileHashes = {};
 				
 				if( CTOptions.debugOutput ) {
-					Console.log("DIR-INFO\n" + dirInfo );
+					Console.log("Server-Info\n" + dirInfo );
 				}
 				
 				maxFileSize = parseInt( dirInfoXml.@maxsize );
@@ -162,7 +163,7 @@
 				
 				Console.log("Comparing " + L + " Web Files With '" + CTTools.projectDir.substring(8) + "'");
 				if( viewPanel ) {
-					viewPanel.log( "Searching ("+L+" files)" );
+					viewPanel.log( "Searching ("+L+" Files)" );
 				}
 				for( var i:int=0; i<L; i++){
 					fileHashes[ xm[i].@url.toString() ] = xm[i].@c.toString();
@@ -303,7 +304,6 @@
 					setTimeout( checkTemplateFolders, waitInterval );
 				}
 			}
-			
 		}
 		
 		public static function templateFilesDone () :void {
@@ -397,22 +397,20 @@
 			}
 		}
 		
-		
 		private static function fileStoreDone () :void {
 			if( forceExit ) return preExit();
 			
 			if( upFiles.length == 0 ) {
-				Console.log("Website up to date. "+ filesChecked + " files checked.");
+				Console.log("Website Up To Date. "+ filesChecked + " Files Checked.");
 				if(viewPanel) viewPanel.log( "Website Up To Date. "+filesChecked+" Files Checked, 0 Uploads \n");
 				uploadFinish();
 			}else{
 				
-				syncFiles();
 				var dir:String = dirInfoXml.@path.toString();
 				var webroot:String = CTOptions.uploadScript + dir;
 				
 				Console.log("Upload To: " + webroot );
-				Console.log("Updating " + upFiles.length + " of " + filesChecked + " files ");
+				Console.log("Updating " + upFiles.length + " Of " + filesChecked + " Files ");
 				
 				if(viewPanel) {
 					viewPanel.log( "Upload To: " + webroot );
@@ -422,7 +420,8 @@
 				currFile = 0;
 				showProgress( 0.8 );
 				prgStep = 0.2 / upFiles.length;
-				uploadNext();
+				
+				syncFiles();
 			}
 		}
 		private static var currPage:int=0;
@@ -551,7 +550,7 @@
 				var mb:Number = (b.length/1000/1000);
 				
 				if ( mb > maxFileSize ) {
-					Console.log("File too big (" + mb + " MB/"+maxFileSize+" MB): " + filedir + filename );
+					Console.log("File Too Big (" + mb + " MB/"+maxFileSize+" MB): " + filedir + filename );
 					fileErrors.push( {dir:filedir, name:filename, webdir:webdir} );
 					return;
 				}
@@ -560,19 +559,61 @@
 				
 				var newFileHash:String = CTTools.hashBytes( b );
 				
-				if( CTOptions.verboseMode || CTOptions.debugOutput ) {
-					Console.log( filename + " Local "+ CTOptions.hashCompareAlgorithm +": " + newFileHash + " equal: " + (c == newFileHash) );
-				}
+				//if( CTOptions.verboseMode || CTOptions.debugOutput ) {
+				//	Console.log( filename + " Local "+ CTOptions.hashCompareAlgorithm +": " + newFileHash + " Equal: " + (c == newFileHash) );
+				//}
 				if( c != newFileHash ) {
 					pushFile( filedir, filename, webdir );
 				}
 			}
 		}
 		
-		private static function syncFiles () :void
-		{
-			// Upload db
-			if( CTOptions.autoSync && CTOptions.syncDatabase ) 
+		private static function onSyncInfo ( e:Event, r:Resource ) :void {
+			
+			if ( forceExit ) return preExit();
+			
+			var hubsyncfile:String;
+			
+			try {
+				hubsyncfile = String(r.obj) || "";
+			}catch(e:Error) {
+				hubsyncfile = "";
+			}
+			
+			// Upload XML Content File
+			var xm:String = TemplateTools.export_all();
+			
+			if( xm )
+			{
+				// Upload sync.xml (content file)
+				// cthub stores the file as sync_name-VX.xml
+				// in the cthub sync dir if filename
+				// is "sync.xml" and webdir is "cthub/sync/"
+				
+				var xmfile:File = File.applicationStorageDirectory.resolvePath( CTOptions.tmpDir + CTOptions.urlSeparator + "sync.xml");
+				CTTools.writeTextFile( xmfile.url, xm );
+				
+				uploadFile( File.applicationStorageDirectory.resolvePath(CTOptions.tmpDir).url, "sync.xml", "cthub/sync/" );
+				
+				if ( hubsyncfile ) {
+					try {
+						var oldXML:XML = new XML(hubsyncfile);
+						var newXML:XML = new XML(xm);
+					}catch (e:Error){
+						Console.log("Error: Sync Files Error: " + e);
+					}
+					
+					var stats:String = CTCompareContent.compareXML( newXML, oldXML );
+					
+					var statsfile:File = File.applicationStorageDirectory.resolvePath( CTOptions.tmpDir + CTOptions.urlSeparator + "stat.xml");
+					CTTools.writeTextFile( statsfile.url, stats );
+					Console.log("Upload Patch File: " + statsfile.url);
+					
+					uploadFile( File.applicationStorageDirectory.resolvePath(CTOptions.tmpDir).url, "stat.xml", "cthub/sync/" );
+				}
+			}
+			
+			if( CTOptions.syncDatabase )
 			{
 				// Upload DB:
 				var dbfilename:String="";
@@ -583,20 +624,47 @@
 					dbfilename = xo.db.@filename;
 				}
 				
-				var logStr:String = "Uploading Database: " + dbfilename + " in " + CTTools.projectDir; 
+				var logStr:String = "Uploading Database: " + dbfilename; 
 				if( viewPanel ) viewPanel.log( logStr );
 				Console.log( logStr );
 				
 				uploadFile( CTTools.projectDir, dbfilename, "cthub/sync/" );
-				
-				if( CTOptions.syncTemplate )
-				{
-					Console.log("Uploading Template: " + CTTools.projectDir + "/" + CTOptions.projectFolderTemplate + " to: "  +  "cthub/sync/tmpl/");
-					uploadFile( CTTools.projectDir, CTOptions.projectFolderTemplate, "cthub/sync/tmpl/" );
-				}
 			}
 			
-			// TODO sync files for multi user support..
+			//if( CTOptions.syncTemplate )
+			//{
+				//Console.log("Uploading Template: " + CTTools.projectDir + "/" + CTOptions.projectFolderTemplate + " to: "  +  "cthub/sync/tmpl/");
+				//uploadFile( CTTools.projectDir, CTOptions.projectFolderTemplate, "cthub/sync/tmpl/" );
+			//}
+			
+			uploadNext();
+		}
+		
+		private static function syncFiles () :void
+		{
+			// Upload db
+			if( CTOptions.autoSync ) 
+			{
+				// Download latest online content version:
+				
+				var res:Resource = new Resource();
+				var vars:URLVariables = new URLVariables();
+				vars.content = 1;
+				var pwd:String = "";
+				var sh:SharedObject = SharedObject.getLocal( CTOptions.localSharedObjectId );
+				if( sh ) {
+					if( sh.data && sh.data.userPwd ) {
+						pwd = sh.data.userPwd;
+					}
+				}
+				vars.pwd = pwd;
+				
+				res.load( CTOptions.uploadScript, true, onSyncInfo, vars);
+			}
+			else
+			{
+				uploadNext();
+			}
 		}
 		
 		private static var uploadURL:URLRequest;
@@ -626,7 +694,7 @@
 				vars.pwd = pwd;
 				
 				uploadURL = new URLRequest();
-				uploadURL.url = CTOptions.uploadScript; // "http://localhost:8888/hugup/cthub/cthub.php";
+				uploadURL.url = CTOptions.uploadScript;
 				uploadURL.method = URLRequestMethod.POST;
 				uploadURL.data = vars;
 				uploadURL.userAgent = CTOptions.UPLOAD_USER_AGENT;
@@ -680,29 +748,29 @@
             dispatcher.addEventListener(DataEvent.UPLOAD_COMPLETE_DATA,uploadCompleteDataHandler);
         }
 		private static function cancelHandler(event:Event):void {
-            Console.log("cancelHandler: " + event);
+            Console.log("CancelHandler: " + event);
         }
 
         private static function completeHandler(event:Event):void {
 			if(viewPanel) {
-				viewPanel.log(" done", true);
+				viewPanel.log(".... Done", true);
 			}
 			setTimeout( nextFile, waitInterval );
         }
 
         private static function uploadCompleteDataHandler(event:DataEvent):void {
-            Console.log("uploadCompleteData: " + event);
+            //Console.log("UploadCompleteData: " + event);
         }
 
         private static function httpStatusHandler(event:HTTPStatusEvent):void {
-            Console.log("httpStatusHandler: " + event);
+            Console.log("HttpStatusHandler: " + event);
         }
         
         private static function ioErrorHandler(event:IOErrorEvent):void {
-            Console.log("ioErrorHandler: " + event);
+            Console.log("IoErrorHandler: " + event);
 			uploadError = true;
 			if(viewPanel) {
-				viewPanel.log(" error " + event, true);
+				viewPanel.log(" Error " + event, true);
 			}
 			setTimeout( nextFile, waitInterval );
         }
@@ -712,15 +780,15 @@
         }
 
         private static function progressHandler(event:ProgressEvent):void {
-          //  var file:FileReference = FileReference(event.target);
+            var file:FileReference = FileReference(event.target);
 		  // Console.log("progressHandler name=" + file.name + " bytesLoaded=" + event.bytesLoaded + " bytesTotal=" + event.bytesTotal);
         }
 
         private static function securityErrorHandler(event:SecurityErrorEvent):void {
-            Console.log("securityErrorHandler: " + event);
+            Console.log("SecurityErrorHandler: " + event);
 			uploadError = true;
 			if(viewPanel) {
-				viewPanel.log(" error " + event, true);
+				viewPanel.log(" Error " + event, true);
 			}
 			setTimeout( nextFile, waitInterval );
         }

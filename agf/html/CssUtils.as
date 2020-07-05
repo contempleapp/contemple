@@ -6,7 +6,8 @@
 	import flash.system.Capabilities;
     import flash.text.*;
     import agf.tools.Console;
-    
+    import agf.utils.ColorUtils;
+	
 	public class CssUtils
 	{
 		public function CssUtils() {}
@@ -86,18 +87,24 @@
 		 * 	The string should be trimmed with trim
 		 *	#F00, #FF0000 returns the number for full red
 		 *	rgb(255,255,255) returns the number for white
+		 *	rgba(100%,100%,100%,1) returns the number for white including alpha channel
+		 *	hsl(360,100%,100%) returns the number for white
+		 *	hsla(360,100%,100%,1) returns the number for white including alpha channel
 		 */
-		public static function stringToColor (str:String) :int 
+		public static function stringToColor (str:String) :uint 
 		{
 			// *** Uncommented cause rarely used, css default color values: red, green, blue, black etc
 			// *** Uncomment all this comments in this file to add support:
 			//
 			// if( defaultColors[str] ) return defaultColors[str];
 			//
+			var cr:String = str.charAt(0);
+			var rv:uint = 0;
 			
-			if(str.charAt(0)/*.toLowerCase()*/ === "r")
+			if(cr === "r" || cr == "h")
 			{
-				// rgb(0,0,0)
+				// rgb(0,255,100%), rgba(0,255,100%,1), hsl(deg,%,%) hsla(deg,%,%,1)
+				
 				var op:int = str.indexOf( "(", 0 );
 				if(op == -1) return 0;
 				
@@ -108,22 +115,64 @@
 				var arr:Array = str.substring(op+1, cl).split(",");				
 				cl = arr.length;
 				
-				var rv:int = 0;
-				if(cl >= 4) rv = int(arr[4]) << 24 // Alpha #ff996633
-				if(cl >= 1) rv |= int(arr[0]) << 16 
-				if(cl >= 2) rv |= int(arr[1]) << 8 
-				if(cl >= 3) rv |= int(arr[2]);
+				if( cr == "r" )
+				{
+					if(cl >= 4) {
+						rv =  int(Number(arr[3])*255) << 24; // Alpha #ff996633
+					}
+					if(cl >= 1) {
+						if( arr[0].indexOf("%") >= 0 ) {
+							rv |= int( (parseInt(arr[0]) *2.55) ) << 16;
+						}else{
+							rv |= parseInt(arr[0]) << 16;
+						}
+						
+					}
+					if(cl >= 2) {
+						if( arr[1].indexOf("%") >= 0 ) {
+							rv |= int( (parseInt(arr[1]) *2.55) ) << 8;
+						}else{
+							rv |= parseInt(arr[1]) << 8;
+						}
+					}
+					if(cl >= 3) { 
+						if( arr[2].indexOf("%") >= 0 ) {
+							rv |= int( (parseInt(arr[2]) *2.55) );
+						}else{
+							rv |= parseInt(arr[2]);
+						}
+					}
+					
+				}
+				else
+				{
+					// hsl
+					if( cl >= 3 )
+					{
+						rv = ColorUtils.HSVtoRGB( parseFloat(arr[0]), parseFloat(arr[1]), parseFloat(arr[2]) );
+					}
+					
+					if( cl >= 4 )
+					{
+						rv = int(Number(arr[3])*255) << 24 | rv;
+					}
+				}
 				
-				return rv;
+				//return rv;
 			}
 			else
 			{
-				if(str.length == 4) { // Parse html color shortcut #FFF 
-					str = str.charAt(0) + str.charAt(1) + str.charAt(1) + str.charAt(2) + str.charAt(2) + str.charAt(3) + str.charAt(3);
+				if(str.length == 4) { // Parse html color shortcut #FFF
+					str = "#" + str.charAt(1) + str.charAt(1) + str.charAt(2) + str.charAt(2) + str.charAt(3) + str.charAt(3);
 				}
-				return parseInt( "0x" + str.substring(1) );
+				rv = parseInt( "0x" + str.substring(1) );
 			}
+			
+			
+			return rv;
 		}
+		
+		//private static var tmp:Object = {};
 		
 		public static function isColor (str:String) :Boolean
 		{
@@ -131,7 +180,21 @@
 			// *** Uncomment all this comments in this file to add support:
 			//
 			//return ( str.indexOf("#") != -1 || str.indexOf("rgb(") != -1);
-			return (/*defaultColors[str] != null || */ str.charAt(0) == "#" || str.substring(0,4) == "rgb(");
+			
+			var c:String = str.charAt(0);
+			
+			if ( c == "#" )
+			{
+				if( str.length == 4 || str.length == 7 ) return true;
+			}
+			else if( c == "r" || c == "h" )
+			{
+				c = str.substring(0,3);
+				if ( (c == "rgb" || c == "hsl") && (str.indexOf( "(" ) >= 0 && str.indexOf(")") >= 0 && str.indexOf(",") >= 0) ) return true;
+			}			
+			
+			//return (/*defaultColors[str] != null || */ str.charAt(0) == "#" || str.substring(0,3) == "rgb"  || str.substring(0,3) == "hsl");
+			return false;
 		}
         
 		private static var tf:TextField;
@@ -167,7 +230,7 @@
 		*	
 		*/
 		public static function parse (v:*, container:DisplayObject=null, hv:String="h") : * {
-			if(v is String) 
+			if( typeof(v) == "string" ) 
 			{
 				if(isNaN(Number(v))) 
 				{

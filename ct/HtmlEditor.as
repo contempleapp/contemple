@@ -290,15 +290,13 @@
 			var cpf:ProjectFile;
 			var loc:String = "";
 			
-			if( (editor.currentEditor is AreaEditor) ) {
-				T = AreaEditor(editor.currentEditor).currentTemplate;
-				
-				if( AreaEditor.currPF != null ) cpf = AreaEditor.currPF;
-				if( AreaEditor.currItemName != "" ) loc += "#" + AreaEditor.currItemName;
-				
-			}else if( (editor.currentEditor is ConstantsEditor) ) {
+			if( (editor.currentEditor is ConstantsEditor) ) {
 				T = ConstantsEditor(editor.currentEditor).currentTemplate;
 				if( ConstantsEditor.currPF != null ) cpf = ConstantsEditor.currPF;
+			}else if( (editor.currentEditor is AreaEditor) ) {
+				T = AreaEditor(editor.currentEditor).currentTemplate;
+				if( AreaEditor.currPF != null ) cpf = AreaEditor.currPF;
+				if( AreaEditor.currItemName != "" ) loc += "#" + AreaEditor.currItemName;
 			}
 			if( !T ) {
 				T = CTTools.activeTemplate;

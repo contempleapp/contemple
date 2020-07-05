@@ -8,6 +8,8 @@
 	{
 		public var udfData:Object={};
 		public var url:String;
+		public var urlRequest:URLRequest;
+		
 		public var isText:Boolean;
 		public var obj:Object;
 		public var uid:int = -1;
@@ -28,6 +30,8 @@
 			}
 			
 			var loader;
+			var req:URLRequest;
+			
 			try 
 			{
 				if(isTextFile)
@@ -46,12 +50,14 @@
 					loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, ioErrorHandler);
 				}
 				
-			
-				var req:URLRequest = new URLRequest(url);
+				req = new URLRequest(url);
+				
 				if(postVars) {
 					req.data = postVars;
 					req.method = URLRequestMethod.POST;
 				}
+				urlRequest = req;
+				
 				loader.load( req );
 			}
 			catch (error:Error)
@@ -63,11 +69,8 @@
 		
 		public function get loaded () :Boolean { return _loaded == 1; }
 		public function get error () :Error { return _error; }
-		
 		private function ioErrorHandler (e:IOErrorEvent) :void {
-			e.preventDefault();
-			e.stopImmediatePropagation();
-			complete(e, 0);
+			complete(null, 0);
 		}
 		private function imageCompleteHandler (e:Event) :void {
 			obj = Loader(e.target.loader).content;
@@ -80,7 +83,6 @@
 		private function complete (e:Event, ld:int) :void {
 			_loaded = ld;
 			if(fin != null) fin.apply(fin, [e, this]);
-			//if(e) dispatchEvent(e);
 		}
 	}
 }

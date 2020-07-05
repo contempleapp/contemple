@@ -1,4 +1,4 @@
-﻿package ct
+﻿ package ct
 {
 	import agf.utils.StringMath;
 	import flash.display.*;
@@ -64,7 +64,7 @@
 			
 			create();
 			
-			if( CTOptions.isMobile ) {
+			if( CTOptions.isMobile && CTOptions.softKeyboard ) {
 				tf.addEventListener( SoftKeyboardEvent.SOFT_KEYBOARD_ACTIVATE, CTTools.softKeyboardChange );
 				tf.addEventListener( SoftKeyboardEvent.SOFT_KEYBOARD_DEACTIVATE, CTTools.softKeyboardChange );
 			}
@@ -122,22 +122,60 @@
 			if (tf && container) {
 				var w:int = container.getWidth();
 				var h:int = container.getHeight();
-				
-				var sbw:int = 0;
-				if(scrollbar) {
-					scrollbar.setWidth( h );
-					scrollbar.x = w - 25;// scrollbar.getHeight();
-					sbw = scrollbar.getHeight();
-				}
 				var ibh: Number = ib.getHeight();
+				var sbw:int = 0;
+			
+				
+				if(scrollbar) {
+					
+					scrollbar.setHeight( h - (ibh + 8) );
+					
+					sbw = scrollbar.cssSizeX + scrollbar.cssBoxX;
+					
+					scrollbar.x = w - (sbw + 4);
+					scrollbar.y = ibh + 4;
+					
+					setScrollButtonHeight();
+					
+					if( scrollbar.value != tf.scrollV ) scrollbar.value = tf.scrollV;
+				}
+					
 				tf.width = w - (8 + sbw);
-				tf.height = h - 8 - ibh;
+				tf.height = h - (8 + ibh);
 				tf.x = 3;
 				tf.y = 8 + ibh;
 				ib.setWidth( w );
 				
+				container.setChildIndex( scrollbar, container.numChildren-1 );
+				
 				displayFiles();
 			}
+		}
+		
+		private function setScrollButtonHeight () :int
+		{
+			var mss:int = 50;
+			if( ib && container && tf && scrollbar )
+			{
+				if( tf.maxScrollV <= 1 ) {
+					scrollbar.visible = false;
+				}else{
+					scrollbar.visible = true;
+					
+					scrollbar.minValue = 1;
+					scrollbar.maxValue = tf.maxScrollV;
+					
+					var h:int = container.getHeight();
+					var ibh: Number = ib.getHeight();
+					
+					if( tf.maxScrollV < h - (ibh + mss) ) {
+						mss = h-(ibh + tf.maxScrollV);
+					}
+					mss = int(mss/1.62);
+					scrollbar.setScrollerHeight( mss );
+				}
+			}
+			return mss;
 		}
 		
 		private function textEnterFrame (e:Event) :void
@@ -157,19 +195,28 @@
 			}
 		}
 		
+		private function sbHChange (e:Event) :void {
+			tf.scrollV = scrollbar.value;
+		}
+		
+		private function textScrolled (e:Event) :void {
+			if( scrollbar ) {
+				scrollbar.value = tf.scrollV;
+			}
+		}
+		
 		private function textChanged (e:Event) :void
 		{
 			if( CTTools.showTemplate && CTTools.currFile != -1 && CTTools.procFiles && CTTools.procFiles.length > CTTools.currFile )
 			{	
 				typeTimer = getTimer();
-				
 				ProjectFile( CTTools.procFiles[CTTools.currFile] ).setTemplate( tf.text );
-				scrollbar.maxValue = tf.numLines;
-				Console.log( "Cursor: " + cursor1 + ", " +cursor2);
+				scrollbar.maxValue = tf.maxScrollV;
 			}
 		}
 
-		private function create(): void {
+		private function create () :void
+		{
 			if (!tf){
 				tf = new TextField();
 				tf.addEventListener( Event.CHANGE, textChanged);
@@ -180,15 +227,10 @@
 			if (!contains(ib)) addChild(ib);
 			
 			if ( !scrollbar ) {
-				scrollbar = new Slider(0, 0, container, container.styleSheet, '', 'text-scrollbar', false);
-				scrollbar.rotation = -90;
-				scrollbar.minValue = 0;
-				scrollbar.maxValue = tf.numLines;
-				scrollbar.setScrollerHeight( 50 );
-				scrollbar.setHeight( ScrollContainer.scrollbarWidth );
-			}else{
-				scrollbar.maxValue = tf.numLines;
-				scrollbar.setHeight( ScrollContainer.scrollbarWidth );
+				scrollbar = new Slider(0, 0, container, container.styleSheet, '', 'code-scrollbar', false);
+				scrollbar.friction = 2.5;
+				scrollbar.addEventListener( Event.CHANGE, sbHChange );
+				scrollbar.setWidth( Math.ceil(Options.btnSize / 2) );
 			}
 			
 			ib.margin = 0;
@@ -246,8 +288,12 @@
 			tf.type = TextFieldType.INPUT;
 			tf.text = "";
 			tf.setTextFormat(fmt);
+			
+			container.setChildIndex( scrollbar, container.numChildren-1 );
+			
 			newSize(null);
 		}
+		
 		private var textActive:Boolean = false;
 		protected function onDeactivate (e:Event) :void 
 		{
@@ -292,7 +338,6 @@
 						tf.addEventListener( FocusEvent.FOCUS_IN, onActivate);
 						tf.addEventListener( FocusEvent.FOCUS_OUT, onDeactivate );
 						optionsPopup.visible = undoButton.visible = redoButton.visible = true;
-						//tf.setTextFormat( fmt );
 					}
 					else
 					{
@@ -307,7 +352,6 @@
 							tf.styleSheet = null;
 							tf.defaultTextFormat = fmt;
 							tf.text = CTTools.showCompact ? pf.getCompact() : pf.getText();
-							//tf.setTextFormat(fmt);
 						}
 					}
 				}else{
@@ -316,13 +360,12 @@
 					tf.styleSheet = null;
 					tf.defaultTextFormat = fmt;
 					tf.text = "";
-					//tf.setTextFormat(fmt);
 				}
-				if( scrollbar ) {
-					scrollbar.maxValue = tf.numLines;
-				}
-				tf.addEventListener( Event.CHANGE, textChanged);
 				
+				tf.addEventListener( Event.CHANGE, textChanged );
+				tf.addEventListener( Event.SCROLL, textScrolled );
+				
+				setScrollButtonHeight();	
 			}
 		}
 		
@@ -391,10 +434,16 @@
 				pi.options.value = '{#MyScreenInt:ScreenInteger(0,100,1)="100px"}';
 				pi = optionsPopup.rootNode.addItem( ["ScreenNumber"], container.styleSheet);
 				pi.options.value = '{#MyScreenNumber:ScreenNumber(0,1,0.1)="1em"}';
-				pi = optionsPopup.rootNode.addItem( ["Vector"], container.styleSheet);
-				pi.options.value = '{#MyNumber:Number(0,1,0.1)=1}';
+				pi = optionsPopup.rootNode.addItem( ["Number Vector"], container.styleSheet);
+				pi.options.value = '{#MyVector:Vector(0,Number,"#vectorvalue#,",",",true)="1,2,3"}';
+				pi = optionsPopup.rootNode.addItem( ["String Vector"], container.styleSheet);
+				pi.options.value = '{#MyVector:Vector(0,String,"<p>|</p>",",",true)="a,b"}';
 				pi = optionsPopup.rootNode.addItem( ["Video"], container.styleSheet);
 				pi.options.value = '{#MyVideo:Video("directory","video-#INPUTNAME#.#EXTENSION#","Video Files:","*.MP4;")}';
+				
+				pi = optionsPopup.rootNode.addItem( ["#separator"], container.styleSheet);
+				pi = optionsPopup.rootNode.addItem( ["Random"], container.styleSheet);
+				pi.options.value = '{#r:random(2)}';
 				
 				pp = new Popup( [ new agf.icons.IconMenu(0xEEEFFF,1,10, 10) ], 0, 0, container, ib.styleSheet, '', 'filepopup', false);
 				pp.addEventListener( Event.SELECT, filePopupSelect );
@@ -481,7 +530,7 @@
 				if (tf && container) {
 					var ibh: Number = ib.getHeight();
 					tf.width = container.getWidth() - 8;
-					tf.height = container.getHeight() - 8 - ibh;
+					tf.height = container.getHeight() - (8 + ibh);
 					tf.x = 3;
 					tf.y = 8 + ibh;
 					ib.setWidth(container.getWidth());
@@ -493,12 +542,10 @@
 		}
 		
 		private function undoClick (e:MouseEvent) :void {
-			Console.log("Undo.. " + history.length + ", "  + future.length);
 			undoAction();
 		}
 		
 		private function redoClick (e:MouseEvent) :void {
-			Console.log("Redo.. " + history.length+ ", "  + future.length);
 			redoAction();
 		}
 		

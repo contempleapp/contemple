@@ -161,7 +161,6 @@
 				
 				panel.dispatchEvent( _e_resize );
 				
-				// init csssprite
 				init();
 			}
 		}

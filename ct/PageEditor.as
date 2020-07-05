@@ -17,8 +17,8 @@
 	import ct.ctrl.*;
 	import agf.html.CssSprite;
 	
-	public class PageEditor extends CssSprite {
-
+	public class PageEditor extends CssSprite
+	{
 		public function PageEditor(w:Number=0, h:Number=0, parentCS:CssSprite=null, style:CssStyleSheet=null, name:String='', id:String="", classes:String="", noInit:Boolean=false)
 		{
 			super(w,h,parentCS,style,name,id,classes,noInit);
@@ -217,7 +217,7 @@
 			pageName = new NameCtrl( "Name", "name", "name", "", null, null, 0, 32, itemList, container.styleSheet, '', 'area-insert-prop', false);
 			
 			if( page == -1 ){
-				pageName.showDeleteButton(false);// .visible = false;
+				pageName.showDeleteButton(false);
 				pageName.label.label = Language.getKeyword( "New Page") + ":";
 				pageName.textBox.value = "Page_" + CTTools.pages.length;
 			}else{
@@ -227,19 +227,26 @@
 				pageName.textBox.textField.type = TextFieldType.DYNAMIC;
 			}
 			
-			pageName.showSaveAndCloseButton(false);// .visible = false;
+			pageName.showSaveAndCloseButton(false);
 			pageName.showNextButton(false);
 			pageName.showPrevButton(false);
 			
 			pageName.addEventListener( "saveInline", saveClick );
 			pageName.addEventListener( "close", closeClick);
 			
+			var w:int = container.getWidth();
 			
-			pageType = new PropertyCtrl( "Type", "pageType", "list", "Dynamic", null, ["Dynamic","Static","External","Internal","Article"], 0, 0, itemList, container.styleSheet,'','',false);
-			pageTitle = new PropertyCtrl( "Title", "pageTitle", "string", "New Title", null, [], 0, 0, itemList, container.styleSheet,'','',false);
-			pageTemplate = new PropertyCtrl( "Template", "pageTemplate", "list", templates.length > 0 ? templates[0] : "", null, templates, 0, 0, itemList, container.styleSheet,'','',false);
-			pageWebDir = new PropertyCtrl( "Directory", "pageWebDir", "string", "/", null, [], 0, 0, itemList, container.styleSheet,'','',false);
-			pageParent = new PropertyCtrl( "Parent", "pageParent", "pagelist", "", null, [], 0, 0, itemList, container.styleSheet,'','',false);
+			pageType = new PropertyCtrl( "Type", "pageType", "list", "Dynamic", null, ["Dynamic","Static","External","Internal","Article"], w, 0, itemList, container.styleSheet,'','',false);
+			pageTitle = new PropertyCtrl( "Title", "pageTitle", "string", "New Title", null, [], w, 0, itemList, container.styleSheet,'','',false);
+			pageTemplate = new PropertyCtrl( "Template", "pageTemplate", "list", templates.length > 0 ? templates[0] : "", null, templates, w, 0, itemList, container.styleSheet,'','',false);
+			pageWebDir = new PropertyCtrl( "Directory", "pageWebDir", "string", "/", null, [], w, 0, itemList, container.styleSheet,'','',false);
+			pageParent = new PropertyCtrl( "Parent", "pageParent", "pagelist", "", null, [], w, 0, itemList, container.styleSheet,'','',false);
+			
+			pageType.ctrlOptions.visible = false;
+			pageTitle.ctrlOptions.visible = false;
+			pageTemplate.ctrlOptions.visible = false;
+			pageWebDir.ctrlOptions.visible = false;
+			pageParent.ctrlOptions.visible = false;
 			
 			itemList.addItem( pageName );
 		
@@ -281,8 +288,8 @@
 		private function deleteClick (e:Event) :void
 		{
 			deletePage( pageName.textBox.value, deleteCompleteFunc );
-			
 		}
+		
 		private function deleteCompleteFunc ( success:Boolean ) :void {
 			showPages();
 		}
@@ -291,6 +298,10 @@
 		{
 			_name = name;
 			_complete = completeHandler;
+			
+			//
+			// TODO: Delete page and article page template and output files...
+			//
 			
 			var pms:Object = {};
 			pms[":name"] = name;
@@ -412,7 +423,8 @@
 				var L:int;
 				var i:int;
 				
-				if( pms[":type"].toLowerCase() == "article" ) {
+				if( pms[":type"].toLowerCase() == "article" )
+				{
 					L = CTTools.articlePages.length;
 					for( i = 0; i < L; i++)
 					{
@@ -426,12 +438,15 @@
 							CTTools.articlePages[i].webdir = pms[":webdir"];
 							CTTools.articlePages[i].filename = ltFilename;
 							_ltPage = CTTools.articlePages[i];
+							
 							CTTools.createPage( CTTools.articlePages[i], _props );
 							break;
 						}
 					}
 
-				}else{
+				}
+				else
+				{
 					L = CTTools.pages.length;
 					for( i = 0; i < L; i++)
 					{

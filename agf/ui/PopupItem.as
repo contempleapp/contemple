@@ -14,9 +14,9 @@
 		public function PopupItem (icons:Array, _popup:Popup, parentCS:CssSprite=null, style:CssStyleSheet=null, cssId:String='', cssClasses:String='', noInit:Boolean=false) {
 			super(icons, 0, 0, null, style, cssId, cssClasses, true);
 			
-			// SEPARATOR
+			// #separator
 			if( icons && icons.indexOf("#separator") >= 0) {
-				this.clips = [new IconSeparator(0x444444)];
+				this.clips = [new IconSeparator(0x222222)];
 				this.nodeClass = "separator";
 				this.label = "";
 				this._hasLabel = false;
@@ -48,6 +48,7 @@
 			return _children [ _children.push( new PopupItem(items, popup, this, css,'',nodeClass) ) - 1 ];
 		}
 		
+		// search for label k.. returns an array with popupitems 
 		public function search ( k:String, rv:Array=null ) :Array {
 			if( rv == null ) rv = [];
 			
@@ -79,7 +80,6 @@
 					}
 				}
 			}
-			
 			return -1;
 		}
 		public function removeItemAt ( id:uint ) :void {
@@ -111,21 +111,22 @@
 		public override function setWidth (w:int) :void {
 			super.setWidth(w);
 			
-			if( isSeparator ) {
+			if( isSeparator )
+			{
 				contLeft.x = 0;
 				contLeft.y = 0;
-				for(var i:int=0; i<contLeft.numChildren; i++) {
+				
+				for(var i:int=0; i<contLeft.numChildren; i++) 
+				{
 					contLeft.getChildAt(i).x = 0;
 					contLeft.getChildAt(i).y = 0;
-					contLeft.getChildAt(i).width = cssSizeX;
+					contLeft.getChildAt(i).width = w;
 				}
 			}
 		}
+		
 		public override function getHeight () :int {
-			if( isSeparator ) {
-				return 3;
-			}
-			return super.getHeight();
+			return isSeparator ? 3 : super.getHeight();
 		}
 		public function get opened () :Boolean { return _opened; }
 		
@@ -306,7 +307,6 @@
 						removing = false;
 						Popup.topContainer.removeChild( container );
 					}
-					
 				}
 			}
 		}
@@ -318,8 +318,8 @@
 			}
 		}
 		
-		public function sizeList (list:PopupItem=null) :void {
-			
+		public function sizeList (list:PopupItem=null) :void
+		{			
 			var items:Vector.<PopupItem> = list == null ? children : list.children;
 			var L:int = items.length;
 			var i:int;
@@ -327,7 +327,7 @@
 			var tw:Number;
 			
 			for(i=0; i<L; i++) {
-				tw = items[i].cssSizeX;//.getWidth();
+				tw = items[i].cssSizeX;
 				if(tw > bw) bw = tw;
 			}
 			

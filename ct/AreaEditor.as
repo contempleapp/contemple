@@ -11,6 +11,7 @@
 	import flash.filesystem.File;
 	import ct.ctrl.*;
 	import agf.db.DBResult;
+	import agf.io.*;
 	import agf.ui.*;
 	import agf.io.ResourceMgr;
 	import agf.Main;
@@ -26,35 +27,64 @@
 	import flash.filesystem.*;
 	import flash.net.FileReference;
 	import flash.net.SharedObject; 
+	import flash.utils.ByteArray;
 	
-	public class AreaEditor extends CssSprite
+	public class AreaEditor extends AreaProcessor
 	{
 		public function AreaEditor( w:Number=0, h:Number=0, parentCS:CssSprite=null, style:CssStyleSheet=null, name:String='', id:String="", classes:String="", noInit:Boolean=false) {
 			super(w,h,parentCS,style,name,id,classes,noInit);
 			_clickScrolling = false;
 			Application.instance.view.addEventListener( AppEvent.VIEW_CHANGE, removePanel );
-			create();
+			createAed();
 		}
 		
 		private function removePanel (e:Event) :void {
 			if( stage ) {
 				stage.removeEventListener( MouseEvent.MOUSE_MOVE, btnMove );
-				stage.removeEventListener( MouseEvent.MOUSE_MOVE, btnUp );
+				stage.removeEventListener( MouseEvent.MOUSE_UP, btnUp );
 			}
 			Main(Application.instance).view.removeEventListener( AppEvent.VIEW_CHANGE, removePanel );
 		}
 		
-		private function btnUp (event:MouseEvent) :void {
+		public static var currPF:ProjectFile=null;
+		public static var currItemName:String="";		
+		public static var minW:Number=32;
+
+		public var areapp:Popup;
+		public var plusButton:Popup;
+		public var lastAreaName:String="";
+		public var sizeButton:Button;
+		protected var nameCtrl:NameCtrl;
+		private static var dpth:int=0;
+		private static var viewSize:Number = 190;
+		private static var newInsertSortID:int=-1;
+		private static var props:Object;
+		private static var articlePageWritten:Boolean=false;
+		private static var articleAreasInvalid:Boolean=false;
+		private var clickY:Number=0; 
+		private var _h:int=0;
+		private var tmplSplitPaths:String;
+		private var insertFileStore:Array;
+		private var tmpValues:Object;
+		private var menuStore:Object={};
+		private var viewSizeStartX:Number=0;
+		private var areasVisible:Boolean = true;
+		private static var tmpViewSize:Number=0;
+		private var _isUpdateForm:Boolean=false;
+		private var saveInline:Boolean=false;
+		private var dragNewId:int=0;
+		private var dragNewName:String="";
+		private var dragNewButton:Button;
+		
+		protected function btnUp (event:MouseEvent) :void {
 			stage.removeEventListener( MouseEvent.MOUSE_MOVE, btnMove );
 			stage.removeEventListener( MouseEvent.MOUSE_UP, btnUp );
 		}
-		private function btnMove (event:MouseEvent) :void {
+		protected function btnMove (event:MouseEvent) :void {
 			var dy:Number = mouseY - clickY;
 			
-			if( ! clickScrolling )
-			{
-				if( Math.abs(dy) > CTOptions.mobileWheelMove )
-				{
+			if( ! clickScrolling ) {
+				if( Math.abs(dy) > CTOptions.mobileWheelMove ) {
 					clickScrolling = true;
 				}
 			}else{
@@ -64,82 +94,28 @@
 				clickY = mouseY;
 			}
 		}
-		private function btnDown (event:MouseEvent) :void {
+		protected function btnDown (event:MouseEvent) :void {
 			stage.addEventListener( MouseEvent.MOUSE_MOVE, btnMove );
 			stage.addEventListener( MouseEvent.MOUSE_UP, btnUp );
 			clickScrolling = false;
 			clickY = mouseY;
 		}
 		
-		private var clickY:Number=0; 
-		private var _h:int=0;
-		public var areapp:Popup;
-		public var plusButton:Popup;
-		
-		public var currentArea:Area;
-		public var currentTypes:String = "";
-		public var currentTemplate:Template;
-		public var lastAreaName:String="";
-		
-		private var areaView:AreaView;
-		private static var viewSize:Number = 190;
-		public var sizeButton:Button;
-		
-		private var scrollpane:ScrollContainer;
-		private var itemList:ItemList;
-		private var nameCtrl:NameCtrl;
-		
-		internal var updateItem:Object;		
-		private var dragOrdering:Boolean = false;
-		private var storeOrderByName:Object = null;
-		
-		private var pageItemOldIndex:int;
-		private var pageItemNewIndex:int;
-		private var pageItemDragging:Boolean = false;
-		private var pageItemDragSX:int;
-		private var pageItemDragSY:int;
-		private var pageItemDragItem:Ctrl;
-		private var pageItemDragTime:int = 750;
-		private var pageItemDownTime:int = 0;
-		private var pageItemCurr:int = 0;
-		private var newPageItemTmp:Object={};
-		
-		// Change interface if template split changes
-		private var tmplSplitPaths:String;
-		private var insertFileStore:Array;
-		private var tmpValues:Object;
-		private var initValues:Object;
-		
-		private var selection:Array;
-		private var menuStore:Object={};
-		
-		private var multiSelectMenu:MultiSelectMenu = null;
-		
-		public static var currPF:ProjectFile=null;
-		public static var currItemName:String="";
-		
-		private static var dpth:int=0;
-		
-		private var areaClickItem:Ctrl;
-		private var areaClickTime:int;
-		private var areaClickY:int;
-		private var longClick:Boolean = false;
-		
-		internal static function get clickScrolling () : Boolean {
+		public static function get clickScrolling () : Boolean {
 			return _clickScrolling || AreaView.clickScrolling;
 		}
-		internal static function set clickScrolling (v:Boolean) :void {
+		public static function set clickScrolling (v:Boolean) :void {
 			_clickScrolling = v;
-			AreaView.clickScrolling = v;
+			AreaView.clickScrolling = v; 
 		}
 		private static var _clickScrolling:Boolean = false;
-		
-		
+			
 		public function abortClickScrolling () :void {
+			btnUp(null);
 			clickScrolling=false;
 		}
 		
-		public function create () :void
+		public override function createAed () :void
 		{
 			if( plusButton && contains(plusButton)) removeChild( plusButton );
 			if( areapp && contains(areapp)) removeChild( areapp );
@@ -247,7 +223,7 @@
 					
 					dpth = 0;
 					cloneAreas( areapp.rootNode, areaView.rootNode );
-					areaView.rootNode.format(true);
+					areaView.rootNode.format(false);
 					
 					// Select first Area...
 					var currArea:String = CTTools.activeTemplate.homeAreaName;
@@ -273,7 +249,6 @@
 					areapp.x = cssLeft;
 					
 					showAreaItems();
-					
 					setCurrPF();
 				}
 			}
@@ -318,9 +293,6 @@
 								bt = new Button( [ tmp.label ], 0, 0, tr.itemList, styleSheet, '', 'tree-item-'+dpth, false );
 							}
 							bt.addEventListener(MouseEvent.CLICK, areaClick);
-							bt.labelSprite.nodeClass = 'area-bt-label';
-							bt.labelSprite.init();
-							
 							bt.autoSwapState = "";
 							tr.addItem( bt, false );
 						}
@@ -333,11 +305,8 @@
 					}else{
 						bt = new Button( [ node.label ], 0, 0, treeNode.itemList, styleSheet, '', 'tree-item-'+dpth, false );
 					}
-					
 					bt.addEventListener(MouseEvent.CLICK, areaClick);
 					bt.autoSwapState = "";
-					bt.labelSprite.nodeClass ='area-bt-label';
-					bt.labelSprite.init();
 					treeNode.addItem( bt, false );
 				}
 			}
@@ -359,7 +328,8 @@
 					bt = Button(arr[i]);
 					
 					if( bt.label == lastAreaName ) {
-						bt.labelSprite.swapState("hover");
+						bt.swapState("active");
+						bt.labelSprite.swapState("active");
 						
 						if( ! dontOpen ) {
 							// open parents
@@ -372,6 +342,7 @@
 							}
 						}
 					}else if( bt.labelSprite.state != "normal" ) {
+						bt.swapState("normal");
 						bt.labelSprite.swapState("normal");
 					}
 				}
@@ -414,7 +385,6 @@
 					if( areaView ) {
 						setCurrArea( areaView.itemList1 );
 					}
-					
 				}
 			}
 		}
@@ -497,10 +467,6 @@
 			}
 		}
 		
-		public static var minW:Number=32;
-		private var viewSizeStartX:Number=0;
-		private var areasVisible:Boolean = true;
-		
 		private function viewSizeDown (e:MouseEvent) :void {
 			if( stage ) {
 				stage.addEventListener( MouseEvent.MOUSE_UP, viewSizeUp );
@@ -526,7 +492,6 @@
 				e.stopImmediatePropagation();
 			}
 		}
-		private static var tmpViewSize:Number=0;
 		
 		public function toggleAreaView () :void {
 			if( viewSize > 0 ) {
@@ -544,8 +509,8 @@
 				setWidth( getWidth() );
 			}
 		}
-		private function viewSizeFrame (e:Event) :void
-		{
+		
+		private function viewSizeFrame (e:Event) :void {
 			if( mouseX < minW ) {
 				viewSize = minW;
 			}else if( mouseX > getWidth() - minW ) {
@@ -573,10 +538,12 @@
 				}
 			}
 		}
+
 		private function sortAreaName ( a:PopupItem, b:PopupItem ) :int {
 			if( a.label > b.label ) return -1;
 			return 1;
 		}
+		
 		private function sortAreaPriority ( a:PopupItem, b:PopupItem ) :int {
 			if( a.sortid > b.sortid ) return 1;
 			return -1;
@@ -586,6 +553,7 @@
 			if(plusButton && areapp) if( w < plusButton.cssSizeX + areapp.cssSizeX + 7) w = plusButton.cssSizeX + areapp.cssSizeX + 8;
 			
 			super.setWidth(w);
+			
 			if( plusButton ) {
 				plusButton.x = w - (plusButton.cssSizeX + cssBoxRight);
 				if( plusButton.x < 0 ) plusButton.x = 0;
@@ -603,7 +571,7 @@
 			w = Math.floor( w - viewSize );
 			
 			var sbw:int = 0;
-			if( scrollpane && scrollpane.slider.visible ) sbw = 16;
+			if( scrollpane && scrollpane.slider.visible ) sbw = scrollpane.slider.cssSizeX + 4;
 			
 			if( nameCtrl ) {
 				nameCtrl.setWidth(  w - (nameCtrl.cssBoxX + cssBoxX) ); 
@@ -645,6 +613,7 @@
 				scrollpane.setWidth( w - cssBoxX );
 			}
 		}
+		
 		public override function setHeight (h:int) :void
 		{
 			super.setHeight(h); 	
@@ -690,7 +659,7 @@
 			if( itemList ) {
 				itemList.format();
 			}
-			if( scrollpane ) scrollpane.contentHeightChange();
+			if ( scrollpane ) scrollpane.contentHeightChange();
 		}
 		
 		private function vectorClear (e:InputEvent):void {
@@ -698,12 +667,12 @@
 				var ch:Array= itemList.items;
 				var L:int = ch.length;
 				var pc:PropertyCtrl = PropertyCtrl( e.currentTarget.parent );
-				if( pc && pc.textBox && pc.textBox.type == "vector" ) {
+				if( pc && pc.textBox && pc.textBox._supertype == "vector" ) {
 					var nam:String = pc.name;
 					var it:PropertyCtrl;
 					for( var i:int=0; i<L; i++) {
 						it = PropertyCtrl( ch[i] );
-						if( it.textBox.type == "vectorlink" && it.textBox.args && it.textBox.args[0] == nam) {
+						if( it.textBox._supertype == "vectorlink" && it.textBox.args && it.textBox.args[0] == nam) {
 							it.textBox.vectorCurrent = e.val;
 							it.textBox.vectorMinusClick(null);
 						}
@@ -717,16 +686,15 @@
 				var ch:Array= itemList.items;
 				var L:int = ch.length;
 				var pc:PropertyCtrl = PropertyCtrl( e.currentTarget.parent );
-				if( pc && pc.textBox && pc.textBox.type == "vector" ) {
+				if( pc && pc.textBox && pc.textBox._supertype == "vector" ) {
 					var nam:String = pc.name;
 					var it:PropertyCtrl;
 					for( var i:int=0; i<L; i++) {
 						it = PropertyCtrl( ch[i] );
-						if( it.textBox.type == "vectorlink" && it.textBox.args && it.textBox.args[0] == nam) {
+						if( it.textBox._supertype == "vectorlink" && it.textBox.args && it.textBox.args[0] == nam) {
 							it.textBox.vectorCurrent = e.val;
 							it.textBox.vectorPlusClick(null);
 						}
-						
 					}
 				}
 			}
@@ -738,7 +706,7 @@
 				var L:int = ch.length;
 				var pc:PropertyCtrl = PropertyCtrl( e.currentTarget.parent );
 				
-				if( pc && pc.textBox && pc.textBox.type == "vector" ) {
+				if( pc && pc.textBox && pc.textBox._supertype == "vector" ) {
 					var nam:String = pc.name;
 					var it:PropertyCtrl;
 					var sL:int = pc.textBox.vectorTextFields.length;
@@ -747,7 +715,7 @@
 					
 					for( var i:int=0; i<L; i++)  {
 						it = PropertyCtrl( ch[i] );
-						if( it.textBox.type == "vectorlink" && it.textBox.args && it.textBox.args[0] == nam){
+						if( it.textBox._supertype == "vectorlink" && it.textBox.args && it.textBox.args[0] == nam){
 							kL =  it.textBox.vectorTextFields.length;
 							
 							if( kL < sL ) {
@@ -764,9 +732,8 @@
 				}
 			}
 		}
-		private var areaItems:Array;
 		
-		public function showAreaItems () :void
+		public override function showAreaItems () :void
 		{
 			updateItem = null;
 			
@@ -802,9 +769,7 @@
 				var hash:Object = {};
 				var id:String;
 				var nam:String;
-				
 				var ico:String;
-				
 				
 				if( currentArea.types.join(",") != currentTypes )
 				{
@@ -886,7 +851,6 @@
 												if( areaView ) {
 													areaView.addItem( nam, ico );
 												}
-												
 											}
 											break;
 										}
@@ -916,8 +880,6 @@
 				var r:Object;
 				
 				// Get PageItem List of Items in the CurrentArea
-				//var areaItems:Array = [];
-				
 				areaItems = [];
 				for(i=0; i<L; i++) {
 					r = CTTools.pageItems[i];
@@ -931,7 +893,6 @@
 				var j:int;
 				var jL:int;
 				var listIcon:String;
-				//var ppi:PopupItem;
 				
 				for (i = 0; i < L; i++)
 				{
@@ -1031,6 +992,12 @@
 				}
 			}
 		}
+		protected override function areaItemDown (e:MouseEvent) :void
+		{
+			_subform = false;
+			_inlineArea = "";
+			super.areaItemDown(e);
+		}
 		private function gotoAreaPP (e:PopupEvent) :void {
 			e.preventDefault();
 			e.stopPropagation();
@@ -1076,9 +1043,6 @@
 			}
 		}
 		
-		private var _isUpdateForm:Boolean=false;
-		
-		
 		public function gotoArea (area:Area) :void
 		{
 			currentArea = area;
@@ -1094,23 +1058,30 @@
 					sh.close();
 				}
 			}
-			if( CTOptions.previewInEditor && CTTools.procFiles )
-			{
+			if( CTOptions.previewInEditor && CTTools.procFiles ) {
 				setCurrPF();
 			}
 			
 			showAreaItems();
 		}
 		
-		public function displayInsertForm ( tmpl:Template, isUpdateForm:Boolean=false ) :void 
+		public override function displayInsertForm ( tmpl:Template, isUpdateForm:Boolean=false, subform:Boolean=false, inlineArea:String="", _areaItems:Array=null ) :void 
 		{
 			if(!tmpl || !tmpl.indexFile) return;
 			
 			if( multiSelectMenu != null ) removeMultiSelMenu();
 			
+			if( ! subform ) {
+				// root form
+				_formNodes = [];
+			}
+			
 			currentTemplate = tmpl;
 			_isUpdateForm = isUpdateForm;
+			_subform = subform;
+			_inlineArea = inlineArea;
 			
+			// hide new-item functionality
 			if( areaView && areaView.scrollpane2 ) areaView.scrollpane2.visible = false;
 			
 			var files:Array = CTTools.procFiles;
@@ -1136,7 +1107,7 @@
 				
 				itemList = new ItemList(w,0,scrollpane.content,styleSheet,'','area-insert-container',true);
 				var currSprite:CssSprite;
-				itemList.margin = 3;
+				itemList.margin = 10;
 				
 				var propName:String;
 				var propType:String;
@@ -1180,8 +1151,8 @@
 				}
 				
 				if( !isUpdateForm ) {
-					nm.showSaveButton(false); // .visible = false;
-					nm.showDeleteButton(false); // .visible = false;
+					nm.showSaveButton(false);
+					nm.showDeleteButton(false);
 					nm.showNextButton(false);
 					nm.showPrevButton(false);
 				}else{
@@ -1193,6 +1164,7 @@
 					}
 				}
 				
+				_formNodes.push( new ItemForm( _subform ? inlineArea : currentArea.name, updateItem, _areaItems ) );
 				
 				ict.addEventListener( PropertyCtrl.ENTER, ictChange );
 				ict.addEventListener( "save", (isUpdateForm ? updatePageItem : insertPageItem));
@@ -1216,8 +1188,6 @@
 					}
 				}
 				
-				initValues = {};
-				
 				var propStore:Object = {};
 				tmplSplitPaths = "";
 				
@@ -1238,13 +1208,12 @@
 							for(j=0; j<jL; j++)
 							{
 								propName = pf.templateProperties[j].name;
-								propVal = "";
-								if( propName == "field" ) continue;
 								
-								propType = pf.templateProperties[j].defType.toLowerCase();
-								
-								if(propStore[propName]) continue; // ignore multiple properties with the same name
+								if(propName == "field" || propStore[propName]) continue; // ignore multiple properties with the same name
 								propStore[propName] = true;
+								
+								propVal = "";
+								propType = pf.templateProperties[j].defType.toLowerCase();
 								
 								if ( isUpdateForm ) {
 									if ( updateItem && CTTools.pageItemTable[ updateItem['name'] ] && typeof(CTTools.pageItemTable[ updateItem['name'] ][propName]) != "undefined" )
@@ -1261,7 +1230,7 @@
 								// filter "name" and "visible" property
 								namlc = propName.toLowerCase();
 								
-								if( namlc == "visible" ) {
+								if( namlc == "visible" ) { 
 									continue;
 								}
 								if( namlc == "name")
@@ -1285,6 +1254,9 @@
 								
 								ict = new PropertyCtrl( Language.getKeyword(propName.toLowerCase()), propName, propType, propVal, pf.templateProperties[j], pf.templateProperties[j].args, w, 0, itemList, styleSheet,'', 'area-insert-prop', false);
 								ict.options.propObject = pf.templateProperties[j];
+								if( isUpdateForm && updateItem ) {
+									PropertyCtrl(ict).textBox.pageItemName = updateItem.name;
+								}
 								
 								// Remove Reset to Default Value..
 								PropertyCtrl(ict).ctrlOptions.rootNode.children.shift();
@@ -1293,21 +1265,19 @@
 									PropertyCtrl(ict).label.x = 0;
 									PropertyCtrl(ict).ctrlOptions.visible = false;
 								}
+								
 								ict.addEventListener( PropertyCtrl.ENTER, ictChange );
 								
-								if( propType == "text" || propType == "richtext" || propType == "vector" || propType=="vectorlink" || propType == "code" )
-								{
+								//if( propType == "text" || propType == "richtext" || propType == "vector" || propType=="vectorlink" || propType == "code" || propType == "image" || propType == "plugin" || propType == "area" )
+								//{
 									PropertyCtrl(ict).textBox.addEventListener("heightChange", inputHeightChange);
 									
 									if( propType == "vector" || propType == "vectorlink" ) {
-										PropertyCtrl(ict).textBox.addEventListener("lengthChange", vectorLengthChange);
-									}
-									
-									if( propType == "vector") {									
+										PropertyCtrl(ict).textBox.addEventListener("lengthChange", vectorLengthChange);								
 										PropertyCtrl(ict).textBox.addEventListener("add", vectorAdd);
 										PropertyCtrl(ict).textBox.addEventListener("clear", vectorClear);
 									}
-								}
+								// }
 								
 								if( propType == "intern" || propType == "hidden") { 
 									ict.setHeight(1);
@@ -1325,6 +1295,8 @@
 				setHeight( _h );
 				setWidth( w );
 				
+				setTimeout( function () { setWidth( getWidth() ); }, 180 );
+				
 				storeCurrentItemValues();
 				
 				try {
@@ -1332,31 +1304,36 @@
 				}catch(e:Error) {
 					
 				}
-				
-				setWidth( w );
-			}
-		}
-		private function storeCurrentItemValues () :void {
-			
-			if( nameCtrl && itemList && itemList.items && itemList.items.length > 0 ) {
-				var L:int = itemList.numChildren;
-				var pc:PropertyCtrl;
-				
-				for(var i:int=0; i<L; i++) {
-					if( itemList.items[i] is PropertyCtrl ) {
-						pc = PropertyCtrl( itemList.items[i] );
-						initValues[ pc._name ] = { value: pc.textBox.value, name: pc._name };
-					}
-				}
-				
-				var nm:NameCtrl = nameCtrl;
-				initValues[ 'visible' ] = { value: nm.visibleStatus, name:'visible' };
-				
-				currItemName = nm.textBox.value;
 			}
 		}
 		
-		private var saveInline:Boolean=false;
+		private function storeCurrentItemValues () :void
+		{
+			if( nameCtrl && itemList && itemList.items && itemList.items.length > 0 )
+			{
+				var L:int = itemList.numChildren;
+				var pc:PropertyCtrl;
+				var initValues:Object = null;
+				
+				if( _formNodes && _formNodes.length > 0 ) initValues = _formNodes[_formNodes.length-1].initValues;
+				
+				if( initValues )
+				{
+					for(var i:int=0; i<L; i++)
+					{
+						if( itemList.items[i] is PropertyCtrl ) {
+							pc = PropertyCtrl( itemList.items[i] );
+							initValues[ pc._name ] = { value: pc.textBox.value, name: pc._name };
+						}
+					}
+					
+					var nm:NameCtrl = nameCtrl;
+					initValues[ 'visible' ] = { value: nm.visibleStatus, name:'visible' };
+					
+					currItemName = nm.textBox.value;
+				}
+			}
+		}
 		
 		private function inlineSaveClick (e:Event) :void {
 			if( updateItem ) {
@@ -1365,364 +1342,27 @@
 			}
 		}
 		
-		private function showDragSaveButtons () :void {
-			storeOrderByName = {};
-			for(var i:int=0; i<itemList.items.length; i++) {
-				if( itemList.items[i].options && itemList.items[i].options .result ) {
-					storeOrderByName[Ctrl(itemList.getItemAt(i)).options.result.name] = Ctrl(itemList.getItemAt(i)).options.result.sortid;
-				}
-			}
-			dragOrdering = true;
-			multiSelectMenu.enableUndo(true);
-		}
-		private function dragCancelClickHandler (e:MouseEvent) :void {
-			// restore list order
-			if( itemList && storeOrderByName ) {
-				for(var i:int=0; i<itemList.items.length; i++) {
-					Ctrl(itemList.getItemAt(i)).options.result.sortid = storeOrderByName[Ctrl(itemList.getItemAt(i)).options.result.name];
-				}
-			}
-			storeOrderByName = null;
-			dragOrdering = false;
-		}
-		private function dragSaveClickHandler (e:MouseEvent) :void{
-			dragOrdering = false;
-			storeOrderByName = null;
-			Application.instance.showLoading( );
-			// Update items in db...
-			pageItemCurr = 0;
-			updateNextPageItemSorting ();
-		}
-		
-		private function removeMultiSelMenu () :void {
-			if( multiSelectMenu != null )
-			{
-				if( contains( multiSelectMenu ) ) {
-					removeChild( multiSelectMenu );
-				}
-				multiSelectMenu = null;
-				longClick = false;
-			}
-		}
-		
-		public function multiSelUndo () :void {
-			if( multiSelectMenu.getUndoEnabled() ) {
-				dragCancelClickHandler(null);
-				removeMultiSelMenu();
-				showAreaItems();
-			}
-		}
-		public function multiSelAbort () :void {
-			// reverse ordering..
-			if( multiSelectMenu.getUndoEnabled() ) {
-				removeMultiSelMenu();
-				dragSaveClickHandler(null);
-				
+		protected override function showMultiSelectMenu () :void
+		{
+			super.showMultiSelectMenu();
+			
+			var px:Number = 0;
+			var pw:Number = 0;
+			
+			if( areaView && areaView.visible ) {
+				px = areaView.x + areaView.cssSizeX;
+				if( HtmlEditor.isPreviewOpen ) pw = HtmlEditor.previewX - (px);
+				else pw = getWidth() - (px);
+				multiSelectMenu.y = -cssTop;
 			}else{
-				removeMultiSelMenu();
-				showAreaItems();
-			}
-		}
-		private function showMultiSelectMenu () :void {
-			if( multiSelectMenu == null )
-			{
-				longClick = true;
-				selection = [];
-				
-				multiSelectMenu = new MultiSelectMenu(this,0,0,this,styleSheet,"","area-multi-select-menu",false);
-				
-				var px:Number = 0;
-				var pw:Number = 0;
-				
-				if( areaView && areaView.visible ) {
-					px = areaView.x + areaView.cssSizeX;
-					if( HtmlEditor.isPreviewOpen ) pw = HtmlEditor.previewX - (px);
-					else pw = getWidth() - (px);
-					multiSelectMenu.y = -cssTop;
-				}else{
-					if( areapp && areapp.visible ) px = areapp.x + areapp.cssSizeX;
-					if( plusButton && plusButton.visible ) pw = plusButton.x - (px);
-					else pw = getWidth() - (px);
-					multiSelectMenu.y = areapp.y;
-				}
-				multiSelectMenu.x = px;
-				multiSelectMenu.setWidth( pw - multiSelectMenu.cssSizeX );
-				
-				if( itemList && itemList.items ) {
-					var L:int = itemList.items.length;
-					var bt:Button;
-					var ar:Array;
-					for(var i:int=0; i<L; i++) {
-						bt = Button( itemList.items[i] );
-						if( bt ) {
-							ar = bt.clips;
-							ar.push( new IconFromFile( Options.iconDir + "/neu-anordnen.png", Options.iconSize, Options.iconSize ) );
-							bt.clips = ar;
-							bt.autoSwapState = "";
-							bt.swapState("normal");
-							bt.setWidth( bt.getWidth() );
-						}
-					}
-				}
-				
-				scrollpane.y = multiSelectMenu.cssSizeY;
-				scrollpane.setHeight( getHeight() - scrollpane.y );
-				scrollpane.contentHeightChange();
+				if( areapp && areapp.visible ) px = areapp.x + areapp.cssSizeX;
+				if( plusButton && plusButton.visible ) pw = plusButton.x - (px);
+				else pw = getWidth() - (px);
+				multiSelectMenu.y = areapp.y;
 			}
 			
-		}
-		
-		// new pageItemDown:
-		private function areaItemDown (e:MouseEvent) :void
-		{
-			e.preventDefault();
-			e.stopPropagation();
-			e.stopImmediatePropagation();
-			
-			areaClickItem = Ctrl( Sprite(e.currentTarget) );
-			areaClickTime = getTimer();
-			areaClickY = mouseY;
-			clickScrolling = false;
-			
-			if( !longClick )
-			{
-				stage.addEventListener( Event.ENTER_FRAME, areaItemMove );
-				stage.addEventListener( MouseEvent.MOUSE_UP, areaItemUp );
-			}
-			else
-			{
-				var bt:Button = Button ( areaClickItem );
-				
-				stage.addEventListener( Event.ENTER_FRAME, selectItemMove );
-				stage.addEventListener( MouseEvent.MOUSE_UP, selectItemUp );
-				
-				// multi sel mode..
-				if( bt.contRight && bt.mouseX > bt.contRight.x ) {
-					// drag button start
-					if( selection && selection.length > 1 ) {
-						startDragItems( areaClickItem );
-					}else{
-						startDragItem( areaClickItem );
-					}
-				}
-				else{
-					// select/deselect
-					
-					var id:int = selection.indexOf( bt.options.result.name );
-					
-					if( id >= 0 )
-					{
-						selection.splice( id, 1 );
-						
-						if( bt.state != "normal" ) {
-							bt.swapState("normal");
-						}
-					}
-					else
-					{
-						//var id:int = 
-						selection.push( bt.options.result.name );
-						
-						if( bt.state != "active" ) {
-							bt.swapState("active");
-						}
-					}
-				}
-			}
-		}
-		private function areaItemMove (e:Event) :void
-		{
-			e.preventDefault();
-			e.stopPropagation();
-			e.stopImmediatePropagation();
-			
-			var dy:Number = mouseY - areaClickY;
-			var sd:Slider = scrollpane.slider;
-			
-			if( clickScrolling ) {
-				sd.value -= dy;
-				scrollpane.scrollbarChange(null);
-				areaClickY = mouseY;
-			}else{
-				if( !longClick && getTimer() - areaClickTime > CTOptions.longClickTime ) {
-					showMultiSelectMenu();
-					var bt:Button = Button( areaClickItem );
-					
-					if( bt.contRight && bt.mouseX > bt.contRight.x ) {
-						showMultiSelectMenu();
-						startDragItem( areaClickItem );
-					}else{
-						bt.swapState("active");
-					}
-				}
-				
-				if(sd.visible && !longClick && Math.abs(dy) > CTOptions.mobileWheelMove ) {
-					// start click scrolling..
-					clickScrolling = true;
-					sbClickValue = scrollpane.slider.value;
-				}
-			}
-		}
-		private function areaItemUp (e:MouseEvent) :void 
-		{
-			e.preventDefault();
-			e.stopPropagation();
-			e.stopImmediatePropagation();
-			
-			stage.removeEventListener( Event.ENTER_FRAME, areaItemMove );
-			stage.removeEventListener( MouseEvent.MOUSE_UP, areaItemUp );
-			
-			if( !clickScrolling) {
-				if( longClick ||  getTimer() - areaClickTime > CTOptions.longClickTime ) {
-					if ( !pageItemDragging ) {
-						showMultiSelectMenu();
-						Button(areaClickItem).swapState( "active" );
-						selection.push( Button(areaClickItem).options.result.name );
-					}
-				}else{
-					// normal click..
-					// todo hit test clickItem?
-					var T:Template = CTTools.findTemplate( areaClickItem.options.result.subtemplate, "name" );
-					if( T ) {
-						updateItem = areaClickItem.options.result;
-						displayInsertForm( T, true );
-					}else Console.log("ERROR: Can not find Template '" + areaClickItem.options.result.subtemplate + "' for Page Item: " +  areaClickItem.options.result.name);
-				}
-			}
-		}
-		
-		private static var sbClickValue:Number;
-		private var inlineLongClick:Boolean = false;
-		
-		private function selectItemMove (e:Event) :void {
-			if( ! pageItemDragging ) {
-				var dy:Number = mouseY - areaClickY;
-				
-				if( clickScrolling ) {
-					var sd:Slider = scrollpane.slider;
-					if( sd.visible ) {
-						sd.value -= dy;
-						scrollpane.scrollbarChange(null);
-						areaClickY = mouseY;
-					}
-				}else{
-					if( !inlineLongClick && getTimer() - areaClickTime > CTOptions.longClickTime ) {
-						// select on drag over...
-						inlineLongClick = true;
-					}
-					if( !inlineLongClick && Math.abs(dy) > CTOptions.mobileWheelMove ) {
-						// start click scrolling..
-						clickScrolling = true;
-						sbClickValue = scrollpane.slider.value;
-					}
-				}
-			}
-		}
-		
-		private function selectItemUp (e:MouseEvent) :void {
-			inlineLongClick = false;
-			clickScrolling = false;
-			stage.removeEventListener( Event.ENTER_FRAME, selectItemMove );
-			stage.removeEventListener( MouseEvent.MOUSE_UP, selectItemUp );
-			if( selection ) {
-				var L:int = selection.length;
-				var ds:DisplayObject;
-				
-				for( var i:int=0; i<L; i++) {
-					ds = DisplayObject( itemList.getChildByName( selection[i] ) );
-					if( ds ) {
-						Button( ds ).swapState( "active" );
-					}
-				}
-			}			
-		}
-		
-		private var dragDisplay:CssSprite;
-		private function startDragItems ( item:Ctrl ) :void {
-			// TODO:
-			Console.log("Not implemented..");
-		}
-		private function startDragItem ( item:Ctrl ) :void {
-			pageItemDragItem = Ctrl(Sprite(item));
-			pageItemDragSX = pageItemDragItem.mouseX;
-			pageItemDragSY = pageItemDragItem.mouseY;
-			pageItemDragging = true;
-			var ib:ItemList = itemList;
-			
-			if( !dragDisplay ) {
-				dragDisplay = new CssSprite( getWidth(), 0, scrollpane.content, styleSheet, '', '','drag-display', false);
-			}
-			if( !dragOrdering ) showDragSaveButtons();
-			
-			pageItemNewIndex = -1;
-			pageItemOldIndex = ib.removeItem(pageItemDragItem, true);
-			
-			Main(Application.instance).topContent.addChild( pageItemDragItem );
-			
-			stage.addEventListener( Event.ENTER_FRAME, dragItemMove );
-			stage.addEventListener( MouseEvent.MOUSE_UP, dragItemUp );
-		}
-		
-		private function dragItemMove (e:Event) :void {
-			var ib:ItemList = itemList;
-			if( pageItemDragging ) {
-				if(scrollpane.slider.visible) {
-					if(scrollpane.mouseY < 8) {
-						scrollpane.slider.value -= 5;
-						scrollpane.scrollbarChange(null);
-					}else if(scrollpane.mouseY > scrollpane.height - 25) {
-						scrollpane.slider.value += 5;
-						scrollpane.scrollbarChange(null);
-					}
-				}
-				pageItemDragItem.x = (areaView && areaView.visible  ? areaView.cssSizeX : 0) + cssLeft;
-				pageItemDragItem.y = Main(Application.instance).topContent.mouseY - pageItemDragSY; 
-				var L:int = ib.numItems;
-				var i:int;
-				
-				pageItemNewIndex = -1;
-				for(i=0; i<L; i++) {
-					if(pageItemDragItem.hitTestObject(ib.getItemAt(i))){
-						pageItemNewIndex = i;
-						break;
-					}
-				}
-				if( dragDisplay && itemList && itemList.items ) {
-					if( pageItemNewIndex >= 0 && pageItemNewIndex < itemList.numItems ) {
-						dragDisplay.y = itemList.getItemAt( pageItemNewIndex ).y;
-					}else if( pageItemNewIndex < 0 ) {
-						if( itemList.items.length > 0 ) {
-							dragDisplay.y = itemList.getItemAt( itemList.numItems-1 ).y + CssSprite(itemList.getItemAt( itemList.numItems-1 )).cssSizeY;
-						}
-					}
-				}
-			}
-		}
-		private function dragItemUp (e:MouseEvent) :void {
-			var tc: Sprite;
-			stage.removeEventListener( Event.ENTER_FRAME, dragItemMove );
-			stage.removeEventListener( MouseEvent.MOUSE_UP, dragItemUp );
-			
-			if( dragDisplay && scrollpane.content.contains( dragDisplay ) ) scrollpane.content.removeChild( dragDisplay );
-			
-			dragDisplay = null;
-			
-			pageItemDragging = false;
-			tc = Sprite( Main(Application.instance).topContent );
-			if( tc.contains(pageItemDragItem) ) tc.removeChild(pageItemDragItem);
-			itemList.addItemAt( pageItemDragItem, pageItemNewIndex );
-			
-			if( pageItemOldIndex != pageItemNewIndex)
-			{
-				// set order id on all items from 0 - item-length
-				for( var i:int=0; i<itemList.items.length; i++ ) {
-					Ctrl(itemList.getItemAt(i)).options.result.sortid = i;
-				}
-			}
-			
-			pageItemDragItem.x = 0;
-			itemList.format(false);
-			setWidth( getWidth() );
+			multiSelectMenu.x = px;
+			multiSelectMenu.setWidth( pw  );
 		}
 		
 		// Drag and create new Items from the Area New Field into an area list:
@@ -1731,13 +1371,9 @@
 			if(T) {
 				displayInsertForm(T);
 			}else{
-				Console.log("No Template found with the name : " + tname);
+				Console.log("No Template Found For: " + tname);
 			}
 		}
-		
-		private var dragNewId:int=0;
-		private var dragNewName:String="";
-		private var dragNewButton:Button;
 		
 		public function startDragNewItem (id:int, tname:String) :void {
 			dragNewId = id;
@@ -1754,7 +1390,6 @@
 				stage.addEventListener( MouseEvent.MOUSE_UP, dragNewUp );	
 			}
 		}
-		private static var newInsertSortID:int=-1;
 		
 		private function dragNewUp (e:Event) :void
 		{
@@ -1844,73 +1479,6 @@
 			}
 		}
 		
-		private function invalidateCurrArea ( testST:Boolean=false ) :void
-		{
-			CTTools.invalidateArea( currentArea.name );
-			
-			if( testST && CTTools.subTemplates )
-			{
-				var st:Template = null;
-				var i:int;
-				var L:int = CTTools.subTemplates.length;
-				
-				for(i = 0; i < L; i++ ) {
-					if( CTTools.subTemplates[i].areasByName[ currentArea.name ] != undefined ) 
-					{
-						st = CTTools.subTemplates[i];
-						break;
-					}
-				}
-				
-				if( st != null )
-				{
-					// Search Area of Page Item CTTools.currArea:
-					if( CTTools.pageItems ) {
-						L = CTTools.pageItems.length;
-						for(i = 0; i < L; i++) {
-							if( CTTools.pageItems[i].name == CTTools.currArea )
-							{
-								CTTools.invalidateArea( CTTools.pageItems[i].area );
-								break;
-							}
-						}
-					}
-				}
-			}
-			
-		}
-		
-		private function updateNextPageItemSorting ():void {
-			if( pageItemCurr >= itemList.items.length ) {
-				pageItemOldIndex = -1;
-				pageItemNewIndex = -1;
-				pageItemDragItem = null;
-				
-				invalidateCurrArea( true );
-				
-				try {
-					Application.instance.view.panel.src["reloadClick"]();
-				}catch(e:Error) {
-					
-				}
-				Application.instance.hideLoading();
-				if( CTOptions.autoSave ) CTTools.save();
-				showAreaItems();
-				return;
-			}
-			var pms:Object={};
-			pms[":nam"] = itemList.items[pageItemCurr].options.result.name;
-			pms[":sid"] = pageItemCurr;
-			if( !CTTools.db.updateQuery( pageItemSortingUpdate, "pageitem", "name=:nam", "sortid=:sid", pms) ) {
-				Console.log("ERROR in updating PageItem sort index");
-				pageItemCurr++;
-				updateNextPageItemSorting();
-			}
-		}
-		private function pageItemSortingUpdate (res:DBResult):void {
-			pageItemCurr++;
-			updateNextPageItemSorting();
-		}
 		private function areappChange (e:PopupEvent) :void {
 			var curr:PopupItem = e.selectedItem;
 			var lb:String = curr.label;
@@ -2052,18 +1620,13 @@
 										if ( currPF != null ) break;
 									}
 								}
-								
-								
 							}
 						}
-						
 					}
-					
 				}
 			}
-			//if( currPF ) trace("CURRPF: " + currPF.name);
-			
 		}
+		
 		private function plusClick (e:PopupEvent) :void{
 			var curr:PopupItem = e.selectedItem;
 			var rawName:String = curr.options.templateID;
@@ -2071,199 +1634,81 @@
 			if(T) {
 				displayInsertForm(T);
 			}else{
-				Console.log("No Template found with the name : " + rawName);
+				Console.log("No Template Found For: " + rawName);
 			}
 		}
+		
 		private function onAskInsert () :void {
 			displayInsertForm( currentTemplate, false );
 		}
 		
-		private function nextPageItem (e:Event) :void {
-			if ( updateItem && areaItems && areaItems.length > 0)
-			{
-				var L:int = areaItems.length;
-				
-				for( var i:int=0; i<L; i++)
-				{
-					if( areaItems[i] && areaItems[i].name == updateItem.name )
-					{
-						if( L > i+1 && areaItems[i+1] )
-						{
-							var T:Template = CTTools.findTemplate( areaItems[i+1].subtemplate, "name" );
-							if( T ) {
-								updateItem = areaItems[i+1];
-								displayInsertForm( T, true );
-							}else Console.log("ERROR: Can not find Template '" + areaItems[i+1].subtemplate + "' for Page Item: " +  areaItems[i+1].name);
-							
-							
-							break;
-						}
-					}
-				}
-			}
-		}
-		private function prevPageItem (e:Event) :void {
-			if ( updateItem ) {
-				var L:int = areaItems.length;
-				
-				for( var i:int=L-1; i>=0; i--)
-				{
-					if( areaItems[i] && areaItems[i].name == updateItem.name )
-					{
-						if( i>0 && areaItems[i-1] )
-						{
-							var T:Template = CTTools.findTemplate( areaItems[i-1].subtemplate, "name" );
-							if( T ) {
-								updateItem = areaItems[i-1];
-								displayInsertForm( T, true );
-							}else Console.log("ERROR: Can not find Template '" + areaItems[i-1].subtemplate + "' for Page Item: " +  areaItems[i-1].name);
-							
-							break;
-						}
-					}
-				}
-				
-				
-			}
-		}
 		private function cancelPageItem (e:Event) :void {
 			// reset ram-db values
-			if( _isUpdateForm && initValues ) {
+			var initValues:Object = null;
+			
+			if( _formNodes ) initValues = _formNodes[_formNodes.length-1].initValues;
+			
+			var updateItem:Object;
+			
+			if( _subform && _formNodes) {
+				updateItem = _formNodes[_formNodes.length-1].updateItem;
+			}else{
+				updateItem = this.updateItem;
+			}
+			
+			if( _isUpdateForm && initValues )
+			{
 				if( CTTools.pageItemTable[ updateItem.name ] != undefined ) {
-					for ( var nam:String in initValues ) {
-						if( CTTools.pageItemTable[ updateItem.name ] && updateItem.name && initValues[nam].name &&  initValues[nam].value  ) {
+					for ( var nam:String in initValues )
+					{
+						if( CTTools.pageItemTable[ updateItem.name ] && updateItem.name && initValues[nam].name &&  initValues[nam].value  )
+						{
 							CTTools.pageItemTable[ updateItem.name ][ initValues[nam].name ] = initValues[nam].value;
 						}
 					}
 				}
 			}
-			
-			showAreaItems();
-		}
-		public function multiSelDelete () :void {
-			if( selection && selection.length > 0 )
+			if( _formNodes )
 			{
-				var win:Window = Window( Application.instance.window.GetBooleanWindow( "DeleteItemMsg", Language.getKeyword("Delete Items Alert"), Language.getKeyword("CT-Delete-Items-MSG"), {
-				complete: multiDeleteOK,
-				continueLabel:Language.getKeyword( "Delete-MSG-Yes" ),
-				allowCancel: true,
-				autoWidth:false,
-				autoHeight:true,
-				cancelLabel: Language.getKeyword("Delete-MSG-Cancel")
-				}, 'multidelete-yn-window') );
-				
-				Application.instance.windows.addChild( win );
-				
-			}
-		}
-		private function multiDeleteOK (v:Boolean) :void {
-			if(v) {
-				var pms:Object = {};
-				var where:String = "uid IN (";
-				
-				for( var i:int=0; i < selection.length; i++ )
+				_formNodes.pop();
+							
+				if( _formNodes.length > 0 )
 				{
-					where += " :uid"+i+",";
-					pms[':uid'+i] = CTTools.pageItemTable[ selection[i] ].uid;
-				}
-				
-				var rv:Boolean = CTTools.db.deleteQuery( onMultiDeletePageItem, "pageitem", where.substring( 0, where.length-1 ) + ")", pms);
-				
-				if( ! rv ) Console.log("ERROR Deleting Page Item from DB");
-				else Application.instance.showLoading();
-			}
-		}
-		private var delTables:Array;
-		
-		private function onMultiDeletePageItem (res:DBResult) :void {
-			if( res && res.rowsAffected ) {
-				if( selection && selection.length > 0 )
-				{
-					var tbStore:Object = {};
+					var itf:ItemForm = ItemForm( _formNodes[_formNodes.length-1] );
+					var T2:Template = CTTools.findTemplate( itf.updateItem.subtemplate, "name" );
 					
-					for( var i:int=0; i < selection.length; i++ )
-					{
-						var T:Template = CTTools.findTemplate( CTTools.pageItemTable[ selection[i] ].subtemplate, "name" );
-						
-						if( T ) {
-							if( !tbStore[T.name] ) {
-								tbStore[T.name] = { where:":uid" + i +",", tbl:T.tables, pms:{} };
-							}else{
-								tbStore[T.name].where += ":uid" + i +",";
-							}
-							tbStore[T.name].pms[':uid'+i] = CTTools.pageItemTable[ selection[i] ].ext_uid;
+					if( T2 ) {
+						_formNodes.pop();
+						this.updateItem = itf.updateItem;
+						if( _formNodes.length == 0 ) {
+							displayInsertForm( T2, true, false);
+						}else{
+							displayInsertForm( T2, true, true, itf.area, itf.areaItems);
 						}
+						return;
 					}
-					
-					var tbls:Array = [];
-					for(var id:String in tbStore) {
-						
-						tbStore[id].where = tbStore[id].where.substring( 0, tbStore[id].where.length-1 );
-						tbls.push( tbStore[id] );
-					}
-					onMultiDeleteNext();
-				}
-				else
-				{
-					Application.instance.hideLoading();	
-				}
-			}
-		}
-		private function onMultiDeleteNext (res:DBResult=null) :void
-		{
-			if( delTables && delTables.length > 0 ) {
-				var next:Object = delTables.pop();
-				var rv:Boolean = CTTools.db.deleteQuery( onMultiDeleteNext, next.tbl, next.where, next.pms);
-						
-				if( ! rv ) {
-					Console.log("ERROR Deleting Page Item Extension Table from DB");
-					Application.instance.hideLoading();
-				}
-			}else{
-				// all deleted..
-				onMultiDeletePageItemExtensionTable();
-			}
-		}
-		private function onMultiDeletePageItemExtensionTable (res:DBResult=null) :void {
-			// Delete object from CTTools.pageItems and CTTools.pageItemTable
-			var pg:Array = CTTools.pageItems;
-			
-			for( var i:int = pg.length-1; i>=0; i--)
-			{
-				if( selection.indexOf( pg[i].name ) >= 0 ) {
-					CTTools.pageItemTable[ pg[i].name ] = null;
-					CTTools.pageItems.splice( i, 1 );
 				}
 			}
 			
-			invalidateCurrArea( true );
-			
-			if( CTOptions.autoSave ) CTTools.save();
-			
-			if( currentTemplate && currentTemplate.numAreas > 0 ) {
-				create();
-			}
-			
-			try {
-				Application.instance.view.panel.src["reloadClick"]();
-			}catch(e:Error) {
-				
-			}
-			
-			Application.instance.hideLoading();
 			showAreaItems();
 		}
 		
 		private function deleteItemOK (bool:Boolean) :void {
 			if( bool ) {
 				// Delete updateItem
+				var updateItem:Object;
+				if( _subform ) {
+					updateItem = _formNodes[_formNodes.length-1].updateItem;
+				}else{
+					updateItem = this.updateItem;
+				}
 				if( updateItem ) {
 					if( updateItem.uid ) {
 						// Delete Page Item
 						var pms:Object = {};
 						pms[":uid"] = updateItem.uid;
 						var rv:Boolean = CTTools.db.deleteQuery( onDeletePageItem, "pageitem", "uid=:uid", pms);
-						if( ! rv ) Console.log("ERROR Deleting Page Item from DB");
+						if( ! rv ) Console.log("ERROR Deleting Page Item From DB");
 						else Application.instance.showLoading();
 					}else{
 						Console.log("ERROR: Update Item Without Uid: " + updateItem );
@@ -2276,12 +1721,18 @@
 		private function onDeletePageItem (res:DBResult) :void {
 			if( res && res.rowsAffected ) {
 				// Delete extension table
+				var updateItem:Object;
+				if( _subform ) {
+					updateItem = _formNodes[_formNodes.length-1].updateItem;
+				}else{
+					updateItem = this.updateItem;
+				}
 				if( updateItem && updateItem.ext_uid ) {
 					var pms:Object = {};
 					pms[":uid"] = updateItem.ext_uid;
 					var rv:Boolean = CTTools.db.deleteQuery( onDeletePageItemExtensionTable, currentTemplate.tables, "uid=:uid", pms);
 					if( ! rv ) {
-						Console.log("ERROR Deleting Page Item Extension Table from DB");
+						Console.log("ERROR Deleting Page Item Extension Table From DB");
 						Application.instance.hideLoading();
 					}
 				}else {
@@ -2292,6 +1743,12 @@
 		private function onDeletePageItemExtensionTable (res:DBResult) :void {
 			if( res && res.rowsAffected > 0 ) {
 				// Delete object from CTTools.pageItems and CTTools.pageItemTable
+				var updateItem:Object;
+				if( _subform ) {
+					updateItem = _formNodes[_formNodes.length-1].updateItem;
+				}else{
+					updateItem = this.updateItem;
+				}
 				for( var i:int = CTTools.pageItems.length-1; i>=0; i--) {
 					if( CTTools.pageItems[i].name == updateItem.name ) {
 						CTTools.pageItems.splice( i, 1 );
@@ -2306,7 +1763,8 @@
 			
 			if( CTOptions.autoSave ) CTTools.save();
 			if( currentTemplate && currentTemplate.numAreas > 0 ) {
-				create();
+				createAed();
+				return;
 			}
 			
 			try {
@@ -2316,6 +1774,28 @@
 			}
 			
 			Application.instance.hideLoading();
+			
+			if( _formNodes )
+			{
+				_formNodes.pop();
+							
+				if( _formNodes.length > 0 )
+				{
+					var itf:ItemForm = ItemForm( _formNodes[_formNodes.length-1] );
+					var T2:Template = CTTools.findTemplate( itf.updateItem.subtemplate, "name" );
+					
+					if( T2 ) {
+						_formNodes.pop();
+						this.updateItem = itf.updateItem;
+						if( _formNodes.length == 0 ) {
+							displayInsertForm( T2, true, false);
+						}else{
+							displayInsertForm( T2, true, true, itf.area, itf.areaItems);
+						}
+						return;
+					}
+				}
+			}
 			showAreaItems();
 		}
 		
@@ -2340,8 +1820,18 @@
 			//
 		}
 		
-		private function updatePageItem ( e:Event ) :void {
-			if( updateItem ) {
+		private function updatePageItem ( e:Event ) :void
+		{
+			var updateItem:Object;
+			
+			if( _subform ) {
+				updateItem = _formNodes[_formNodes.length-1].updateItem;
+			}else{
+				updateItem = this.updateItem;
+			}
+			
+			if( updateItem )
+			{
 				var pms:Object={};
 				pms[":_name"] = updateItem.name;
 				pms[":_visible"] = updateItem.visible;
@@ -2353,10 +1843,21 @@
 		
 		private function onUpdateItem (res:DBResult) :void
 		{
-			if( res ) {
+			if( res )
+			{
+				var updateItem:Object;
+				
+				if( _subform ) {
+					updateItem = _formNodes[_formNodes.length-1].updateItem;
+				}else{
+					updateItem = this.updateItem;
+				}
+				
 				var pms:Object={};
+				
 				// update ex_tables
-				if( updateItem && updateItem.ext_uid != undefined && currentTemplate.tables && currentTemplate.fields ) {
+				if( updateItem && updateItem.ext_uid != undefined && currentTemplate.tables && currentTemplate.fields )
+				{
 					var fieldVal:String = "name=:_name";
 					pms[":_name"] = updateItem.name;
 					pms[":_uid"] = updateItem.ext_uid;
@@ -2376,33 +1877,49 @@
 						else if( fields[i] != "name")
 						{
 							pc = PropertyCtrl( itemList.getChildByName( fields[i] ) );
+							
 							if( pc )
 							{
-								if( pc.type == "file" || pc.type == "image" || pc.type == "video" || pc.type == "audio" || pc.type == "pdf") {
+								if( pc.textBox._supertype == "file" || pc.textBox._supertype == "image" || pc.textBox._supertype == "video" || pc.textBox._supertype == "audio" || pc.textBox._supertype == "pdf")
+								{
 									storeFile( pc.textBox );
 									if( updateItem ) {
 										updateItem[ fields[i] ] = pc.textBox.value;
 									}
-								}else if( pc.type == "vector" && (pc.textBox.vectorType == "file" || pc.textBox.vectorType == "image" || pc.textBox.vectorType == "video" || pc.textBox.vectorType == "audio"  || pc.textBox.vectorType == "pdf" )) {
+								}
+								else if( pc.textBox._supertype == "vector" && (pc.textBox.vectorType == "file" || pc.textBox.vectorType == "image" || pc.textBox.vectorType == "video" || pc.textBox.vectorType == "audio"  || pc.textBox.vectorType == "pdf" ))
+								{
 									storeFileVector( pc.textBox );
 								}
+								
+								if( pc.textBox._supertype == "text" || pc.textBox._supertype == "richtext"  || pc.textBox._supertype == "line"  )
+								{
+									
+									pms[ ":_"+ fields[i] ] = HtmlParser.toDBText( pc.textBox.value, false, true );
+									// Write to intern data
+									CTTools.pageItemTable[ updateItem.name ][ fields[i] ] = pms[":_"+fields[i]];
+									
+								}
+								else
+								{
+									pms[ ":_"+ fields[i] ] = pc ? pc.textBox.value : "";
+								}
+							}else{
+								pms[ ":_"+ fields[i] ] = pc ? pc.textBox.value : "";
 							}
-							pms[ ":_"+ fields[i] ] = pc ? pc.textBox.value : "";
-							fieldVal += ','+fields[i]+'=:_' +  fields[i];
+							
+							fieldVal += ','+fields[i]+'=:_' + fields[i];
 						}
 					}
 					
 					if( currentTemplate.articlepage != "" )					 
 					{
 						// create article page with db fields
-						// var props:Object = { inputname: pms[":_name"] };
 						props = { inputname: pms[":_name"] };
-						
 						
 						for( i = 0; i < L; i++)
 						{
-							pc = PropertyCtrl( itemList.getChildByName( fields[i] ) );
-							props[ fields[i] ] = pc ? pc.textBox.value : "";
+							props[ fields[i] ] = pms[ ":_"+ fields[i] ];// || "";
 						}
 						
 						props["itemtemplate"] = currentTemplate.name;
@@ -2444,16 +1961,29 @@
 				}
 			}
 		}
+		
+		private static var subRequestForm:ItemForm;
+		
 		private function onUpdateExtensionItem (res:DBResult) :void {
 			Application.instance.hideLoading();
-				
+			
+			var updateItem:Object;
+			if( _subform ) {
+				updateItem = _formNodes[_formNodes.length-1].updateItem;
+			}else{
+				updateItem = this.updateItem;
+			}
+			
 			if(updateItem) {
 				currItemName = updateItem.name;
 			}else{
 				currItemName = "";
 			}
 			
-			invalidateCurrArea(true );
+			invalidateCurrArea( true );
+			
+			var T2:Template;
+			var itf:ItemForm;
 			
 			if( CTOptions.autoSave ) CTTools.save();
 			
@@ -2462,8 +1992,6 @@
 				if ( currentTemplate.articlepage != "" ) {
 					if ( currentTemplate.articlepage != "" ) {
 						if(articlePageWritten) {
-							
-							//Application.instance.cmd( "Application restart");
 							showAreaItems();
 							return;
 						}else{
@@ -2472,14 +2000,81 @@
 					}
 				}else{
 					if( currentTemplate && currentTemplate.numAreas > 0 ) {
-						create();
+						createAed();
 					}
 				}
-			
-				showAreaItems();
-			}else{
+				
+				_formNodes.pop();
+				
+				if( _formNodes.length > 0 ) {
+					itf = ItemForm( _formNodes[_formNodes.length-1] );
+					T2 = CTTools.findTemplate( itf.updateItem.subtemplate, "name" );
+					
+					if( T2 ) {
+						_formNodes.pop();
+						this.updateItem = itf.updateItem;
+						if( _formNodes.length == 0 ) {
+							displayInsertForm( T2, true, false);
+						}else{
+							displayInsertForm( T2, true, true, itf.area, itf.areaItems);
+						}
+					}
+				}else{
+					showAreaItems();
+				}
+			}
+			else
+			{
 				storeCurrentItemValues();
-				saveInline = false;
+				saveInline = false
+				
+				if( _formNodes && _formNodes.length > 1 )
+				{
+					// Re-open the sub form:
+					// TODO store _formNodes up-chain and re-open all parent forms...
+					// Currently, only the first depth of inline areas are working correctly
+					
+					var ltf:ItemForm = ItemForm( _formNodes.pop() );
+					
+					if( subRequestForm == null ) subRequestForm = ltf;
+					
+					itf = ItemForm( _formNodes[_formNodes.length-1] );
+					T2 = CTTools.findTemplate( itf.updateItem.subtemplate, "name" );
+					
+					if( T2 )
+					{
+						_formNodes.pop();
+						this.updateItem = itf.updateItem;
+						
+						if( _formNodes.length == 0 )
+						{
+							displayInsertForm( T2, true, false);
+						}
+						else
+						{
+							displayInsertForm( T2, true, true, itf.area, itf.areaItems);
+						}
+						
+						inlineSaveClick(null);
+						return;
+					}
+				
+				}else{
+					if( subRequestForm != null )
+					{
+						itf = subRequestForm;
+						
+						T2 = CTTools.findTemplate( itf.updateItem.subtemplate, "name" );
+						
+						if( T2 )
+						{
+							this.updateItem = itf.updateItem;
+							displayInsertForm( T2, true, true, itf.area, itf.areaItems);
+						}
+						
+						subRequestForm = null;
+					}
+				}
 			}
 			
 			Application.instance.hideLoading();
@@ -2498,7 +2093,7 @@
 			pms[":nam"] = nameCtrl.textBox.value;
 			var rv:Boolean = CTTools.db.selectQuery( onPageItemInsertSelect, "uid,name", "pageitem", "name=:nam", "", "", "", pms);
 			if(!rv) {
-				Console.log("SQL-ERROR in Select Page Item");
+				Console.log("SQL-ERROR Select Page Item");
 				onPageItemInsertSelect(null);
 			}
 			
@@ -2534,7 +2129,12 @@
 					pms[":nam"] = nameCtrl.textBox.value;
 					pms[":vis"] = nameCtrl.visibleStatus;
 					pms[":tmpl"] = currentTemplate.name;
-					pms[":ara"] = currentArea.name;
+					
+					if( _subform ) {
+						pms[":ara"] = _inlineArea;
+					}else{
+						pms[":ara"] = currentArea.name;
+					}
 					pms[":sortid"] = _areaItems; // Last
 					pms[":date"] = "now";
 					
@@ -2542,15 +2142,12 @@
 					var rv:Boolean = CTTools.db.insertQuery( onPageItemInsert, "pageitem", "name,visible,area,sortid,subtemplate,crdate", ":nam,:vis,:ara,:sortid,:tmpl,:date", pms);
 					
 					if(!rv) { 
-						Console.log("SQL-ERROR in inserting PageItem " + pms[":nam"]);
+						Console.log("SQL-ERROR Insert Page Item " + pms[":nam"]);
 						Application.instance.hideLoading();
 					}
 				}
 			}
 		}
-		private static var props:Object;
-		private static var articlePageWritten:Boolean=false;
-		private static var articleAreasInvalid:Boolean=false;
 		
 		private function onPageItemInsert  (res:DBResult) :void {
 			if (res && res.rowsAffected > 0) 
@@ -2582,16 +2179,27 @@
 							pc = PropertyCtrl( itemList.getChildByName( fields[i] ) );
 							if(pc) {
 								
-								if( pc.type == "file" || pc.type == "image" || pc.type == "video" || pc.type == "audio" || pc.type == "pdf")
+								if( pc.textBox._supertype == "file" || pc.textBox._supertype == "image" || pc.textBox._supertype == "video" || pc.textBox._supertype == "audio" || pc.textBox._supertype == "pdf")
 								{
 									storeFile( pc.textBox );
 								}
-								else if( pc.type == "vector" && (pc.textBox.vectorType == "file" || pc.textBox.vectorType == "image" || pc.textBox.vectorType == "video" || pc.textBox.vectorType == "audio" || pc.textBox.vectorType == "pdf")  )
+								else if( pc.textBox._supertype == "vector" && (pc.textBox.vectorType == "file" || pc.textBox.vectorType == "image" || pc.textBox.vectorType == "video" || pc.textBox.vectorType == "audio" || pc.textBox.vectorType == "pdf")  )
 								{
 									storeFileVector( pc.textBox );
 								}
+								
+								if( pc.textBox._supertype == "text" || pc.textBox._supertype == "richtext"  || pc.textBox._supertype == "line"  )
+								{
+									pms[ ":_"+ fields[i] ] = HtmlParser.toDBText( pc.textBox.value, false, true );
+									newPageItemTmp[ fields[i] ] = pms[":_"+fields[i]];
+								}
+								else
+								{
+									pms[ ":_"+ fields[i] ] = pc ? pc.textBox.value : "";
+								}
+							}else{
+								pms[ ":_"+ fields[i] ] = pc ? pc.textBox.value : "";
 							}
-							pms[ ":_"+ fields[i] ] = pc ? pc.textBox.value : "";
 							fieldVal += ",:_" +  fields[i];
 						}
 						
@@ -2604,7 +2212,6 @@
 					if( currentTemplate.articlepage != "" )					 
 					{
 						// create article page with db fields
-						//var props:Object = { inputname: pms[":_name"] };
 						props = { inputname: pms[":_name"] };
 						
 						for( i = 0; i < L; i++)
@@ -2670,9 +2277,7 @@
 								
 				if ( articleAreasInvalid )
 				{
-					//Application.instance.cmd( "Application restart");
 					showAreaItems();
-					//create();
 				}
 			}
 		}
@@ -2681,7 +2286,8 @@
 			if(res && res.rowsAffected ) {
 				newPageItemTmp.ext_uid = res.lastInsertRowID;
 				Application.instance.hideLoading();
-				
+				var T2:Template;
+				var itf:ItemForm;
 				if( newInsertSortID >= 0 ) {
 					newInsertSortID = -1;
 					showAreaItems();
@@ -2697,8 +2303,6 @@
 						
 					if ( currentTemplate.articlepage != "" ) {
 						if(articlePageWritten) {
-							//create();
-							//Application.instance.cmd( "Application restart");
 							showAreaItems();
 							return;
 						}else{
@@ -2706,13 +2310,57 @@
 						}
 					}else{
 						if( currentTemplate && currentTemplate.numAreas > 0 ) {
-							create();
+							createAed();
 						}
 					}
 					Application.instance.hideLoading();
 					
-					if(!saveInline) {
-						showAreaItems();
+					if(!saveInline)
+					{
+						// close insert form..
+						_formNodes.pop();
+						
+						if( _formNodes.length > 0 )
+						{
+							itf = ItemForm( _formNodes[_formNodes.length-1] );
+							T2 = CTTools.findTemplate( itf.updateItem.subtemplate, "name" );
+							
+							if( T2 ) {
+								_formNodes.pop();
+								this.updateItem = itf.updateItem;
+								if( _formNodes.length == 0 ) {
+									displayInsertForm( T2, true, false);
+								}else{
+									displayInsertForm( T2, true, true, itf.area, itf.areaItems);
+								}
+							}
+						}else{
+							
+							if( _formNodes )
+							{
+								_formNodes.pop();
+											
+								if( _formNodes.length > 0 )
+								{
+									itf = ItemForm( _formNodes[_formNodes.length-1] );
+									T2 = CTTools.findTemplate( itf.updateItem.subtemplate, "name" );
+									
+									if( T2 ) {
+										_formNodes.pop();
+										this.updateItem = itf.updateItem;
+										if( _formNodes.length == 0 ) {
+											displayInsertForm( T2, true, false);
+										}else{
+											displayInsertForm( T2, true, true, itf.area, itf.areaItems);
+										}
+										return;
+									}
+								}
+							}
+							showAreaItems();
+							
+						}
+						
 					}else{
 						storeCurrentItemValues();
 						saveInline = false;
@@ -2731,12 +2379,12 @@
 			}
 		}
 		
-		private function onFilesInserted(res:DBResult) :void {
+		private function onFilesInserted (res:DBResult) :void {
 			Application.instance.hideLoading();
 			showAreaItems();
 		}
 		
-		private function storeFileVector (pc_textBox:InputTextBox) :void {
+		protected function storeFileVector (pc_textBox:InputTextBox) :void {
 			if( pc_textBox.vectorTextFields )
 			{
 				var L:int = pc_textBox.vectorTextFields.length;
@@ -2748,39 +2396,58 @@
 			}
 		}
 		
-		private function storeFile (pc_textBox:InputTextBox, vectorIndex:int=-1) :void {
-			
-			var fileHere:Boolean = false;
-			var filePath:String = "";
-						
-			// should clear old files before selection.
-			
+		// on store file from http://
+		private function onHttpFile ( e:Event, res:Resource ) :void
+		{
+			if( res && res.loaded == 1 )
+			{
+				var f1:String = CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderMinified + CTOptions.urlSeparator + res.udfData.newname;
+				var f2:String = CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderRaw + CTOptions.urlSeparator + res.udfData.newname;
+				
+				ResourceMgr.getInstance().clearResourceCache( f1 );
+				ResourceMgr.getInstance().clearResourceCache( f2 );
+				
+				var file1:File = File.applicationStorageDirectory.resolvePath ( f1 );
+				var file2:File = File.applicationStorageDirectory.resolvePath ( f1 );
+				
+				var bytes:ByteArray = ByteArray( res.obj );
+				
+				var fs1:FileStream = new FileStream();
+				fs1.open( file1, FileMode.WRITE );
+				fs1.writeBytes( bytes );
+				fs1.close();
+				
+				var fs2:FileStream = new FileStream();
+				fs2.open( file2, FileMode.WRITE );
+				fs2.writeBytes( bytes );
+				fs2.close();
+				
+				if( res.udfData.textBox && res.udfData.textBox.stage ) {
+					res.udfData.textBox.activateValue = "";
+					res.udfData.textBox.value = res.udfData.newname;
+				}
+			}
+		}
+		
+		protected function storeFile (pc_textBox:InputTextBox, vectorIndex:int=-1) :void
+		{			
 			if( pc_textBox.value == "" || pc_textBox.value.toLowerCase() == "none" ) {
 				return;
 			}
 			
-			// test if new file is in www-directory, new file paths always begin with file:///
+			// test if text-box value is already processed file.. (new file paths begin with file:/// http:// or https://) 
 			var tf:File = new File( CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderRaw + CTOptions.urlSeparator + pc_textBox.value );
 			if( tf && tf.exists ) {
 				return;
 			}
-
-			// test if path is relative website path in file www_folder setup
-			/*var testfile:File = new File( CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderMinified + CTOptions.urlSeparator + pc_textBox.www_folder + CTOptions.urlSeparator + pc_textBox.value );
-			if( testfile && testfile.exists ) {
-				return;
-			}*/
 			
 			var pcpath:String = pc_textBox.value;
-			var endslash:int = pcpath.lastIndexOf(CTOptions.urlSeparator);
+			var endslash:int = pcpath.lastIndexOf( CTOptions.urlSeparator );
 			
 			var filename:String;
-			if( endslash >= 0 ) {
-				filename = pcpath.substring(endslash+1);
-			}else{
-				filename = pcpath;
-			}
-
+			if( endslash >= 0 ) filename = pcpath.substring(endslash+1);
+			else filename = pcpath;
+			
 			var newname:String = filename;
 			
 			if( pc_textBox.rename_template )
@@ -2799,7 +2466,6 @@
 				obj.hours = d.hours;
 				obj.minutes = d.minutes;
 				obj.seconds = d.seconds;
-				//obj.milliseconds = d.milliseconds;
 				obj.time = d.time;
 				obj.timezoneOffset = d.timezoneOffset;
 				obj.vectorindex = vectorIndex;
@@ -2823,17 +2489,30 @@
 				newname = pc_textBox.www_folder + CTOptions.urlSeparator + newname;
 			}
 			
-			// test if the text-box value is a www-file renamed.. otherwise copy file to raw and min folders...
-			var file:File = new File( CTTools.projectDir + CTOptions.urlSeparator + 
-							CTOptions.projectFolderRaw + CTOptions.urlSeparator + newname);
+			// test if file is from internet
+			if( pcpath.substring(0,7) == "http://" || pcpath.substring(0,8) == "https://") {
+				var res:Resource = new Resource();
+				res.udfData.newname = newname;
+				res.udfData.textBox = pc_textBox;
+				// Rewrite textbox to new name
+				pc_textBox.value = newname;
+				
+				res.load( pcpath, true, onHttpFile, null, true);
+				return;
+			}
 			
+			var f1:String = CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderMinified + CTOptions.urlSeparator + newname ;
+			var f2:String = CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderRaw + CTOptions.urlSeparator + newname;
+			ResourceMgr.getInstance().clearResourceCache( f1 );
+			ResourceMgr.getInstance().clearResourceCache( f2 );
+			
+			/*
+			var file:File = new File( CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderRaw + CTOptions.urlSeparator + newname);
 			if( file.exists ) {
 				if( CTOptions.debugOutput ) {
 					Console.log( "WARNING: '" + file.url + "' Already Exists..");
 				}
-			}
-			var f1:String = CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderMinified + CTOptions.urlSeparator + newname ;
-			var f2:String = CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderRaw + CTOptions.urlSeparator + newname;
+			}*/
 			
 			CTTools.copyFile( pc_textBox.value, f1 );
 			CTTools.copyFile( pc_textBox.value, f2 );
@@ -2841,11 +2520,8 @@
 			// Rewrite textbox to new name
 			pc_textBox.value = newname;
 			
-			ResourceMgr.getInstance().clearResourceCache( f1 );
-			ResourceMgr.getInstance().clearResourceCache( f2 );
-			// Display new image...
-			
 		}
+		
 		private function ictChange ( e:Event ) :void {
 			var it:PropertyCtrl = PropertyCtrl( e.currentTarget );
 			
@@ -2914,9 +2590,9 @@
 						}
 					}
 				}
-				
 			}
-		
 		}
+		
+		
 	}
 }

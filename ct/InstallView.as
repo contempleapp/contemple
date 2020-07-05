@@ -17,7 +17,7 @@
 	
 	public class InstallView extends Sprite
 	{
-		public function InstallView ( label:String="Installing Website Template") {
+		public function InstallView ( label:String="") { //Installing Website Template") {
 			container = Application.instance.view.panel;
 			container.addEventListener(Event.RESIZE, newSize);
 			init(label);
@@ -95,8 +95,8 @@
 			progress = new Progress( int(w*.5), 0, body, styleSheet, '', 'install-progress', false);
 			progress.value = 0;
 			
-			abortBtn = new Button( [Language.getKeyword("Cancel Installing")], 0, 0, body, styleSheet, '', 'install-abort', false);
-			abortBtn.addEventListener(MouseEvent.CLICK, abortHandler);
+			//abortBtn = new Button( [Language.getKeyword("Cancel Installing")], 0, 0, body, styleSheet, '', 'install-abort', false);
+			//abortBtn.addEventListener(MouseEvent.CLICK, abortHandler);
 			
 			infoText =  new TextField();
 			infoText.width = w - body.cssBoxX;
@@ -137,11 +137,11 @@
 				title.y = int((h2 - body.cssTop)*.5) - 4;
 			}
 			
-			if( abortBtn ) {
+			/*if( abortBtn ) {
 				abortBtn.x = progress ? (progress.x + w2)-abortBtn.getWidth() : w - abortBtn.getWidth();
 				if( abortBtn.x < body.cssLeft ) abortBtn.x = body.cssLeft;
 				abortBtn.y = progress ? progress.y + progress.cssSizeY + abortBtn.cssMarginTop : h2;
-			}
+			}*/
 		
 			if( infoText ) {
 				infoText.x = body.cssLeft;

@@ -1,6 +1,54 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ct>
 	
+	<item name="Add New File">
+		<lang name="en" value="Add File"/>
+		<lang name="de" value="Datei Hinzufügen"/>
+	</item>
+	<item name="Clear Project References">
+		<lang name="en" value="Clear Project References"/>
+		<lang name="de" value="Projekt Referenzen Löschen"/>
+	</item>
+	<item name="Kickstarter">
+		<lang name="en" value="Template Kickstarter"/>
+		<lang name="de" value="Template Kickstarter"/>
+	</item>
+	<item name="Template Kickstarter">
+		<lang name="en" value="Template Kickstarter"/>
+		<lang name="de" value="Template Kickstarter"/>
+	</item>
+	<item name="Help">
+		<lang name="en" value="Help"/>
+		<lang name="de" value="Hilfe"/>
+	</item>
+	<item name="Commands">
+		<lang name="en" value="Commands"/>
+		<lang name="de" value="Befehle"/>
+	</item>
+	<item name="Export Content">
+		<lang name="en" value="Export Content"/>
+		<lang name="de" value="Inhalte Exportieren"/>
+	</item>
+	<item name="Clear Console">
+		<lang name="en" value="Clear Console"/>
+		<lang name="de" value="Ausgabe Löschen"/>
+	</item>
+	<item name="Clear Data">
+		<lang name="en" value="Clear Data"/>
+		<lang name="de" value="Datan Löschen"/>
+	</item>
+	<item name="Compact Output">
+		<lang name="en" value="Compact Output"/>
+		<lang name="de" value="Komprimierte Ausgabe"/>
+	</item>
+	<item name="Upload not possible">
+		<lang name="en" value="Upload with local installations not possible "/>
+		<lang name="de" value="Upload bei lokalen Installationen nicht möglich "/>
+	</item>
+	<item name="Requires Connect To Website..">
+		<lang name="en" value="Choose File / New from the Menu to connect to a Website"/>
+		<lang name="de" value="Wählen sie Datei / Neu aus dem Menu um sich mir einer Website zu verbinden	"/>
+	</item>
 	<item name="Template-Load-Error">
 		<lang name="en" value="Template Error"/>
 		<lang name="de" value="Template Error"/>
@@ -12,6 +60,14 @@
 	<item name="Search">
 		<lang name="en" value="Search"/>
 		<lang name="de" value="Suchen"/>
+	</item>
+	<item name="the Website">
+		<lang name="en" value="the Website"/>
+		<lang name="de" value="die Website"/>
+	</item>
+	<item name="Cancel Search">
+		<lang name="en" value="Cancel"/>
+		<lang name="de" value="Abbrechen"/>
 	</item>
 	<item name="Template up to date">
 		<lang name="en" value="Template up to date"/>
@@ -53,7 +109,6 @@
 		<lang name="en" value="Select an other Template"/>
 		<lang name="de" value="Anderes Template auswählen"/>
 	</item>
-
 	<item name="Connect to a Website with Contemple Hub enabled">
 		<lang name="en" value="Connect to a Contemple Website"/>
 		<lang name="de" value="Mit einer Contemple Website verbinden"/>
@@ -82,17 +137,9 @@
 		<lang name="en" value="Extracting files.."/>
 		<lang name="de" value="Dateien werden Extrahiert.."/>
 	</item>
-	<item name="Search">
-		<lang name="en" value="Search"/>
-		<lang name="de" value="Suchen"/>
-	</item>
     <item name="Look For Updates">
 		<lang name="en" value="Look For Updates"/>
 		<lang name="de" value="Nach Updates Suchen"/>
-	</item>
-	<item name="Cancel Search">
-		<lang name="en" value="Cancel"/>
-		<lang name="de" value="Abbrechen"/>
 	</item>
 	<item name="New Page">
 		<lang name="en" value="New Page"/>
@@ -135,8 +182,8 @@
 		<lang name="de" value="Template Update"/>
 	</item>
 	<item name="CT-Template-Update-MSG">
-		<lang name="en" value="Template Update Available: #NAME# #BR# Version: #VERSION# #BR#Date: #DATE# #BR#download: #BR##SRC#"/>
-		<lang name="de" value="Template Update Verfügbar: #NAME# #BR# Version: #VERSION# #BR#Datum: #DATE# #BR#download: #BR##SRC#"/>
+		<lang name="en" value="Template Update Available #br# #B:NAME# #BR# Version: #VERSION# #BR#Date: #DATE#"/>
+		<lang name="de" value="Template Update Verfügbar #br# #B:NAME# #BR# Version: #VERSION# #BR#Datum: #DATE#"/>
 	</item>
 	<item name="Download Update">
 		<lang name="en" value="Download Update"/>
@@ -155,8 +202,8 @@
 		<lang name="de" value="Update"/>
 	</item>
 	<item name="CT-Update-MSG">
-		<lang name="en" value="Update Available: #NAME# #BR# Version: #VERSION# #BR#Date: #DATE# #BR#download: #BR##SRC#"/>
-		<lang name="de" value="Update Verfügbar: #NAME# #BR# Version: #VERSION# #BR#Datum: #DATE# #BR#download: #BR##SRC#"/>
+		<lang name="en" value="Update Available: #NAME# #BR# Version: #VERSION# #BR#Date: #DATE#"/>
+		<lang name="de" value="Update Verfügbar: #NAME# #BR# Version: #VERSION# #BR#Datum: #DATE#"/>
 	</item>
     <item name="Media">
 		<lang name="en" value="Media"/>
@@ -399,6 +446,23 @@
 		<lang name="en" value='Select a Template'/>
 		<lang name="de" value='Wählen Sie ein Template' />
 	</item>
+	<item name="Multiple versions of the website content are available:">
+		<lang name="en" value='Multiple versions of the website content are available:'/>
+		<lang name="de" value='Es sind mehrere Versionen des Inhaltes verfügbar:' />
+	</item>
+	<item name="Select a Content Version">
+		<lang name="en" value='Select a Content Version'/>
+		<lang name="de" value='Wählen Sie eine Version der Inhalte' />
+	</item>
+	<item name="SelectPublishHistory-OK">
+		<lang name="en" value='Install Content Version'/>
+		<lang name="de" value='Inhalte Installieren' />
+	</item>
+	<item name="SelectPublishHistory-Cancel">
+		<lang name="en" value='Cancel'/>
+		<lang name="de" value='Abbrechen' />
+	</item>
+
 	<item name="SelectTemplate-OK">
 		<lang name="en" value='Use Template'/>
 		<lang name="de" value='Template Verwenden' />
@@ -440,9 +504,44 @@
 		<lang name="de" value="Kommando Zeile"/>
 	</item>
 	<item name="CT-Commander-MSG">
-		<lang name="en" value="Enter-a-command"/>
-		<lang name="de" value="Geben-sie-ein-Kommando-an"/>
+		<lang name="en" value="TemplateTools"/>
+		<lang name="de" value="TemplateTools"/>
 	</item>
+
+	<item name="ContentSync-MSG">
+		<lang name="en" value="New content is available. Download"/>
+		<lang name="de" value="Neue Website Inhalte verfügbar. Herunterladen der"/>
+	</item>
+	<item name="Install latest website content">
+		<lang name="en" value="Update website content"/>
+		<lang name="de" value="Website Inhalte aktualisieren?"/>
+	</item>
+	<item name="ContentSync-MSG-Cancel">
+		<lang name="en" value="No"/>
+		<lang name="de" value="Nein"/>
+	</item>
+	<item name="ContentSync-MSG-Yes">
+		<lang name="en" value="Update Content"/>
+		<lang name="de" value="Inhalte Aktualisieren"/>
+	</item>
+
+	<item name="InstallDC-MSG-Cancel">
+		<lang name="en" value="No"/>
+		<lang name="de" value="Nein "/>
+	</item>
+	<item name="InstallDC-MSG-Yes">
+		<lang name="en" value="Install"/>
+		<lang name="de" value="Installieren"/>
+	</item>
+	<item name="Install default content">
+		<lang name="en" value="Install default content?"/>
+		<lang name="de" value="Default Inhalte installieren?"/>
+	</item>
+	<item name="InstallDC-MSG">
+		<lang name="en" value="Install default content?"/>
+		<lang name="de" value="Default Inhalte installieren?"/>
+	</item>
+
 	<item name="Delete-MSG-Cancel">
 		<lang name="en" value="Cancel"/>
 		<lang name="de" value="Abbrechen"/>
@@ -517,7 +616,7 @@
 	</item>
 	<item name="Process Command">
 		<lang name="en" value="Process Command"/>
-		<lang name="de" value="Kommando Ausführen"/>
+		<lang name="de" value="Befehl Ausführen"/>
 	</item>
 	<item name="CT-SaveFirst-BTN2">
 		<lang name="en" value="Okay"/>

@@ -12,12 +12,12 @@
 	
 	public class MultiSelectMenu extends CssSprite
 	{
-		public function MultiSelectMenu (ed:AreaEditor, w:Number=0, h:Number=0, parentCS:CssSprite=null, style:CssStyleSheet=null, cssId:String='', cssClasses:String='', noInit:Boolean=false) {
+		public function MultiSelectMenu (ed:Object/*AreaEditor*/, w:Number=0, h:Number=0, parentCS:CssSprite=null, style:CssStyleSheet=null, cssId:String='', cssClasses:String='', noInit:Boolean=false) {
 			super(w, h, parentCS, style, "multiselectmenu", cssId, cssClasses, noInit);
 			editor = ed;
 			create();
 		}
-		public var editor:AreaEditor;
+		public var editor:Object/*AreaEditor*/;
 		
 		public var cancelBtn:Button;
 		public var undoBtn:Button;
@@ -30,7 +30,7 @@
 		
 		public function create () :void
 		{
-			undoBtn = new Button( [new IconFromFile(Options.iconDir + "/reply-btn.png",Options.btnSize,Options.btnSize) ], 0, 0, this, styleSheet, '', 'multisel-undo-button', false);
+			undoBtn = new Button( [new IconFromFile(Options.iconDir + "/undo-btn.png",Options.btnSize,Options.btnSize) ], 0, 0, this, styleSheet, '', 'multisel-undo-button', false);
 			undoBtn.addEventListener( MouseEvent.CLICK, undoClick );
 			undoBtn.alpha = 0.35;
 			
@@ -39,15 +39,15 @@
 			
 			deleteBtn = new Button( [new IconFromFile(Options.iconDir + "/trash-btn.png",Options.btnSize,Options.btnSize) ], 0, 0, this, styleSheet, '', 'multisel-delete-button', false);
 			deleteBtn.addEventListener( MouseEvent.CLICK, deleteClick );
-			
-			/* // TODO: add cut, copy paste..
-			cutBtn = new Button( [new IconFromFile(Options.iconDir + "/trash3-32.png",Options.btnSize,Options.btnSize) ], 0, 0, this, styleSheet, '', 'multisel-cut-button', false);
+			/*
+			 // TODO: add cut, copy paste..
+			cutBtn = new Button( [new IconFromFile(Options.iconDir + "/schere.png",Options.btnSize,Options.btnSize) ], 0, 0, this, styleSheet, '', 'multisel-cut-button', false);
 			cutBtn.addEventListener( MouseEvent.CLICK, cutClick );
 			
-			copyBtn = new Button( [new IconFromFile(Options.iconDir + "/trash3-32.png",Options.btnSize,Options.btnSize) ], 0, 0, this, styleSheet, '', 'multisel-copy-button', false);
+			copyBtn = new Button( [new IconFromFile(Options.iconDir + "/zwischenablage.png",Options.btnSize,Options.btnSize) ], 0, 0, this, styleSheet, '', 'multisel-copy-button', false);
 			copyBtn.addEventListener( MouseEvent.CLICK, copyClick );
 			
-			pasteBtn = new Button( [new IconFromFile(Options.iconDir + "/trash3-32.png",Options.btnSize,Options.btnSize) ], 0, 0, this, styleSheet, '', 'multisel-paste-button', false);
+			pasteBtn = new Button( [new IconFromFile(Options.iconDir + "/paste.png",Options.btnSize,Options.btnSize) ], 0, 0, this, styleSheet, '', 'multisel-paste-button', false);
 			pasteBtn.addEventListener( MouseEvent.CLICK, pasteClick );
 			
 			moveToPP = new Popup( [ new IconFromFile(Options.iconDir + "/reply18.png", 18, 18 ) ], 0, 0, this, styleSheet, '', 'multisel-move-to-pp', false);

@@ -6,7 +6,7 @@
 		/**
 		* Embeded Fonts and AntiAliasing in UI components
 		**/
-		public static var embedFonts:Boolean = false;
+		public static var embedFonts:Boolean = true;
 		public static var antiAliasType:String = AntiAliasType.ADVANCED;
         
 		public static var iconDir:String = "ico";

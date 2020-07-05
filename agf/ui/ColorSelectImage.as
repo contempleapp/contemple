@@ -5,7 +5,7 @@
 	
 	public class ColorSelectImage extends Sprite 
 	{
-		// type: rgb, kelvin or wavelength or overlay ( vertical : white to transparent to black
+		// type: rgb, kelvin, wavelength or overlay ( vertical : white to transparent to black
 		public function ColorSelectImage( type:String="rgb", w:int = 246, h:int = 148, transparent:Boolean=false, bgColor:int=0x00FFFFFF, params:Object=null ) 
 		{
 			bitmapData = new BitmapData(w, h, transparent, bgColor);
@@ -14,7 +14,7 @@
 			addChild(bitmap);
 		}
 		
-		private var _type:String; // kelvin, wavelength, web-colors
+		private var _type:String; // kelvin, wavelength
 		public function get type () :String { return _type; }
 		
 		public var bitmap:Bitmap;
@@ -63,10 +63,8 @@
 					if( b > 255 ) b = 255;
 					bitmapData.fillRect(rc, bitmapData.transparent ? (int(a) << 24 | int(r) << 16 | int(g) << 8 | int(b)) :(int(r) << 16 | int(g) << 8 | int(b)) );
 				}
-				r = 235; g = 255; b = 255;
-				//r2 = 190; g2 = 210; b2 = 255;
-				//r2 = 155; g2 = 188; b2 = 255;
-				r2 = 0; g2 = 56; b2 = 255;
+				r = 230; g = 255; b = 255;
+				r2 = 16; g2 = 77; b2 = 255;
 				sr = (r2 - r) / cnt;
 				sg = (g2 - g) / cnt;
 				sb = (b2 - b) / cnt;
@@ -74,7 +72,7 @@
 				// white to light blue
 				for(i=0; i<cnt; i++) {
 					rc.x++;
-					r += sg; g += sg; b += sb;
+					r += sr; g += sg; b += sb;
 					if( r < 0 ) r = 0;
 					if( g < 0 ) g = 0;
 					if( b < 0 ) b = 0;
@@ -253,7 +251,6 @@
 					var minval:Number = 0;
 					var h2:int=Math.round( h * cth );
 					
-					trace("Overlay: " + h2);
 					rc.x = 0;
 					rc.y = -1;
 					rc.height = 1;

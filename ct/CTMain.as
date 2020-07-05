@@ -1,8 +1,10 @@
 ﻿package ct
 {
+	import agf.icons.IconBoolean;
 	import flash.display.Sprite;
 	import flash.filesystem.*;
 	import flash.utils.ByteArray;
+	import flash.utils.setTimeout;
 	import agf.Main;
 	import agf.Options;
 	import agf.events.AppEvent;
@@ -33,6 +35,7 @@
 	import agf.io.*;
 	import agf.icons.IconArrowDown;
 	import agf.utils.FileUtils;
+	import agf.utils.FileInfo;
 	import com.adobe.crypto.*;
 	
 	/**
@@ -51,6 +54,7 @@
 			var st:Settings;
 			var sc:StartScreen;
 			var oc:OpenScreen;
+			var ts:TemplateScreen;
 			var pv:Preview;
 			var pg:PageEditor;
 			var uv:UploadView;
@@ -65,22 +69,33 @@
 			
 			if( mainMenu ) {
 				mainMenu.visible = false;
-			}
+			}	
 		}
 		
 		// Nothing from the app is created just yet, not even CTMain..(called early on app start)
 		public static function setupConfigFiles () :void
 		{
-			// Override Install Options
+			// Override Install Options from lastProjectDir..
 			var sh:SharedObject = SharedObject.getLocal( CTOptions.installSharedObjectId );
 			
 			if( sh ) {
 				if( sh.data && sh.data.installOptions != undefined )
 				{
+					
+					if( sh.data.preferences ) {
+						var prefs:Object = sh.data.preferences;
+						
+						if( prefs.autoSave != undefined ) CTOptions.autoSave = prefs.autoSave;
+						if( prefs.debugOutput != undefined ) CTOptions.debugOutput = prefs.debugOutput;
+						if( prefs.monitorFiles != undefined ) CTOptions.monitorFiles = prefs.monitorFiles;
+						if( prefs.nativePreview != undefined ) CTOptions.nativePreview = prefs.nativePreview;
+						if( prefs.softKeyboard != undefined ) CTOptions.softKeyboard = prefs.softKeyboard;
+					}
+					
 					try {
 						var x:XML = new XML(sh.data.installOptions );
 					}catch(e:Error) {
-						Console.log("Error load install options: " + e);
+						Console.log("Error Load Install Options: " + e);
 					}
 					
 					if ( x ) {
@@ -95,11 +110,11 @@
 								for(var i:int=0; i<L; i++) {
 									if( sh.data.installTemplates[i].prjDir == sh.data.lastProjectDir ) {
 									
-										xn = XMLList( x.templates.template.(@name==sh.data.installTemplates[i].name) );
+										xn = x.templates.template.(@name==sh.data.installTemplates[i].name);
 										
 										if( xn ) {
 											overrideInstallOptions( xn );
-											if( CTOptions.debugOutput ) Console.log( "Override options on startup : " + CTOptions.installSharedObjectId + ", dir: " + sh.data.lastProjectDir );
+											if( CTOptions.debugOutput || CTOptions.verboseMode ) Console.log( "Override Options On Startup : " + CTOptions.installSharedObjectId + ", Dir: " + sh.data.lastProjectDir );
 										}
 										break;
 									}
@@ -122,29 +137,41 @@
 			{
 				
 				// Test if the config.css file has changed (this happens after a re-compile of the app with new config files)
+				var cfile:File = f.resolvePath( CTOptions.startConfig );
+				var overrid:Boolean = false;
 				
-				var fileStream:FileStream = new FileStream();
-				fileStream.open(f.resolvePath( CTOptions.startConfig), FileMode.READ);
-				var b:ByteArray = new ByteArray();
-				fileStream.readBytes(b);
-				fileStream.close();
-				
-				var intFileStream:FileStream = new FileStream();
-				intFileStream.open(File.applicationDirectory.resolvePath(CTOptions.appConfigDir).resolvePath(CTOptions.startConfig), FileMode.READ);
-				var b2:ByteArray = new ByteArray();
-				intFileStream.readBytes(b2);
-				intFileStream.close();
-				
-				var r:String = MD5.hashBytes( b );
-				var r2:String = MD5.hashBytes( b2 );
-				
-				if( r != r2 ) 
+				if ( cfile.exists )
 				{
+					var fileStream:FileStream = new FileStream();
+					fileStream.open( cfile, FileMode.READ);
+					var b:ByteArray = new ByteArray();
+					fileStream.readBytes(b);
+					fileStream.close();
+					
+					var intFileStream:FileStream = new FileStream();
+					intFileStream.open(File.applicationDirectory.resolvePath(CTOptions.appConfigDir).resolvePath(CTOptions.startConfig), FileMode.READ);
+					var b2:ByteArray = new ByteArray();
+					intFileStream.readBytes(b2);
+					intFileStream.close();
+				
+					
+					var r:String = MD5.hashBytes( b );
+					var r2:String = MD5.hashBytes( b2 );
+					
+					if( r != r2 ) 
+					{
+						overrid = true;
+					}
+				}else{
+					overrid = true;
+				}
+				
+				if( overrid ) {
 					// the config.css file has changed in the app directory..
 					// if something in the other files (menu.xml etc.) changes the config.css file needs to be slightly modified too
 					// in order to override all config files in the user config directory..
 					
-					if(CTOptions.debugOutput || CTOptions.verboseMode) Console.log("Copy embed config files to " + CTOptions.configFolder + ".. ");
+					if(CTOptions.debugOutput || CTOptions.verboseMode) Console.log("Copy Embed Config Files To " + CTOptions.configFolder);
 					
 					CTTools.copyFolder( File.applicationDirectory.resolvePath( CTOptions.appConfigDir ).url, f.url );
 				}
@@ -163,7 +190,7 @@
 				HtmlEditor.webView.stage = null;
 				HtmlEditor.webView = null;
 			}
-			var sh:SharedObject = SharedObject.getLocal( CTOptions.localSharedObjectId );
+			var sh:SharedObject = SharedObject.getLocal( CTOptions.installSharedObjectId );
 			if( sh && sh.data && sh.data.userLang ) {
 				Language.language = sh.data.userLang;
 			}
@@ -176,7 +203,7 @@
 		}
 		
 		private static function changeLanguage () :void {
-			var sh:SharedObject = SharedObject.getLocal( CTOptions.localSharedObjectId );
+			var sh:SharedObject = SharedObject.getLocal( CTOptions.installSharedObjectId );
 			if( sh ) {
 				 if( sh.data ) {
 					sh.data.userLang = Language.language;
@@ -189,7 +216,7 @@
 		// On open-last-project when app starts
 		private function startupOpenHandler () :void
 		{
-			Console.log( "Contemple " + CTOptions.version);
+			if( CTOptions.debugOutput ) Console.log( "Contemple " + CTOptions.version);
 			
 			if( CTTools.activeTemplate ) {
 				Console.log(CTTools.activeTemplate.name + " " + CTTools.activeTemplate.version);
@@ -209,7 +236,7 @@
 		private static var appOpened:Boolean=false;
 		
 		private function onAppLoadCmds ():void {
-			var sh:SharedObject = SharedObject.getLocal( CTOptions.localSharedObjectId );
+			var sh:SharedObject = SharedObject.getLocal( CTOptions.installSharedObjectId );
 			if( sh.data && sh.data.userLang ) {
 				Language.language = sh.data.userLang;
 			}
@@ -233,18 +260,23 @@
 					Console.log("ResetDB Save Error: " + e);
 				}
 			}
-			if( CTOptions.autoTemplateUpdate ) {
-				if( CTTools.activeTemplate ) {
+			if( CTTools.activeTemplate ) {
+				if ( CTOptions.autoTemplateUpdate )
+				{
 					// load template update.xml
-                    CTImporter.lookForTemplateUpdate();
+					CTImporter.lookForTemplateUpdate();
+				}
+				
+				if( CTOptions.syncOnStart ) {
+					// download content sync version
 				}
 			}
 		}
 		
 		internal var tmpHost:String = "";
 		
-		private var tmpHostList:Vector.<String>;
-		private var currHost:int=-1;
+		private static var tmpHostList:Vector.<String>;
+		private static var currHost:int=-1;
 		
 		private function downloadHostInfo (host:String="") :void 
 		{
@@ -252,9 +284,14 @@
 				Application.instance.cmd( "Console show console");
 			}
 			
-			if( host == "" ) {
+			if( host == "" )
+			{
+				// on password...
 				host = tmpHost;
-			}else{
+			}
+			else
+			{
+				// first time called...
 				tmpHost = host;
 			}
 			
@@ -269,9 +306,33 @@
 				
 				tmpHostList = new Vector.<String>();
 				tmpHostList.push( tmpHost );
+				
 				if( host.charAt( host.length-1) != "/" ) host += "/";
-				tmpHostList.push( host + CTOptions.hubFolder + "/" + CTOptions.hubScriptFilename );
-				tmpHostList.push( host + CTOptions.hubScriptFilename );
+				
+				var fold:int = tmpHost.indexOf( CTOptions.hubFolder );
+				var scri:int = tmpHost.indexOf( CTOptions.hubScriptFilename );
+				
+				tmpHostList.push( host );
+				
+				if( fold == -1 && scri == -1 ) tmpHostList.push( host + CTOptions.hubFolder + "/" + CTOptions.hubScriptFilename );
+				if( scri == -1 ) tmpHostList.push( host + CTOptions.hubScriptFilename );
+				
+				if( host.substring( 0, 7 ) == "http://" )
+				{
+					host = "https://" + host.substring(7);
+					tmpHostList.push( host  );
+					if( fold == -1 && scri == -1 ) tmpHostList.push( host + CTOptions.hubFolder + "/" + CTOptions.hubScriptFilename );
+					if( scri == -1 ) tmpHostList.push( host + CTOptions.hubScriptFilename );
+					// tmpHostList.reverse(); // prefer https...
+				}
+				else if( host.substring( 0, 8 ) == "https://" )
+				{
+					host = "http://" + host.substring(8);
+					tmpHostList.push( host  );
+					if( fold == -1 && scri == -1 ) tmpHostList.push( host + CTOptions.hubFolder + "/" + CTOptions.hubScriptFilename );
+					if( scri == -1 ) tmpHostList.push( host + CTOptions.hubScriptFilename );
+				}
+				
 				currHost = -1;
 				tryNextUrl();
 			}
@@ -294,19 +355,38 @@
 				var vars:URLVariables = new URLVariables();
 				vars.install = 1;
 				vars.pwd = pwd;
-				if(CTOptions.debugOutput) Console.log( "Downloading template information from '" + tmpHostList[currHost] + "'");
+				if(CTOptions.debugOutput) Console.log( "Downloading Template Information From '" + tmpHostList[currHost] + "'");
 				res.load( tmpHostList[currHost], true, onInstallInfo, vars);
 			}
 			else
 			{
 				// Error connect to hub..
-				Console.log( "Error finding hub at " + tmpHost );
+				Console.log( "Error Finding Hub At " + tmpHost );
 				windows.addChild( Window( window.InfoWindow( "ErrorNetCnx", Language.getKeyword("Error"), Language.getKeyword("Error no connection"), null, 'error-cnx-window') ) );
 			}
 		}
 		
-		public static function overrideInstallOptions ( x:XMLList ) :void
-		{		
+		public static function overrideInstallOptions ( x:XMLList, reset:Boolean=false ) :void
+		{
+			if( reset ) {
+				
+				// Reset critical project settings
+				//CTOptions.uploadScript = "";
+				CTOptions.projectName = "";
+				CTOptions.appName = "Contemple";
+				CTOptions.version = CTOptions.contempleVersion; // "1.0.12";
+				CTOptions.hubFolder = CTOptions.hubFolderDefault;
+				CTOptions.hubScriptFilename = CTOptions.hubScriptFilenameDefault;
+				CTOptions.localUploadFolder = "min";
+				CTOptions.hashCompareAlgorithm = "md5";
+				CTOptions.localSharedObjectId = CTOptions.localSharedObjectIdDefault;
+				CTOptions.dbInitFileName = "db-index.xml";
+				CTOptions.uploadViewShowFileInfo = true;
+				CTOptions.reverseAreasPopup = true;
+				CTOptions.updateUrl = "";
+				CTOptions.mobileProjectFolderName "ask";
+			}
+			
 			if( x )
 			{
 				// Override options by install.xml:
@@ -320,31 +400,21 @@
 				}
 				
 				if( x.@projectName != undefined)            CTOptions.projectName = x.@projectName.toString();
+				if( x.@uploadScript != undefined)           CTOptions.uploadScript = x.@uploadScript.toString();
 				if( x.@hubScriptFilename != undefined)      CTOptions.hubScriptFilename = x.@hubScriptFilename.toString();
-				if( x.@cacheDownloads != undefined)      	CTOptions.cacheDownloads =  CssUtils.stringToBool( x.@cacheDownloads.toString() );
 				if( x.@overrideInstallDB != undefined)      CTOptions.overrideInstallDB = x.@overrideInstallDB.toString();
-				if( x.@debugOutput != undefined)            CTOptions.debugOutput = CssUtils.stringToBool( x.@debugOutput.toString() );
-				
+				//if( x.@debugOutput != undefined)            CTOptions.debugOutput = CssUtils.stringToBool( x.@debugOutput.toString() );
 				if( x.@appName != undefined)                CTOptions.appName = x.@appName.toString();
-				//if( x.@version != undefined)                CTOptions.version = x.@version.toString();
-				
-				// if( x.@installTemplate != undefined)        CTOptions.installTemplate = x.@installTemplate.toString();
 				if( x.@localSharedObjectId != undefined)    CTOptions.localSharedObjectId = x.@localSharedObjectId.toString();
 				if( x.@homeAreaName != undefined)           CTOptions.homeAreaName = x.@homeAreaName.toString();
 				if( x.@dbInitFileName != undefined)         CTOptions.dbInitFileName = x.@dbInitFileName.toString();
 				if( x.@uploadViewShowFileInfo != undefined) CTOptions.uploadViewShowFileInfo = CssUtils.stringToBool( x.@uploadViewShowFileInfo.toString() );
 				if( x.@reverseAreasPopup != undefined)      CTOptions.reverseAreasPopup = CssUtils.stringToBool( x.@reverseAreasPopup.toString() );
-				//if( x.@animateBackground != undefined)      CTOptions.animateBackground = CssUtils.stringToBool( x.@animateBackground.toString() );
-				//if( x.@animateBackgroundMin != undefined)   CTOptions.animateBackgroundMin = Number( x.@animateBackgroundMin.toString() );
-				//if( x.@animateBackgroundMax != undefined)   CTOptions.animateBackgroundMax = Number( x.@animateBackgroundMax.toString() );
 				if( x.@localUploadFolder != undefined)      CTOptions.localUploadFolder = x.@localUploadFolder.toString();
 				if( x.@uploadMethod != undefined)           CTOptions.uploadMethod = x.@uploadMethod.toString();
-				if( x.@uploadScript != undefined)           CTOptions.uploadScript = x.@uploadScript.toString();
 				if( x.@updateUrl != undefined)              CTOptions.updateUrl = x.@updateUrl.toString();
-				
 				if( x.@hashCompareAlgorithm != undefined)   CTOptions.hashCompareAlgorithm = x.@hashCompareAlgorithm.toString();
 				if( x.@mobileProjectFolderName != undefined) CTOptions.mobileProjectFolderName = x.@mobileProjectFolderName.toString();
-				if( x.@richTextCssClasses != undefined) 	CTOptions.richTextCssClasses = x.@richTextCssClasses.toString().split(",");
 			}
 		}
 		
@@ -371,22 +441,22 @@
 				downloadHostInfo( tmpHost );
 				return;
 			}
+			
 			if( !CTOptions.verboseMode ) {
 				Application.instance.cmd( "Application view InstallView" );
 				installProgress = InstallView( Application.instance.view.panel.src ).progress;
 			}
 			if(installProgress) installProgress.value = 0;
 			
-			if(CTOptions.debugOutput) Console.log( "Install Info: " + installInfo);
+			if( CTOptions.verboseMode ) Console.log( "Install Info: " + installInfo);
 			
 			if( installInfo != "" ) {
-				
 				var ish:SharedObject = SharedObject.getLocal(CTOptions.installSharedObjectId);
 				if( ish && ish.data ) {
 					ish.data.installOptions = installInfo;
 					ish.flush();
 				}
-				showInstallTemplates(null);
+				setTimeout( showInstallTemplates, 357 );
 			}
 		}
 		
@@ -394,7 +464,7 @@
 		
 		private static var installCmdComplete:Function;
 		
-		public static function showInstallTemplates ( cmdComplete:Function, testStore:Boolean=false ) :void
+		public static function showInstallTemplates ( cmdComplete:Function=null, testStore:Boolean=false ) :void
 		{
 			var ish:SharedObject = SharedObject.getLocal(CTOptions.installSharedObjectId);
 			var i:int;
@@ -403,68 +473,53 @@
 			if( ish && ish.data )
 			{
 				installCmdComplete = cmdComplete;
+				
 				try {
 					var x:XML = new XML( ish.data.installOptions );
-				}catch(e:Error) {
+				}catch (e:Error) {
+					
 					CTMain(Application.instance).tryNextUrl();
 					return;
+					
 				}
 				if( x.templates )
 				{
 					// installSharedObjectId and localSharedObjectId have to be the same in CTOptions or in CTApp
 					// Overriding sharedObjectId !
 					var main:CTMain = CTMain(Application.instance);
-					overrideInstallOptions( x.templates );
 					
 					var templates:XMLList = x.templates.template;
 					L = templates.length();
 					
 					if( L == 0 ) {
-						if( CTOptions.clientHost == "" ) {
-							main.getClientHostInfo();
-						} else {
+						if( CTOptions.clientHost == "" )
+						{
+							// try again..
+							CTMain(Application.instance).tryNextUrl();
+							return;
+						}
+						else
+						{
 							// App is packaged with clientHost info ...
 							main.downloadHostInfo( CTOptions.clientHost );
 						}
 						return;
 					}
 					
-					if(CTOptions.debugOutput) Console.log( L + " Templates found.." );
+					CTOptions.uploadScript = tmpHostList[currHost];
+					var fi:FileInfo = FileUtils.fileInfo( CTOptions.uploadScript );
+					
+					CTOptions.hubFolder = fi.directory;
+					CTOptions.hubScriptFilename = fi.filename;
+					
+					overrideInstallOptions( x.templates, true );
+					
+					if( CTOptions.verboseMode || CTOptions.debugOutput ) Console.log( L + " Templates found.." );
 					
 					var instobj:Object;
 					var sh:SharedObject;
 					
 					if( L == 1 ) {
-						
-						// Search  @name in ish.installTemplates..
-						if( testStore && CTOptions.cacheDownloads ) {
-							if( ish.data.installTemplates ) {
-								for(i=0; i<ish.data.installTemplates.length; i++) {
-									if( ish.data.installTemplates[i].name == x.templates.template.@name.toString() 
-										&& ish.data.installTemplates[i].genericPath != undefined 
-										&& ish.data.installTemplates[i].genericPath != "" ) {
-											
-										// found cached 
-										if( CTOptions.debugOutput ) Console.log( "Using cached download: " + ish.data.installTemplates[i].genericPath );
-										
-										Application.instance.cmd( "CTTools template " + ish.data.installTemplates[i].genericPath );
-										overrideInstallOptions( templates[0] );
-										
-										sh = SharedObject.getLocal( CTOptions.localSharedObjectId );
-										if( sh && sh.data ) {
-											sh.data.installTemplateName = x.templates.template.@name.toString();
-											
-											if(CTOptions.overrideInstallDB != "") {
-												if(CTOptions.debugOutput) Console.log("Reset Override DB..");
-												sh.data.overrideDBDone = false;
-											}
-											sh.flush();
-										}
-										return;
-									}
-								}
-							}
-						}
 						
 						// Install Template..
 						instobj = {
@@ -472,7 +527,8 @@
 							src: x.templates.template.@src.toString(),
 							version: x.templates.template.@version.toString(),
 							genericPath: "",
-							prjDir:""
+							prjDir:"",
+							installOp: ish.data.installOptions
 						};
 						
 						overrideInstallOptions( templates.template );
@@ -492,18 +548,18 @@
 							var iv:InstallView;
 							iv = InstallView( Application.instance.view.panel.src );
 							iv.showProgress( 0.05 );
-							iv.setLabel("Downloading template files");
+							iv.setLabel("Downloading Template Files");
 						}catch(e:Error) {
 							
 						}
-						TemplateTools.installTemplate( x.templates.template.@src.toString() );
-						
-						instobj.genericPath = "app-storage:/" + CTOptions.templateStorage + CTOptions.urlSeparator + TemplateTools.lastExtractedTemplate;
 						
 						if( ish.data.installTemplates == undefined ) ish.data.installTemplates = [];
 						ish.data.installTemplates.push( instobj );
 						ish.flush();
 						
+						TemplateTools.installTemplate( x.templates.template.@src.toString() );
+						
+						instobj.genericPath = "app-storage:/" + CTOptions.templateStorage + CTOptions.urlSeparator + TemplateTools.lastExtractedTemplate;
 					}
 					else
 					{
@@ -524,44 +580,17 @@
 									nm = xm[i].@name.toString();
 									if( nm == main.selectedInstallTemplate )
 									{
-										// Search  @name in ish.installTemplates..
-										if( testStore  && CTOptions.cacheDownloads  ) {
-											if( ish.data.installTemplates ) {
-												for(i=0; i<ish.data.installTemplates.length; i++) {
-													if( ish.data.installTemplates[i].name == nm 
-														&& ish.data.installTemplates[i].genericPath != undefined 
-														&& ish.data.installTemplates[i].genericPath != "" ) {
-														// found cached 
-														if( CTOptions.debugOutput ) Console.log( "Using cached download: " + ish.data.installTemplates[i].genericPath );
-														
-														Application.instance.cmd( "CTTools template " + ish.data.installTemplates[i].genericPath );
-														
-														overrideInstallOptions( XMLList(xm[i]) );
-														sh = SharedObject.getLocal( CTOptions.localSharedObjectId );
-														if( sh && sh.data ) {
-															sh.data.installTemplateName = nm;
-															sh.flush();
-														}
-														if(CTOptions.overrideInstallDB != "") {
-															if(CTOptions.debugOutput) Console.log("Reset Override DB..");
-															sh.data.overrideDBDone = false;
-															sh.flush();
-														}
-														
-														return;
-													}
-												}
-											}
-										}
 										instobj = {
-											name:main.selectedInstallTemplate,
+											name: main.selectedInstallTemplate,
 											src: xm[i].@src.toString(),
-											version: x.templates.template.@version.toString(),
+											version: xm[i].@version.toString(),
 											genericPath: "",
-											prjDir:""
+											prjDir:"",
+											installOp: ish.data.installOptions
 										};
 										
-										overrideInstallOptions( XMLList(xm[i]) );
+										
+										overrideInstallOptions( xm[i] );
 										
 										sh = SharedObject.getLocal( CTOptions.localSharedObjectId );
 										if( sh && sh.data ) {
@@ -578,17 +607,18 @@
 										try {
 											iv = InstallView( Application.instance.view.panel.src );
 											iv.setProgress( 0.05 );
-											iv.setLabel("Downloading template files");
+											iv.setLabel("Downloading Template Files");
 										}catch(e:Error) {
 											
 										}
-										TemplateTools.installTemplate( xm[i].@src.toString() );
-										
-										instobj.genericPath = "app-storage:/" +  CTOptions.templateStorage + CTOptions.urlSeparator + TemplateTools.lastExtractedTemplate;
 										
 										if( ish.data.installTemplates == undefined ) ish.data.installTemplates = [];
 										ish.data.installTemplates.push( instobj );										
 										ish.flush();
+										
+										TemplateTools.installTemplate( xm[i].@src.toString() );
+										
+										instobj.genericPath = "app-storage:/" +  CTOptions.templateStorage + CTOptions.urlSeparator + TemplateTools.lastExtractedTemplate;
 										
 										break;
 									}
@@ -619,9 +649,13 @@
 						
 						pp.x = main.templateSelect.cssLeft + Math.floor( ( main.templateSelect.getWidth() - pp.cssSizeX) / 2);
 						pp.y = lb.y + lb.getHeight() + 16;
+						var n:String;
+						var ppi:PopupItem;
 						
-						for( i=0; i<L; i++ ) {
-							pp.rootNode.addItem( [ x.templates.template[i].@name.toString() ], main.styleSheet ); 
+						for ( i = 0; i < L; i++ ) {
+							n = x.templates.template[i].@name.toString();
+							ppi = pp.rootNode.addItem( [ Language.getKeyword( n ) ], main.styleSheet ); 
+							ppi.options.name = n;
 						}
 						
 						pp.addEventListener( PopupEvent.SELECT, CTMain( main ).selectInstallTemplate );
@@ -636,14 +670,179 @@
 		private function selectInstallTemplate (e:PopupEvent) :void {
 			var curr:PopupItem = e.selectedItem;
 			var lb:String = curr.label;
-			selectedInstallTemplate = lb;
+			selectedInstallTemplate = curr.options.name;
 			e.currentPopup.label = lb;
 			e.currentPopup.x = templateSelect.cssLeft + Math.floor( ( templateSelect.getWidth() - e.currentPopup.cssSizeX) / 2);
 		}
 		
+		internal var selectedHistoryContent:String="";
 		internal var selectedInstallTemplate:String="";
 		internal var templateSelect:CssSprite=null;
+		internal var publishHistorySprite:CssSprite=null;
+		internal var publishHistoryID:int=-1;
+		
+		public function showPublishHistory () :void
+		{
+			var res:Resource = new Resource();
+			var vars:URLVariables = new URLVariables();
+			vars.versions = 1;
+			var pwd:String = "";
+			var sh:SharedObject = SharedObject.getLocal( CTOptions.localSharedObjectId );
+			if ( sh ) {
+				if( sh.data && sh.data.userPwd ) {
+					pwd = sh.data.userPwd;
+				}else{
+					Application.instance.cmd( "CTTools get-password", showPublishHistory);
+					return;
+				}
+			}
+			vars.pwd = pwd;
+			res.load( CTOptions.uploadScript, true, onPublishHistoryIds, vars);
+		}
+		
+		private function onHistoryContent ( e:Event, r:Resource ) :void
+		{
+			if ( r.loaded == 1 ) {
+				
+				var cnt:String;
+				
+				try {
+					cnt = String(r.obj) || "";
+				}catch(e:Error) {
+					cnt = "";
+				}
+				if( cnt == null ||cnt == "null") {
+					cnt = "";
+				}
+				
+				if ( cnt != "" )
+				{
+					Console.log( "Content Version " + publishHistoryID + ":\n" + cnt );
+				
+					var f:File = File.applicationStorageDirectory.resolvePath( CTOptions.tmpDir + CTOptions.urlSeparator + "content.xml" );
+					
+					CTTools.writeTextFile( f.url, cnt );
+					
+					CTTools.loadDefaultContent( f.url, onContentSync );
+					
+				}
+				
+			}else{
+				Console.log("Error: Can Not Load Content Version " + publishHistoryID );
+			}
+		}
+		
+		private function onContentSync ( success:Boolean=false ) :void
+		{
+			// Save and Restart the app
+			CTTools.onFirstSync();
+		}
+		
+		
+		public function installContentHistory ( id:int ) :void
+		{
+			publishHistoryID = id;
+			
+			// Download latest online content version:
+				
+			var res:Resource = new Resource();
+			var vars:URLVariables = new URLVariables();
+			vars.content = 1;
+			vars.version = id;
+			var pwd:String = "";
+			var sh:SharedObject = SharedObject.getLocal( CTOptions.localSharedObjectId );
+			if( sh ) {
+				if( sh.data && sh.data.userPwd ) {
+					pwd = sh.data.userPwd;
+				}
+			}
+			vars.pwd = pwd;
+			
+			res.load( CTOptions.uploadScript, true, onHistoryContent, vars);
+		}
+		
+			
+		private function selectContentHistory (e:PopupEvent) :void {
+			var curr:PopupItem = e.selectedItem;
+			var lb:String = curr.label;
+			selectedHistoryContent = lb;
+			e.currentPopup.label = lb;
+			e.currentPopup.x = publishHistorySprite.cssLeft + Math.floor( ( publishHistorySprite.getWidth() - e.currentPopup.cssSizeX) / 2);
+		}
+		
+		
+		public function onPublishHistoryIds ( e:Event, r:Resource ) :void {
 
+			if( r.loaded == 1 ) {
+				
+				var ids:String = "";
+				
+				try {
+					ids = String(r.obj) || "";
+				}catch(e:Error) {
+					ids = "";
+				}
+				if( ids == null ||ids == "null") {
+					ids = "";
+				}
+				
+				if( ids != "" ) {
+				
+					
+					publishHistorySprite = new CssSprite( 0, 0, null, styleSheet, 'body', '', '', false );
+					
+					var selwin:Window = Window( window.ContentWindow( "PublishHistoryWindow", Language.getKeyword( "Select a Content Version"), publishHistorySprite, {
+					complete: function (s:Boolean) { 
+						if ( s )
+						{
+							installContentHistory( parseInt( selectedHistoryContent ) );
+						}
+					},
+					continueLabel: Language.getKeyword("SelectPublishHistory-OK"),
+					allowCancel: true,
+					autoWidth:false,
+					autoHeight:false,
+					height: 220,
+					cancelLabel: Language.getKeyword("SelectPublishHistory-Cancel")
+					}, 'select-publish-history-window') );
+					
+					windows.addChild( selwin );
+					
+					publishHistorySprite.setWidth( selwin.getWidth() );
+					
+					var tdiv:CssSprite = new CssSprite( 0, 0, publishHistorySprite, styleSheet, 'div', '', 'install-template-select', false);
+					
+					var lb:Label = new Label(0,0,tdiv,styleSheet,'','install-template-select-label',true);
+					lb.label = Language.getKeyword( "Multiple versions of the website content are available:" );
+					lb.init();
+					lb.x = tdiv.cssLeft;
+					lb.y = tdiv.cssTop + 8;
+					
+					var pp:Popup = new Popup( [ "Select..", new IconArrowDown( mainMenu.iconColor ) ], 0,0, tdiv, styleSheet, '', 'install-template-popup', false);
+					
+					pp.x = publishHistorySprite.cssLeft + Math.floor( ( publishHistorySprite.getWidth() - pp.cssSizeX) / 2);
+					pp.y = lb.y + lb.getHeight() + 16;
+					
+					
+					var hids:Array = ids.split(",");
+					hids.sort( Array.NUMERIC );
+					var L:int = hids.length;
+					
+					for ( var i:int = 0; i < L; i++ )
+					{
+						pp.rootNode.addItem( [ hids[i] ], styleSheet ); 
+					}
+					
+					pp.addEventListener( PopupEvent.SELECT, selectContentHistory );
+					
+				}else{
+					Console.log("Error History ID'S");
+				}
+			}else{
+				Console.log( "Error Can Not Load History Index" );
+			}
+		}
+		
 		public function getClientHostInfo ():void
 		{
 			var msg:String = Language.getKeyword("CT-Get-Client-Host-MSG");
@@ -659,8 +858,13 @@
 			
 			var win2:Window = Window( window.GetStringWindow( "WelcomeWindow2", msg, weburi, {
 				complete: function (s:String) {
-					if ( s ) {
-						downloadHostInfo( s );
+					if ( s )
+					{
+						if( s.substring( 0, 4) != "http" ) {
+							downloadHostInfo( "http://" + s );
+						}else{
+							downloadHostInfo( s );
+						}
 					}
 				},
 				continueLabel: Language.getKeyword("Welcome-Host-OK"),
@@ -678,8 +882,6 @@
 		// app loaded and setup complete handler
 		private function overrideComplete () :void
 		{
-			Console.log("Override Complete..");
-			
 			var sh:SharedObject = SharedObject.getLocal( CTOptions.installSharedObjectId );
 			var lsh:SharedObject = SharedObject.getLocal( CTOptions.localSharedObjectId );
 			
@@ -694,6 +896,7 @@
 				var rv:Boolean = CTTools.open(startupOpenHandler);
 			}
 		} 
+		
 		private function on_load (e:AppEvent) :void
 		{
 			var sh:SharedObject = SharedObject.getLocal( CTOptions.installSharedObjectId );
@@ -708,7 +911,8 @@
 				}	
 			}
 			
-			var sc:String = '<?xml version="1.0" encoding="utf-8"?><agf><menu><item iconleft="'+Options.iconDir+'/sidebar-left.png" cmd="TemplateTools show-areas"/><item iconleft="'+Options.iconDir+'/sidebar-right.png" cmd="TemplateTools show-preview"/></menu></agf>';
+			//var sc:String = '<?xml version="1.0" encoding="utf-8"?><agf><menu><item iconleft="'+Options.iconDir+'/sidebar-left.png" cmd="TemplateTools show-areas"/><item iconleft="'+Options.iconDir+'/sidebar-right.png" cmd="TemplateTools show-preview"/></menu></agf>';
+			var sc:String = '<?xml version="1.0" encoding="utf-8"?><agf><menu><item iconleft="'+Options.iconDir+'/glasses.png" cmd="TemplateTools show-preview"/></menu></agf>';
 			secMenu.parseMenu( new XML(sc), "secmenu");
 			
 			var tmpd:File = File.applicationStorageDirectory.resolvePath ( CTOptions.tmpDir );
@@ -721,6 +925,9 @@
 				// Open the last PROJECT from previous session
 				
 				_resetDB = false;
+				if( CTOptions.verboseMode || CTOptions.debugOutput ) {
+					Console.log("Opening Previous Project: " +  sh.data.lastProjectDir );
+				}
 				
 				if( CTOptions.overrideInstallDB != "" ) {
 					var lsh:SharedObject = SharedObject.getLocal( CTOptions.localSharedObjectId );
@@ -759,7 +966,6 @@
 					{
 						var fi:File = CTOptions.mobileParentFolder.resolvePath( CTOptions.mobileProjectFolderName );
 						if( fi.exists && fi.isDirectory) {
-							if(CTOptions.debugOutput) Console.log( "Main.on_load: in mobile " +  fi.url );
 							CTTools.setProjectDirUrl( fi.url );
 							rv = CTTools.open(startupOpenHandler);
 						}
@@ -800,7 +1006,7 @@
 							Application.instance.cmd( "Application view InstallView" );
 							iv = InstallView( Application.instance.view.panel.src );
 						}catch( e:Error ) {
-							Console.log("Error: No InstallView View found in menu");
+							Console.log("Error: No InstallView View Found In Menu");
 						}
 					}
 					

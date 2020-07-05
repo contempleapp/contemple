@@ -25,16 +25,16 @@
 		// [a href=google.de]Click Here[/a] -> <a href=google.de>Click Here</a>
 		// [img src=bild.jpg width=550 height=335] -> <img src=src width=width height=height/>
 		//
-		// To add allowd tags, add the name aof the tag prefixed with an underscore (_) to HtmlParser.allowedDBTags 
+		// To add allowd tags, add the name af the tag prefixed with an underscore (_) to HtmlParser.allowedDBTags 
 		//
 		// A DEPRECATED HTML DB TEXT SYNTAX IS ALSO AVAILABLE IN RICHTEXT INPUTS, NESTED TAGS ARE NOT ALLOWED
 		// #prop# --> Object Property Value
 		// #name# --> DB-Item-Name
 		// #L:English Label# --> German or English Text
-		// #L:name# --> German or English version of Text Of Item Name
-		// #S:32:name# --> German Tex... display only the first 32 characters in name (Start)
-		// #E:32:name# --> German Tex... display only the last 32 characters in name (End)
-		// #C:css-calss:text#
+		// #L:string text# --> German or English version of Text Of Item Name
+		// #S:32:string text# --> German Tex... display only the first 32 characters in name (Start)
+		// #E:32:string text# --> German Tex... display only the last 32 characters in name (End)
+		// #C:css-cals:text# --> <span class="css-cols">text</span>
 		// #B:Bold Text# --> <b>German Bold Text</b>
 		// #I:Italic Text# --> <i>German Italic Text</i>
 		// #A:url(url.com):Link Text# --> <a href=url>German Link Text</a>
@@ -159,9 +159,77 @@
 			_wbr:true
 		};
 		
-		public static function toDBText ( code:String ) :String
+		
+		// transform #BR#, #AT#, #QUOTE# and #SQUOTE# in Strings
+		public static function toInputText ( code:String ) :String
 		{
-			//47:/, 42:*, 34:", 91:[, 93:], 35:#, 38: &, 44:,, 46:., 58::, 59:;, 64:@, 123:{, 125:}, 60:<, 62:>,  8222: „, 8220: “,
+			var rv:String = "";
+			var L:int = code.length;
+			var in35:Boolean = false;
+			var cc:int;
+			var cs:int;
+			var tmp:String;
+			var j:int;
+			var writeChar:Boolean;
+			
+			for(var i:int=0; i<L; i++)
+			{
+				cc = code.charCodeAt(i);
+				writeChar = true;
+				
+				if( cc == 35 ) {
+					
+					// #
+					for( j = i+1; j<L; j++ ) {
+						
+						if( code.charCodeAt(j) == 35 )
+						{
+							tmp = code.substring( i, j+1 ).toLowerCase();
+							
+							if( tmp == "#br#" ) {
+								rv += "\n";
+								i=j;
+								writeChar = false;
+							}else if( tmp == "#at#" ) {
+								rv += "@";
+								i=j;
+								writeChar = false;
+								
+							// TODO FIX " and ' errors in InputTextBox textEnter..
+							
+							}else if( tmp == "#quote#" ) {
+								rv += '"';
+								i=j;
+								writeChar = false;
+							}else if( tmp == "#squote#" ) {
+								rv += "'";
+								i=j;
+								writeChar = false;
+							/*}else if( tmp == "#lt#" ) {
+								rv += '<';
+								i=j;
+								writeChar = false;
+							}else if( tmp == "#gt#" ) {
+								rv += '<';
+								i=j;
+								writeChar = false;*/
+							}
+							break;
+						}
+					}
+				}
+				
+				if( writeChar ) {
+					
+					rv += String.fromCharCode( cc );
+				}
+			}
+			return rv;
+		}
+		
+		public static function toDBText ( code:String, transformNewline:Boolean=false, transformQuotes:Boolean=false ) :String
+		{
+			//47:/, 42:*, 34:", 39:', 91:[, 93:], 35:#, 38: &, 44:,, 46:., 58::, 59:;, 64:@, 123:{, 125:}, 60:<, 62:>,  8222: „, 8220: “,
 			var xml_str:String = "";
 			var cc:int;
 			var nam:String;
@@ -282,7 +350,11 @@
 									if(!qval && ast != -1 && aname) {
 										aen = j;
 										avalue = code.substring( ast, aen );
-										astr += " " + aname + '="' + avalue + '"';
+										if( transformQuotes ) {
+											astr += " " + aname + "='" + avalue + "'";
+										}else{
+											astr += " " + aname + '="' + avalue + '"';
+										}
 										ast = -1;
 										ag[aname] = avalue;
 									}
@@ -303,7 +375,11 @@
 										if(!qval && ast != -1 && aname) {
 											aen = j;
 											avalue = code.substring( ast, aen );
-											astr += " " + aname + '="' + avalue + '"';
+											if( transformQuotes ) {
+												astr += " " + aname + "='" + avalue + "'";
+											}else{
+												astr += " " + aname + '="' + avalue + '"';
+											}
 											ast = -1;
 											ag[aname] = avalue;
 										}
@@ -325,7 +401,12 @@
 									if( qval ) {
 										if( cc2 == qvalcc ) {
 											aen = j+1;
+											
 											avalue = code.substring( ast, aen );
+											
+											if( transformQuotes ) {
+												avalue = "'"+CssUtils.trimQuotes( avalue )+"'";
+											}
 											astr += " " + aname + "=" + avalue;
 											qval = false;
 											qvalcc = 0;
@@ -345,7 +426,13 @@
 									aen = j;
 									avalue = code.substring( ast, aen );
 									if( !avalue || avalue == "" || avalue == " " ) avalue = aname;
-									astr += " " + aname + '="' + avalue + '"';
+									
+									if( transformQuotes ) {
+										astr += " " + aname + "='" + avalue + "'";
+									}else{
+										astr += " " + aname + '="' + avalue + '"';
+									}
+									
 									ast = -1;
 									ag[aname] = avalue;
 									aname = "";
@@ -356,7 +443,11 @@
 									if(aname && aname != " "){
 										// no value argument
 										aen = j;
-										astr += " " + aname + '="' + aname + '"';
+										if( transformQuotes ) {
+											astr += " " + aname + "='" + aname + "'";
+										}else{
+											astr += " " + aname + '="' + aname + '"';
+										}
 										ast = -1;
 										ag[aname] = aname;
 										aname = "";
@@ -372,12 +463,24 @@
 				if( writeChar ) {
 					if( cc == 60 ) xml_str += "[";
 					else if( cc == 62 ) xml_str += "]";
-					else xml_str += String.fromCharCode(cc);
+					else if( cc == 64 ) xml_str += "#AT#";
+					else {
+						if( transformNewline && (cc == 9 || cc == 10 || cc==13) ) {
+							xml_str +="#BR#";
+						}else if( transformQuotes && cc == 34) {
+							xml_str += "#QUOTE#";
+						}else if( transformQuotes && cc == 39) {
+							xml_str += "#SQUOTE#";
+						}else{
+							xml_str += String.fromCharCode(cc);
+						}
+					}
 				}
 			}// for char codes
 			return xml_str;
 		}
 		
+	
 		
 		public static function fromDBText ( code:String /*, compact:Boolean=true, ignoreProcInstr:Boolean=false*/ ) :String
 		{

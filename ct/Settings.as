@@ -127,6 +127,7 @@
 				nativePreviewValue.label = "Off";
 				CTOptions.nativePreview = false;
 			}
+			storeBooleanPref( "nativePreview", CTOptions.nativePreview);
 		}
 		
 		private function debugOutClick (e:Event) :void {
@@ -138,6 +139,7 @@
 				debugOutValue.label = "Off";
 				CTOptions.debugOutput = false;
 			}
+			storeBooleanPref( "debugOutput", CTOptions.debugOutput);
 		}
 		private function autoSaveClick (e:Event) :void {
 			if ( autoSaveValue.value ) {
@@ -148,6 +150,7 @@
 				autoSaveValue.label = "Off";
 				CTOptions.autoSave = false;
 			}
+			storeBooleanPref( "autoSave", CTOptions.autoSave);
 		}
 		
 		private function softKeyboardClick (e:Event) :void {
@@ -159,6 +162,7 @@
 				softKeyboardValue.label = "Off";
 				CTOptions.softKeyboard = false;
 			}
+			storeBooleanPref( "softKeyboard", CTOptions.softKeyboard);
 		}
 		
 		private function monitorFilesClick (e:Event) :void {
@@ -170,6 +174,7 @@
 				monitorFilesValue.label = "Off";
 				CTOptions.monitorFiles = false;
 			}
+			storeBooleanPref( "monitorFiles", CTOptions.monitorFiles);
 			if( CTOptions.autoSave ) {
 				CTTools.save();
 			}
@@ -297,5 +302,32 @@
 			}
 				
 		}
+		
+		
+		private function storeBooleanPref ( name:String, value:Boolean ) :void {
+			var sh:SharedObject = SharedObject.getLocal( CTOptions.installSharedObjectId );
+			if( sh && sh.data ) {
+				if( !sh.data.preferences ) sh.data.preferences = {};
+				sh.data.preferences[name] = value;
+				sh.flush();
+			}
+		}
+		private function storeStringPref ( name:String, value:String ) :void{
+			var sh:SharedObject = SharedObject.getLocal( CTOptions.installSharedObjectId );
+			if( sh && sh.data ) {
+				if( !sh.data.preferences ) sh.data.preferences = {};
+				sh.data.preferences[name] = value;
+				sh.flush();
+			}
+		}
+		private function storeNumberPref ( name:String, value:Number ) :void{
+			var sh:SharedObject = SharedObject.getLocal( CTOptions.installSharedObjectId );
+			if( sh && sh.data ) {
+				if( !sh.data.preferences ) sh.data.preferences = {};
+				sh.data.preferences[name] = value;
+				sh.flush();
+			}
+		}
+		
 	}
 }

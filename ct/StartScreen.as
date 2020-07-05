@@ -16,7 +16,7 @@
 	import agf.icons.IconArrowDown;
 	
 	/**
-	* StartScreen provides options to intall a website/template
+	* StartScreen provides options to install a website/template
 	*
 	* - Connect to Website (Install website)
 	* - New with Template Folder / ZipFile
@@ -168,7 +168,10 @@
 					sh.flush();
 				}
 				
-				if( CTOptions.debugOutput || CTOptions.verboseMode ) Console.log( "Selected Template Folder: " + directory.url);
+				if ( CTOptions.debugOutput || CTOptions.verboseMode ) Console.log( "Selected Template Folder: " + directory.url);
+				
+				CTOptions.uploadScript = "";
+				CTMain.overrideInstallOptions(null, true);
 				Main(Application.instance).cmd( "CTTools template " + directory.url);
 			}
 		}
@@ -188,6 +191,8 @@
 			
 			if ( curr.options.instid == -1 ) 
 			{
+				CTOptions.uploadScript = "";
+				CTMain.overrideInstallOptions(null, true);
 				Main(Application.instance).cmd( "CTTools template current");
 			}
 			else
@@ -197,7 +202,11 @@
 				if ( sh && sh.data && sh.data.installTemplates && sh.data.installTemplates.length > curr.options.instid )
 				{
 					if( CTOptions.debugOutput || CTOptions.verboseMode ) Console.log( "Install Template ID: " + curr.options.instid );
-					if( sh.data.installTemplates[curr.options.instid].src  ) {
+					if ( sh.data.installTemplates[curr.options.instid].src  )
+					{
+						
+						CTOptions.uploadScript = "";
+						CTMain.overrideInstallOptions(null, true);
 						Main(Application.instance).cmd( "TemplateTools install-template " + sh.data.installTemplates[curr.options.instid].src );
 					}
 				}

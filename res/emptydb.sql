@@ -36,3 +36,11 @@ CREATE TABLE IF NOT EXISTS pageitem (
     subtemplate TEXT,
     crdate DATE NOT NULL
 );
+CREATE TABLE IF NOT EXISTS plugin {
+    uid INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    name TEXT,
+    file TEXT,
+    type TEXT,
+    sortid INTEGER,
+    crdate DATE NOT NULL
+}

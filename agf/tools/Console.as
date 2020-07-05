@@ -64,11 +64,11 @@
 		
 		private static var newLine:String = "\n";
 		private static var _consoleOpen:Boolean;
-		private static var _consoleTarget:Sprite;
-		private static var _consoleLabel:Label;
+		public static var _consoleTarget:Sprite;
+		public static var _consoleLabel:*; // Label
 		private static var _logStr:String = "";
 		
-		public static function show ( t:* /*CssSprite*/ ) :void
+		public static function show ( t:* ) :void
 		{
 			if( _consoleOpen ) hide();
 			
@@ -135,6 +135,29 @@
 					Application.instance.view.addEventListener( agf.events.AppEvent.VIEW_CHANGE, removeFromView );
 					show( Application.instance.view.panel );
 				}
+				else if( t is Sprite && t.stage )
+				{
+					_consoleOpen = true;
+					_consoleTarget = t;
+					
+					var txtfmt:TextFormat = new TextFormat();
+					txtfmt..color = 0xFFFFFF;
+					
+					txtfmt.size = 16;
+					txtfmt.font = "Courier New";
+					
+					var tf:TextField = new TextField();
+					tf.width = t.stage.stageWidth;
+					tf.height = t.stage.stageHeight;
+					tf.defaultTextFormat = txtfmt;
+					tf.text = _logStr;
+					
+					tf.textColor = 0xFFFFFF;
+					
+					t.addChild( tf );
+					
+					_consoleLabel = { textField: tf };
+				}
 			}
 		}		
 		
@@ -154,11 +177,19 @@
 			hide();
 		}
 		public static function hide () :void{		
-			if(_consoleOpen) {
-				Application.instance.view.panel.removeEventListener( Event.RESIZE, resizeConsole );
-				if(_consoleLabel){
-					if(_consoleTarget) _consoleTarget.removeChild( _consoleLabel );
-					else if(_consoleLabel.parent && _consoleLabel.parent.contains(_consoleLabel)) _consoleLabel.parent.removeChild( _consoleLabel );
+			if(_consoleOpen && _consoleLabel && _consoleTarget)
+			{
+				if( _consoleLabel is Label ) {
+					Application.instance.view.panel.removeEventListener( Event.RESIZE, resizeConsole );
+					if(_consoleLabel){
+						if(_consoleTarget) _consoleTarget.removeChild( _consoleLabel );
+						else if(_consoleLabel.parent && _consoleLabel.parent.contains(_consoleLabel)) _consoleLabel.parent.removeChild( _consoleLabel );
+						_consoleLabel = null;
+						_consoleTarget = null;
+						_consoleOpen = false;
+					}
+				}else{
+					if( _consoleTarget.contains( _consoleLabel.textField )) _consoleTarget.removeChild( _consoleLabel.textField );
 					_consoleLabel = null;
 					_consoleTarget = null;
 					_consoleOpen = false;
@@ -171,7 +202,8 @@
 			}
 			return null;
 		}
-		public static function update () :void {
+		public static function update () :void
+		{
 			_consoleLabel.textField.text = _logStr;
 			_consoleLabel.textField.scrollV = _consoleLabel.textField.maxScrollV;
 		}

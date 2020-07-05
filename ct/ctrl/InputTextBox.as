@@ -1,27 +1,15 @@
 ﻿package ct.ctrl
 {
+	import agf.events.AppEvent;
 	import flash.display.*;
 	import flash.events.*;
 	import flash.media.*;
 	import flash.external.ExtensionContext;
 	import flash.net.FileFilter;
 	import flash.utils.setTimeout;
-	
-	import agf.icons.IconArrowDown;
-	import agf.icons.IconData;
-	import agf.icons.IconBoolean;
-	import agf.icons.IconFromFile;
-	import agf.icons.IconFromHtml;
-	import agf.icons.IconEmpty;
-	import agf.tools.Application;
-	import agf.events.PopupEvent;
-	import agf.ui.*;
-	import agf.Options;
-	import agf.html.*;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import flash.text.*;
-	import agf.utils.StringMath;
 	import flash.events.MediaEvent;
 	import flash.events.MouseEvent;
 	import flash.system.Capabilities;
@@ -32,6 +20,25 @@
 	import flash.desktop.NativeDragManager;
 	import flash.display.InteractiveObject;
 	import flash.filesystem.File;
+	import flash.net.FileFilter;
+	import flash.ui.Mouse;
+	import flash.utils.getTimer;
+	import agf.icons.IconArrowDown;
+	import agf.icons.IconData;
+	import agf.icons.IconMenu;
+	import agf.icons.IconBoolean;
+	import agf.icons.IconFromFile;
+	import agf.icons.IconFromHtml;
+	import agf.icons.IconEmpty;
+	import agf.tools.Application;
+	import agf.events.PopupEvent;
+	import agf.ui.*;
+	import agf.Options;
+	import agf.html.*;
+	import agf.utils.StringMath;
+	import agf.utils.ColorUtils;
+	import ct.Area;
+	import ct.AreaEditor;
 	import ct.CTMain;
 	import ct.ctrl.VectorTextField;
 	import agf.tools.Console;
@@ -39,49 +46,27 @@
 	import ct.CTTools;
 	import ct.HtmlEditor;
 	import ct.TemplateEditor;
-	import flash.net.FileFilter;
 	import agf.events.CssEvent;
-	import flash.ui.Mouse;
 	import ct.CTOptions;
 	import agf.io.Resource;
+	import ct.Template;
+	import ct.ProjectFile;
+	import ct.AreaProcessor;
 	
-	public class InputTextBox extends CssSprite
+	public class InputTextBox extends AreaProcessor
 	{
-		
-		// TODO:
-		// Input Types: TextStyle, BackgroundStyle, ContainerStyle -> generates css for margin, border, padding, background, color, font-properties etc
+		// TODO: Input Types: TextStyle, BackgroundStyle, ContainerStyle -> generates css for margin, border, padding, background, color, font-properties etc
 		// type can be intern, hidden, name, string, code, richtext, number, integer, screennumber, screeninteger, boolean, color, list, listappend, listmultiple, labellist, arealist, pagelist, nodestyle, styleclass, vector<T>, vectorlink, file, files, image, audio, video, pdf, or directory
 		public function InputTextBox ( __type:String="line", type_args:Array=null, prop_obj:Object=null, avalue:String="", w:Number=0, h:Number=0, parentCS:CssSprite=null, css:CssStyleSheet=null,cssId:String='', cssClasses:String='', noInit:Boolean=false)
 		{
 			super(w, h, parentCS, css, "textbox", cssId, cssClasses, true);
-			
 			if(!noInit) init();
-			
 			autoSwapState = "";
 			args = type_args;
 			propObj = prop_obj;
 			textField = new TextField();
 			create();
-			
 			value = avalue;
-			
-			var cssclasses:Array;
-			if( CTTools.templateConstants && CTTools.templateConstants["richTextCssClasses"] != undefined ) {
-				if( args && args.length > 0 ) {
-					cssclasses = (args[0] + CTTools.templateConstants["richTextCssClasses"]).split(",");
-				}else{
-					cssclasses = CTTools.templateConstants["richTextCssClasses"].split(",");
-				}
-			}else{
-				if( args && args.length > 0 ) {
-					cssclasses = (args[0] + CTOptions.richTextCssClasses.join(",")).split(",");
-				}else{
-					cssclasses = CTOptions.richTextCssClasses;
-				}
-			}
-			
-			richTextButtons = [ cssclasses, specialChars, ".Heading", ".List", ".Bold", ".Italic", ".Link", ".Undo", ".Redo" ];
-			
 			setType(__type);
 		}
 		
@@ -154,7 +139,7 @@
 		
 		public var labelText:String;
 		
-		public var colorClip:Sprite;
+		public var  colorClip:Sprite;
 		
 		private var _type:String;
 		private var _tgt:InteractiveObject;
@@ -171,68 +156,29 @@
 		
 		public var lineWrapBegin:String="";
 		public var lineWrapEnd:String="";
-		
 		public var helpIcon:Button;
-		
 		public var history:Vector.<String> = new Vector.<String>();
 		public var future:Vector.<String> = new Vector.<String>();
+		// Area
+		private var areaName:String;
+		private var areaType:String;
+		private var areaOffset:int=0;
+		private var areaLimit:int=0;
+		private var areaSubTemplateFilter="";
 		
-		internal var activateValue:String="";
+		private var clickScrolling:Boolean = false;
+		private static var sbClickValue:Number;
+		public var activateValue:String="";
 		private static var tmp_bool_value:Boolean=false;
 		private var _color:uint=0;
 		private var _dir:String="";
 		private var _file:String="";
-		
-		public function historyPop () :String {
-			var s:String = history.pop();
-			toggleUndoButtons();
-			return s;
-		}
-		
-		public function historyPush ( v:String ) :void {
-			history.push( v );
-			toggleUndoButtons();
-		}
-		
-		public function futurePop () :String {
-			var s:String = future.pop();
-			toggleUndoButtons();
-			return s;
-		}
-		
-		public function futurePush ( v:String ) :void {
-			future.push( v );
-			toggleUndoButtons();
-		}
-		private function toggleUndoButtons () :void
-		{
-			if( itemList )
-			{
-				// Show Undo/Redo Button
-				
-				for( var i:int = 0; i< itemList.items.length; i++ )
-				{
-					if ( itemList.items[i].options.originalLabel == ".Undo" )
-					{
-						if( history.length > 0 ) {
-							itemList.items[i].alpha = 1;
-						}else{
-							itemList.items[i].alpha = .1;
-						}
-						
-					}
-					else if ( itemList.items[i].options.originalLabel == ".Redo" )
-					{
-						if( future.length > 0 ) {
-							itemList.items[i].alpha = 1;
-						}else{
-							itemList.items[i].alpha = .1;
-						}
-					}
-				}
-			}
-		}
+		public static var rtNodeName:String = "span";
 		public var specialCharIcons: Object = {};
+		
+		public var plugin:Object;
+		private var superType:String="";
+		private var superArgs:Array;
 		
 		public static var specialChars:Object = {
 			name:".Special Chars",
@@ -296,9 +242,9 @@
 			cent:"&#162;"
 		}
 		
-		public var richTextCssIcons: Array = [new IconArrowDown(0xFFFFFF, 1, Options.iconSize, int(Options.iconSize))];
+		public var richTextCssIcons: Array = [new IconFromFile( Options.iconDir + "/cap.png", Options.iconSize, Options.iconSize) ];
 		
-		public var itemList:ItemList;
+		public var rtItemList:ItemList;
 		
 		public var richTextButtons:Array;
 		public var richTextIcons:Array;
@@ -311,8 +257,64 @@
 		private var mediaWidth:int=160;
 		private var mediaHeight:int=80;
 		
+		public var pageItemName:String = "";
+		
+		public function historyPop () :String {
+			var s:String = history.pop();
+			toggleUndoButtons();
+			return s;
+		}
+		
+		public function historyPush ( v:String ) :void {
+			history.push( v );
+			toggleUndoButtons();
+		}
+		
+		public function futurePop () :String {
+			var s:String = future.pop();
+			toggleUndoButtons();
+			return s;
+		}
+		
+		public function futurePush ( v:String ) :void {
+			future.push( v );
+			toggleUndoButtons();
+		}
+		
+		private function toggleUndoButtons () :void
+		{
+			if( rtItemList )
+			{
+				// Show Undo/Redo Button
+				
+				for( var i:int = 0; i< rtItemList.items.length; i++ )
+				{
+					if ( rtItemList.items[i].options.originalLabel == ".Undo" )
+					{
+						if( history.length > 0 ) {
+							rtItemList.items[i].alpha = 1;
+						}else{
+							rtItemList.items[i].alpha = .1;
+						}
+					}
+					else if ( rtItemList.items[i].options.originalLabel == ".Redo" )
+					{
+						if( future.length > 0 ) {
+							rtItemList.items[i].alpha = 1;
+						}else{
+							rtItemList.items[i].alpha = .1;
+						}
+					}
+				}
+			}
+		}
+		
 		public function get type () :String {
 			return _type;
+		}
+		
+		public function get _supertype () :String {
+			return _type == "plugin" ? (superType == "" ? _type : superType) : _type;
 		}
 		
 		public function create () :void   {
@@ -360,7 +362,8 @@
 			return o;
 		}
 		
-		private function setupTextField (tf:TextField, _onChange:Function=null, _onActivate:Function=null, _onDeactivate:Function=null) :void {			
+		private function setupTextField (tf:TextField, _onChange:Function=null, _onActivate:Function=null, _onDeactivate:Function=null) :void
+		{			
 			tf.type = TextFieldType.INPUT;
 			tf.multiline = false;
 			tf.defaultTextFormat = fmt;
@@ -387,49 +390,79 @@
 		
 		private function onImageLoaded ( _res:Resource ) :void
 		{
-			var sp:DisplayObject = DisplayObject(_res.obj);
-			
-			if(sp)
+			if( _res && _res.loaded == 1 )
 			{
-				var stylchain:Array = [".media-info"];
-				var fmt:TextFormat = styleSheet.getTextFormat( stylchain, "normal" );
-				
-				if( mediaInfo == null ) {
-					mediaInfo = new TextField();
-					mediaInfo.multiline = true;
-					mediaInfo.autoSize = TextFieldAutoSize.LEFT;
-					mediaInfo.defaultTextFormat = fmt;
-					mediaInfo.height = mediaHeight-4;
-				}
-				
-				var f:File = new File( _res.url );
-				mediaInfo.text =  Math.round(f.size /1000) + " kb" + " \n" + int(sp.width) + " x " + int(sp.height) + " px \n" + f.extension.toUpperCase();
-				
-				var bmd:BitmapData = new BitmapData(mediaWidth, mediaHeight, true, 0x00999999);
-				var bmp:Bitmap = new Bitmap(bmd);
+				var sp:DisplayObject = DisplayObject(_res.obj);
 			
-				var dw:Number = mediaWidth/sp.width;
-				var dh:Number = mediaHeight/sp.height;
-				var scl:Number = Math.min( dw, dh);
+				if(sp)
+				{
+					var stylchain:Array = [".media-info"];
+					var fmt:TextFormat = styleSheet.getTextFormat( stylchain, "normal" );
+					
+					if( mediaInfo == null ) {
+						mediaInfo = new TextField();
+					}
+					
+					var f:File = new File( _res.url );
+					mediaInfo.defaultTextFormat = fmt;
+					mediaInfo.multiline = true;
+					mediaInfo.selectable = false;
+					mediaInfo.autoSize = TextFieldAutoSize.LEFT;
+					
+					mediaInfo.text = Math.round(f.size /1000) + " kb" + " \n" + int(sp.width) + " x " + int(sp.height) + " px \n" + f.extension.toUpperCase();
 				
-				if( scl < 1 ) {
-					sp.scaleX = sp.scaleY = scl;
+					var dw:Number = mediaWidth/sp.width;
+					var dh:Number = mediaHeight/sp.height;
+					var scl:Number = Math.min( dw, dh);
+					
+					if( scl < 1 ) {
+						sp.scaleX = sp.scaleY = scl;
+					}
+					
+					var bmd:BitmapData = new BitmapData( Math.ceil(sp.width), Math.ceil(sp.height), true, 0x00999999);
+					var bmp:Bitmap = new Bitmap(bmd);
+					
+					bmd.draw( sp, sp.transform.matrix );
+					
+					mediaContainer.addChild( bmp );
+					mediaContainer.addChild( mediaInfo );
+					
+					setChildIndex( textField, numChildren-1 );
+					
+					setHeight( Math.max( sp.height, mediaInfo.textHeight + (tfBtn ? tfBtn.cssSizeY : 4 )) + textField.textHeight + 8 );
+					
+					setWidth( cssSizeX );
+					setTimeout( function(){
+						dispatchEvent( new Event("heightChange") );
+					},0);
 				}
-				bmd.draw( sp, sp.transform.matrix );
-				var m:Number = 0;
-				var o:Object = styleSheet.getMultiStyle( stylchain );
-				if( o.marginLeft ) m = CssUtils.parse( o.marginLeft, this, "h" );
-				
-				if( fmt.align == "right" ) {
-					mediaInfo.x = getWidth() - mediaInfo.width;
-				}else{	
-					mediaInfo.x = sp.width + m;
-					mediaInfo.y = 4;
+			}else{
+				Console.log( "Can Not Load Image: " + value );
+				// search image in min, raw, and online if hub-script.. hup->get-root-dir -> http://xyz.com/dir/ , hub->get-file ( value ) -> http://xyz.com/dir/value
+				if( value.substring(0,7) != "file://" && lastWebFileChecked != value )
+				{
+					//var dl:Boolean = 
+					lastWebFileChecked = value;
+					var rv:Boolean = CTTools.findWebFile( value, onFindFileComplete );
+					
+					if( !rv )
+					{
+						setTimeout(reloadImage, 350);
+					}
+					
 				}
-				
-				mediaContainer.addChild( bmp );
-				mediaContainer.addChild( mediaInfo );
-				setHeight( textField.height );
+			}
+		}
+		
+		private  var lastWebFileChecked:String = "";
+		
+		private function onFindFileComplete (success:Boolean) :void {
+			if( success ) {
+				var tmp:String = value;
+				activateValue = value = "";
+				lastWebFileChecked = "";
+				value = tmp;
+				textEnter();
 			}
 		}
 		
@@ -447,8 +480,13 @@
 			}
 		}
 		
-		private function loadImage (path:String) :void
+		public function loadImage (path:String) :void
 		{
+			//if( mediaInfo && contains(mediaInfo) ) removeChild( mediaInfo );
+			
+			//setHeight( tfBtn.cssSizeY );
+			//dispatchEvent( new Event("heightChange") );
+			
 			Application.instance.resourceMgr.clearResourceCache( path, true );
 			Application.instance.resourceMgr.loadResource( path, onImageLoaded, false );
 		}
@@ -462,6 +500,62 @@
 			setHeight( textField.height );	
 		}
 		
+		private function initPlugin () :void
+		{
+			var i:int;
+			var L:int;
+			var cl:Object = Application.instance.findPluginClass( args[0], args[1] );
+			
+			if( cl )
+			{
+				var plg:Object = new cl( args );
+				
+				if( plg )
+				{
+					plugin = plg;
+					superType = "";
+					superArgs = null;
+					
+					L = args.length;
+					
+					if( cl.superType != "" )
+					{
+						superType = cl.superType;
+						
+						if( L > 2 ) {
+							superArgs = [];
+							for( i=2; i<L; i++ ) {
+								superArgs.push( args[i] );
+							}
+						}
+					}
+					
+					plg.init(this, Application, pageItemName);
+					plg.setText( value );
+					
+					if( superType != "" )
+					{
+						var tmpargs:Array = args;
+						args = superArgs;
+						setType( superType );
+						_type = "plugin";
+						args = tmpargs;
+					}
+					setHeight( plg.getHeight() + 2 );
+					setWidth( cssSizeX );
+					//setTimeout( function(){
+					dispatchEvent( new Event( "heightChange") );
+					//},0);
+				}
+				else
+				{
+					Console.log("Error: Plugin '"+args[0]+"' Class Error");
+				}
+			}else{
+				Console.log("Error: Plugin '"+args[0]+"' Class Not Found");
+			}
+			
+		}
 		private var dateFormat:String="d. m. y";
 		private function enterDate (d:Date) :void
 		{
@@ -543,7 +637,11 @@
 			vectorMinusButton = null;
 			vectorContainer = null;
 
-			if( tp == "directory" || tp == "file" || tp == "files" || tp == "image" || tp=="video" || tp=="audio" || tp=="pdf" )
+			if( tp == "richtext" || tp == "text" || tp == "line" ) {
+				value = HtmlParser.toInputText( value );
+			}
+			
+			if( tp == "directory" || tp == "file" || tp == "image" || tp=="video" || tp=="audio" || tp=="pdf" || tp=="font" || tp == "zip")
 			{
 				var icoPath:String;
 				if( tp == "image" ) {
@@ -552,35 +650,48 @@
 					icoPath = Options.iconDir + CTOptions.urlSeparator + "file-video.png";
 				}else if( tp == "audio" ) {
 					icoPath = Options.iconDir + CTOptions.urlSeparator + "file-audio.png";
+				}else if( tp == "pdf" ) {
+					icoPath = Options.iconDir + CTOptions.urlSeparator + "file-pdf.png";
+				}else if( tp == "zip" ) {
+					icoPath = Options.iconDir + CTOptions.urlSeparator + "file-zip.png";
 				}else{
 					icoPath = Options.iconDir + CTOptions.urlSeparator + "file-text.png";
 				}
 				tfBtn = new Button([ new IconFromFile( icoPath,Options.iconSize,Options.iconSize ) ],btWidth,0,this,styleSheet,'','textbox-button', false);
 				tfBtn.textAlign = "center";
-				textField.width = textField.width - tfBtn.cssSizeX;
-				tfBtn.x = textField.width - 1;
-				tfBtn.y = 1;
-				
-				initDragNDrop(this);
 				
 				if( tp == "directory" ) {
 					tfBtn.addEventListener( MouseEvent.CLICK, selectDirectory );
-				}else{
-					tfBtn.addEventListener( MouseEvent.CLICK, selectFiles );
+				}
+				else
+				{
+					initDragNDrop(this);
+					
+					if( this is VectorTextField ) {
+						tfBtn.addEventListener( MouseEvent.CLICK, selectFiles );
+					}else{
+						tfBtn.addEventListener( MouseEvent.CLICK, selectFile );
+					}
 				}
 				
 				if( tp == "image" ) {
 					fileFilterDescription = "Image Files";
-					allowed_extensions  =  "*.gif;*.jpg;*.png;";
+					allowed_extensions  =  "*.gif;*.jpg;*.jpeg;*.jp2;*.j2k;*.png;*.svg;";
 				}else if( tp == "video" ) {
 					fileFilterDescription = "Video Files";
-					allowed_extensions  =  "*.mp4;*.mov;";
+					allowed_extensions  =  "*.mp4;*.mov;*.ogg;*.webm;";
 				}else if( tp == "audio" ) {
 					fileFilterDescription = "Mp3 Files";
 					allowed_extensions  =  "*.mp3;";
 				}else if( tp == "pdf" ) {
 					fileFilterDescription = "PDF Files";
 					allowed_extensions  =  "*.pdf;";
+				}else if( tp == "zip" ) {
+					fileFilterDescription = "ZIP Files";
+					allowed_extensions  =  "*.zip;";
+				}else if( tp == "font" ) {
+					fileFilterDescription = "Font Files";
+					allowed_extensions  =  "*.ttf;*.woff;*.woff2;*.eot;";
 				}
 				if( args ) {
 					L = args.length;
@@ -590,37 +701,33 @@
 					if( L > 3 ) allowed_extensions = args[3];
 				}
 				
-				if( tp == "image" /*|| tp == "video"*/ ) {
-					var m:Number = 3;
+				if( tp == "image" ) {
+					var m:Number = 4;
 					var o:Object = styleSheet.getMultiStyle( [".media-container"] );
 					if( o.marginLeft ) m = CssUtils.parse( o.marginLeft, this, "h" )
 					
 					mediaContainer = new Sprite();
 					mediaContainer.addEventListener( MouseEvent.CLICK, largeImagePreview );
-					mediaContainer.y = textField.height + 5;
+					mediaContainer.y = cssTop;
 					mediaContainer.x = m;
 					addChild(mediaContainer);
 					
 					if( value && value != "" && value.toLowerCase() != "none") {
-						if( tp == "image") {
-							loadImage( CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderRaw + CTOptions.urlSeparator + value );
-						//}else if( tp == "video" ) {
-						//	loadVideo( CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderRaw + CTOptions.urlSeparator + value );
-						}
+						loadImage( CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderRaw + CTOptions.urlSeparator + value );
 					}
-				}
-				setHeight( textField.height + 2);
+					//setHeight( mediaHeight + textField.height + 2 );
+				}//else{
 				
+				setHeight( textField.height + 2);
+				setWidth(getWidth());
+				//}
 			}
 			else if( tp == "nodestyle" ) 
 			{
 				tfBtn = new Button([new IconFromFile(Options.iconDir + CTOptions.urlSeparator +"services.png"),Options.iconSize,Options.iconSize],btWidth,0,this,styleSheet,'','textbox-nodestyle-btn', false);
-				textField.width = textField.width - (tfBtn.cssSizeX + cssBoxX);
 				textField.wordWrap = true;
 				textField.autoSize = TextFieldAutoSize.LEFT;
 				
-				tfBtn.x = textField.width - 1;
-				tfBtn.y = 1;
 				tfBtn.addEventListener( MouseEvent.CLICK, nodeStyleHandler );
 				tfh = textField.height;
 				textField.autoSize = TextFieldAutoSize.NONE;
@@ -630,12 +737,8 @@
 			else if( tp == "styleclass" ) 
 			{
 				tfBtn = new Button([new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "modul.png"),Options.iconSize,Options.iconSize],btWidth,0,this,styleSheet,'','textbox-styleclass-btn', false);
-				textField.width = textField.width - (tfBtn.cssSizeX + cssBoxX);
 				textField.wordWrap = true;
 				textField.autoSize = TextFieldAutoSize.LEFT;
-				
-				tfBtn.x = textField.width - 1;
-				tfBtn.y = 1;
 				tfBtn.addEventListener( MouseEvent.CLICK, styleClassHandler );
 				tfh = textField.height;
 				textField.autoSize = TextFieldAutoSize.NONE;
@@ -661,13 +764,9 @@
 					if( L > 1 ) boolNo = args[1];
 				}
 				
-				var ico:Sprite = new IconFromFile( Options.iconDir + CTOptions.urlSeparator + "toggle-off-btn.png", Options.btnSize*1.25, Options.btnSize );
+				var ico:Sprite = new IconFromFile( Options.iconDir + CTOptions.urlSeparator + "toggle-off-btn.png", Options.btnSize, Options.btnSize );
 				
 				tfBtn = new Button([ico],0,0,this,styleSheet,'','textbox-boolean-btn', false);
-				textField.width = textField.width - (tfBtn.cssSizeX+cssBoxX);
-				
-				tfBtn.x = textField.width - 1;
-				tfBtn.y = -3;
 				tfBtn.addEventListener( MouseEvent.CLICK, boolButtonHandler );
 				
 				if( boolValue || value == boolYes || value=="true" || CssUtils.stringToBool(value) ) {
@@ -676,12 +775,108 @@
 				
 				setHeight( textField.height + 2 );
 			}
+			else if ( tp == "plugin" )
+			{
+				// Add Plugin to root template cmd.xml to load .swf plugin files
+				// Plugin interface methods: init(container:InputTextBox):Boolean, getText():String, setText(String):void, setWidth(int):void, getHeight():int
+				//
+				// {#myplug:Plugin(Plugin-ID,plugin-arguments...)=default-value}
+				//
+				// Example Audio WaveForm Generator
+				// plugin displays ui on init with a file selector for audio files
+				// on select file (or getText()), the plugin class generates a Bitmap with the waveform in the web-directories (min and raw)
+				// 
+				// Compile air swf with a class for the input plugin
+				//
+				// - Create SWF class wich simply embeds the WaveFormEx class.
+				//
+				// - Create the WaveFormEx class:
+				// package plugins
+				// {
+				//  import ct.ctrl.InputTextBox;
+				//
+				//	public class WaveFormEx 
+				//  {
+				//		public function WaveForm() {}
+				//
+				//		public static function getMember ( pageItem:String, memeber:String ) :String { 
+				//			return pageItems[ pageItem ][ member ];
+				//		}
+				//
+				//		public static superType:String = "audio";
+				//
+				//		private var _appInst:Object; 
+				//		private var _container:Sprite; 
+				//		private var pageItems:Array = []; 
+				//
+				//		public function init( container:Object, app:Object, pageItemName:String ) :void { 
+				//			// ... 
+				//			// create plugin-ui inside InputTextBox (Sprite)
+				//			//...
+				//
+				//			// Usage witch app-plugin communication
+				//			// Store container and app
+				//
+				//			// get to Application instance (CTMain):
+				//			_appInst = app.instance;
+				//
+				//			// get the input container (InputTextBox)
+				//			_container = Sprite( container );
+				//			
+				//			// get CTTools class from app:
+				//			var t:Object = app.getClass("ct.CTTools");
+				//			trace( "Project Directory: " + t.projectDir);
+				//
+				//			// ...
+				//		}
+				//		
+				//		public function getText() :String {
+				//			// ... 
+				//			// return path to image in webdir: images/wave.png (the html ouput of the plugin)
+				//			// ...
+				//		}
+				//		public function setText(s:String) :void { 
+				//			// ... 
+				//			// set img path..
+				// 			// build wave form bmp..
+				//			// ...
+				//		}
+				//		public function setWidth ( int ) { 
+				//			// set ui width
+				//		}
+				//		public function getHeight () :int { 
+				//			// return height of the input component
+				//			return 100;
+				//		}
+				//	} 
+				// }
+				//
+				//
+				// Embed plugin in a Theme:
+				//
+				// - Copy waveform.swf into theme/plugins folder
+				//
+				// - In theme config.xml add plugins folder to staticfolders:
+				// <template.. staticfolders="plugins,pdfs".. />
+				//
+				// - In theme config file, cmd.xml, load the plugin:
+				// <cmd name=="CTTools load-plugin app.contemple.WaveForm template:/plugins/waveform.swf"/>
+				//
+				// - In hteml template display the generated Bitmap:
+				// <img src="{#wave:Plugin("contemple.WaveForm","plugins.WaveFormEx",256,4,'#567','#123') ='images/waveform-01.png'}
+				//
+				if( !args || args.length <= 1 ) {
+					Console.log("Error: Plugin Arguments Missing: Plugin( id, className, [superArgs..] )");
+					return;
+				}
+				setTimeout( initPlugin, 0 );
+			}
 			else if( tp == "number" || tp == "integer" || tp == "screennumber" || tp == "screeninteger" )
 			{
 				if( args && args.length > 1) {
 					tfSlider = new Slider(0, 0, this,styleSheet, '', 'textbox-slider', false);
 					tfSlider.setScrollerHeight( int(textField.width / 10) );
-					tfSlider.setHeight( textField.width-4 );
+					tfSlider.setHeight( textField.width-8 );
 					tfSlider.setWidth( tfSlider.getWidth() || 8 );
 					tfSlider.rotation = -90;
 					tfSlider.x = 0;
@@ -712,18 +907,14 @@
 					}
 					
 					tfPopup.addEventListener( Event.SELECT, ppScreenNumberSelect );
-					textField.width = textField.width - (tfPopup.cssSizeX+cssBoxX);
-					tfPopup.x = textField.width - 1;
-					tfPopup.y = 1;
-					tfPopup.contLeft.x = tfPopup.cssLeft + 3;
 				}
 				
 				if( tfSlider ) {
-					setHeight( textField.height + 12 );
+					setHeight( textField.height + 16 );
 				}else{
 					setHeight( textField.height + 2 );
 				}
-			
+				
 			}
 			else if( tp == "vector" )
 			{
@@ -773,7 +964,7 @@
 					var splitValues:Array = value.split( vectorSeparator );
 					var typeList:Array;
 					
-					if( vectorType == "directory" || vectorType == "file" || vectorType == "image" || vectorType == "video" || vectorType == "audio" || vectorType == "pdf")
+					if( vectorType == "directory" || vectorType == "file" || vectorType == "image" || vectorType == "video" || vectorType == "audio" || vectorType == "pdf" || vectorType == "font" || vectorType == "zip" )
 					{
 						if( args.length > 5 ) defaultWWWFolder = args[5];
 						if( args.length > 6 ) defaultRename = args[6];
@@ -806,6 +997,10 @@
 							vecObj = {};
 							CTTools.cloneTo( propObj, vecObj );
 							tf = new VectorTextField( vectorType, vecArgs, vecObj, vecValue, cssWidth, cssHeight, vectorContainer, styleSheet, '', nodeClass, false );
+							
+							
+							tf.addEventListener( "heightChange", vectorImageHeightChange );
+							
 							tf.wrap = vecWrap;
 							tf.rootVector = this;
 							vectorTextFields.push ( tf );
@@ -836,21 +1031,80 @@
 							vectorTextFields.push( tf );
 						}
 					}
+					else if ( vectorType == "itemlist" )
+					{
+						L2 = Math.max( L, splitValues.length );
+						if( args.length > 5 ) field = args[5];
+						if( args.length > 6 ) labelfield = args[6];
+						if( args.length > 7 ) pre = args[7];
+						if( args.length > 8 ) post = args[8];
+						
+						for(i=0; i<L2; i++) {
+							vecArgs = [];
+							vecObj = {};
+							valStart = 9 + i*4;
+
+							if( args.length > valStart ) {
+									
+								vecValue = args[ valStart ];
+								if( splitValues.length > i ) vecValue = splitValues[i];
+								if( args.length > valStart+1) vecArgs.push(Number(args[valStart+1]));
+								if( args.length > valStart+2) vecArgs.push(Number(args[valStart+2]));
+								if( args.length > valStart+3) vecArgs.push(Number(args[valStart+3]));
+								if( args.length > valStart+4) vecArgs.push(Number(args[valStart+4]));
+							}else{
+								vecArgs.push( field, labelfield, pre, post);
+							}
+							
+							tf = new VectorTextField( vectorType, vecArgs, vecObj, vecValue, cssWidth, cssHeight, vectorContainer, styleSheet, '', nodeClass, false );
+							tf.wrap = vecWrap;
+							tf.rootVector = this;
+							vectorTextFields.push( tf );
+						}
+					}
 					else if ( vectorType == "typed" )
 					{
-						if( args.length > 5 ) typeList = typeof args[5] == "string" ? String(args[5]).split(",") : args[5];
-						if(typeList ) {
+						if( args.length > 5 )
+						{ 
+							if( typeof args[5] == "string" )
+							{
+								if( args[5].charAt(0) == "*" ) {
+									typeList = String(Application.instance.strval(ta_str.substring(1),true)).split(",");
+								}else{
+									typeList = String(args[5]).split(",");
+								}
+							}
+							else
+							{
+								typeList = args[5];
+							}
+						}
+						
+						if(typeList )
+						{
 							L2 = Math.max( L, splitValues.length );
+							var tps:Array;
+							var vtp:String;
 							
-							for(i=0; i<L2; i++) {
+							for(i=0; i<L2; i++)
+							{
 								vecArgs = typeList;
 								vecObj = {};
 								valStart = 6 + i*2;
 
 								if( args.length > valStart ) vecValue = args[ valStart ];
 								if( splitValues.length > i ) vecValue = splitValues[i];
-								
+								if( vecValue.indexOf(":")) {
+									tps = vecValue.split(":");
+									if( tps.length > 1 ) {
+										vtp = tps.shift();
+										vecValue = tps.join(":");
+									}									
+								}else{
+									vtp = "";
+								}
 								tf = new VectorTextField( vectorType, vecArgs, vecObj, vecValue, cssWidth, cssHeight, vectorContainer, styleSheet, '', nodeClass, false );
+								tf.tfPopup.label = vtp;
 								tf.wrap = vecWrap;
 								tf.rootVector = this;
 								vectorTextFields.push( tf );
@@ -886,26 +1140,28 @@
 					vpmb = Math.max(vectorPlusButton.cssSizeY, vectorMinusButton.cssSizeY)
 				}
 				setHeight( textField.height + 2 + vpmb );
-			}else if( tp == "text" || tp == "code" ) {
+			}
+			else if( tp == "text" || tp == "code" )
+			{
 				textField.multiline = true;
 				textField.wordWrap = true;
 				
-				itemList = new ItemList(0, 0, this, this.styleSheet, '', 'richtext-btn-list', false);
+				rtItemList = new ItemList(0, 0, this, this.styleSheet, '', 'richtext-btn-list', false);
 				
-				btn = new Button([new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "reply.png",Options.iconSize,Options.iconSize)],0,0,itemList,this.styleSheet,'','richtext-btn richtext-btn-first',false);
+				btn = new Button([new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "undo.png",Options.iconSize,Options.iconSize)],0,0,rtItemList,this.styleSheet,'','richtext-btn richtext-btn-first',false);
 				btn.options.originalLabel = ".Undo";
 				btn.addEventListener(MouseEvent.MOUSE_DOWN, richtTextBtnHandler);
-				itemList.addItem(btn, true);
+				rtItemList.addItem(btn, true);
 				
-				btn = new Button([new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "forward.png",Options.iconSize,Options.iconSize)],0,0,itemList,this.styleSheet,'','richtext-btn richtext-btn-last',false);
+				btn = new Button([new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "redo.png",Options.iconSize,Options.iconSize)],0,0,rtItemList,this.styleSheet,'','richtext-btn richtext-btn-last',false);
 				btn.options.originalLabel = ".Redo";
 				btn.addEventListener(MouseEvent.MOUSE_DOWN, richtTextBtnHandler);
-				itemList.addItem(btn, true);
+				rtItemList.addItem(btn, true);
 				
-				itemList.format(true);
+				rtItemList.format(true);
 				historyPush( textField.text );
 				textField.autoSize = TextFieldAutoSize.LEFT;
-				textField.width = getWidth() - ( itemList.width + 4);
+				textField.width = getWidth() - ( rtItemList.width + 4);
 				
 				tfh = textField.height;
 				textField.autoSize = TextFieldAutoSize.NONE;
@@ -920,7 +1176,8 @@
 				
 				var colorStyle:Object = styleSheet.getStyle(".textbox-color-clip");
 				
-				if( colorStyle ) {
+				if( colorStyle )
+				{
 					if( colorStyle.marginRight ) {
 						colorOfs = CssUtils.parse( colorStyle.marginRight, this );
 					}
@@ -933,45 +1190,39 @@
 				
 				ColorPicker.testColor( this._color );
 				
-				if( propObj && propObj.defValue ) {
-					var cl:int = CssUtils.parse( propObj.defValue);
-					ColorPicker.testColor( cl );
+				if( propObj && propObj.defValue )
+				{
+					var clo:int = CssUtils.parse( propObj.defValue);
+					ColorPicker.testColor( clo );
 				}
+				
 				colorClip.addEventListener( MouseEvent.CLICK, onSelectColor);
 				addChild( colorClip );
 			}
 			else if( tp == "richtext" )
 			{
+				var cssclasses:Array;
+				if( CTTools.templateConstants && CTTools.templateConstants["richTextCssClasses"] != undefined ) {
+					if( args && args.length > 0 ) {
+						cssclasses = (args[0] + CTTools.templateConstants["richTextCssClasses"]).split(",");
+					}else{
+						cssclasses = CTTools.templateConstants["richTextCssClasses"].split(",");
+					}
+				}else{
+					if( args && args.length > 0 ) {
+						cssclasses = (args[0] + CTOptions.richTextCssClasses.join(",")).split(",");
+					}else{
+						cssclasses = CTOptions.richTextCssClasses;
+					}
+				}
+				
+				richTextButtons = [ cssclasses, specialChars, ".Heading", ".List", ".Bold", ".Italic", ".Link", ".Undo", ".Redo" ];
+				
 				textField.multiline = true;
 				textField.wordWrap = true;
 				
-				/*
 				specialCharIcons = {
-					name: new IconFromFile( Options.iconDir + CTOptions.urlSeparator + "zehn-schluessel.png", Options.iconSize, Options.iconSize ),
-					whitespace: new IconEmpty(Options.iconSize, Options.iconSize),
-					alpha: new IconFromHtml( '<p class="special-char-icon">&#945;</p>', styleSheet, "",Options.iconSize, Options.iconSize ),
-					beta: new IconFromHtml( '<p class="special-char-icon">&#946;</p>', styleSheet, "",Options.iconSize, Options.iconSize ),
-					copyright: new IconFromHtml('<p class="special-char-icon">&#169;</p>', styleSheet, "",Options.iconSize, Options.iconSize ),
-					delta: new IconFromHtml('<p class="special-char-icon">&#948;</p>', styleSheet, "",Options.iconSize, Options.iconSize ),
-					gamma: new IconFromHtml( '<p class="special-char-icon">&#947;</p>', styleSheet, "",Options.iconSize, Options.iconSize ),
-					micro: new IconFromHtml( '<p class="special-char-icon">&#181;</p>', styleSheet, "",Options.iconSize, Options.iconSize ),
-					promil: new IconFromHtml( '<p class="special-char-icon">&#8240;</p>', styleSheet, "",Options.iconSize, Options.iconSize ),
-					omega: new IconFromHtml( '<p class="special-char-icon">&#937;</p>', styleSheet, "",Options.iconSize, Options.iconSize ),
-					pi: new IconFromHtml( '<p class="special-char-icon">&#960;</p>', styleSheet, "",Options.iconSize, Options.iconSize ),
-					quote: new IconFromHtml( '<p class="special-char-icon">&#34;</p>', styleSheet, "",Options.iconSize, Options.iconSize ),
-					radic: new IconFromHtml( '<p class="special-char-icon">&#8730;</p>', styleSheet, "",Options.iconSize, Options.iconSize ),
-					theta: new IconFromHtml( '<p class="special-char-icon">&#952;</p>', styleSheet, "",Options.iconSize, Options.iconSize ),
-					delta: new IconFromHtml( '<p class="special-char-icon">&#914;</p>', styleSheet, "",Options.iconSize, Options.iconSize ),
-					lambda: new IconFromHtml( '<p class="special-char-icon">&#916;</p>', styleSheet, "",Options.iconSize, Options.iconSize ),
-					sigma: new IconFromHtml( '<p class="special-char-icon">&#931;</p>', styleSheet, "",Options.iconSize, Options.iconSize ),
-					ypsilon: new IconFromHtml( '<p class="special-char-icon">&#933;</p>', styleSheet, "",Options.iconSize, Options.iconSize ),
-					xi: new IconFromHtml( '<p class="special-char-icon">&#926;</p>', styleSheet, "",Options.iconSize, Options.iconSize )
-					
-					
-				};*/
-				
-				specialCharIcons = {
-					name: new IconFromFile( Options.iconDir + CTOptions.urlSeparator + "zehn-schluessel.png", Options.iconSize, Options.iconSize )
+					name: new IconFromFile( Options.iconDir + CTOptions.urlSeparator + "categorize.png", Options.iconSize, Options.iconSize )
 				}
 				
 				for (var icname:String in specialChars ) {
@@ -985,10 +1236,10 @@
 									new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "fett-gedruckt.png",Options.iconSize, Options.iconSize), 
 									new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "kursiv.png",Options.iconSize, Options.iconSize),
 									new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "link.png",Options.iconSize, Options.iconSize),
-									new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "reply.png",Options.iconSize, Options.iconSize), 
-									new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "forward.png",Options.iconSize, Options.iconSize)  ];
+									new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "undo.png",Options.iconSize, Options.iconSize), 
+									new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "redo.png",Options.iconSize, Options.iconSize)  ];
 				
-				itemList = new ItemList(0,0,this,this.styleSheet,'','richtext-btn-list', false);
+				rtItemList = new ItemList(0,0,this,this.styleSheet,'','richtext-btn-list', false);
 				
 				var btnpp:Popup;
 				var s:int;
@@ -1010,16 +1261,16 @@
 								icons.push( richTextIcons[i][0] );
 							}
 						}						
-						btnpp = new Popup( icons, 0,0,itemList, cssStyleSheet,'','richtext-popup' + (i==0?" richtext-popup-first" : (i==richTextButtons.length-1 ? " richtext-popup-last":"") ),false);
+						btnpp = new Popup( icons, 0,0,rtItemList, cssStyleSheet,'','richtext-popup' + (i==0?" richtext-popup-first" : (i==richTextButtons.length-1 ? " richtext-popup-last":"") ),false);
 						btnpp.alignH = "right";
 						btnpp.textAlign = "right";
-						btnpp.alignV = "current";//"bottom";
+						btnpp.alignV = "bottom";
 						
 						for(s=1; s < richTextButtons[i].length; s++) {
 							btnpp.rootNode.addItem( [ ""+richTextButtons[i][s]], cssStyleSheet);
 						}
 						btnpp.addEventListener( Event.SELECT, richtTextPPHandler);
-						itemList.addItem(btnpp,true);
+						rtItemList.addItem(btnpp,true);
 					
 					}else if( richTextButtons[i] is String ){
 						if( richTextButtons[i].charAt(0) == "." ) {
@@ -1030,33 +1281,31 @@
 						if( richTextIcons && richTextIcons.length > i ) {
 							icons.push( richTextIcons[i] );
 						}		
-						btn = new Button(icons,0,0,itemList,this.styleSheet,'','richtext-btn'+ (i==0?" richtext-btn-first" : (i==richTextButtons.length-1?" richtext-btn-last":"")),false);
-						
+						btn = new Button(icons,0,0,rtItemList,this.styleSheet,'','richtext-btn'+ (i==0?" richtext-btn-first" : (i==richTextButtons.length-1?" richtext-btn-last":"")),false);
 						btn.options.originalLabel = richTextButtons[i];
-						
 						btn.addEventListener(MouseEvent.MOUSE_DOWN, richtTextBtnHandler);
-						itemList.addItem(btn, true);
+						rtItemList.addItem(btn, true);
 					
 					}else if ( richTextButtons[i] is Object ) {
 						if( richTextButtons[i].name.charAt(0) == "." ) {
 							icons = [];
 						}else{
 							icons = [richTextButtons[i].name];
-
 						}
 						if( richTextIcons && richTextIcons.length > i ) {
 							if( richTextIcons[i] is Object && richTextIcons[i]["name"] != undefined ) {
 								icons.push(  richTextIcons[i]["name"] );
 							}
 						}
-						btnpp = new Popup( icons,0,0,itemList, cssStyleSheet,'','richtext-popup' + (i==0?" richtext-popup-first" : (i==richTextButtons.length-1 ? " richtext-popup-last":"") ),false);
+						btnpp = new Popup( icons,0,0,rtItemList, cssStyleSheet,'','richtext-popup' + (i==0?" richtext-popup-first" : (i==richTextButtons.length-1 ? " richtext-popup-last":"") ),false);
 						btnpp.alignH = "right";
 						btnpp.textAlign = "right";
-						btnpp.alignV = "current";
+						btnpp.alignV = "bottom";
 						
-						for( n in richTextButtons[i] ) {
-							if( n != "name" ) {
-								//icons = [""+n];
+						for( n in richTextButtons[i] )
+						{
+							if( n != "name" )
+							{
 								icons = [];
 								
 								if( richTextIcons && richTextIcons.length > i ) {
@@ -1071,14 +1320,14 @@
 							}
 						}
 						btnpp.addEventListener( Event.SELECT, richtTextPPHandler);
-						itemList.addItem(btnpp,true);
+						rtItemList.addItem(btnpp,true);
 					}
 				}
 				
-				itemList.format(false);
+				rtItemList.format(false);
 				historyPush( textField.text );
 				textField.autoSize = TextFieldAutoSize.LEFT;
-				textField.width = getWidth() - ( itemList.width + 4);
+				textField.width = getWidth() - ( rtItemList.width + 4);
 				
 				tfh = textField.height;
 				textField.autoSize = TextFieldAutoSize.NONE;
@@ -1086,10 +1335,59 @@
 				setHeight( tfh + 2 );
 				setWidth(getWidth());
 			}
+			else if ( tp == "area" )
+			{
+				if( args ) {
+					L = args.length;
+					
+					// Inline Area:
+					// {# myitems : Area(Area-Name, area-type, [offset], [limit], [subTemplateNameFilter]) }
+					
+					var areaObj:Object = {};
+					CTTools.cloneTo( propObj, areaObj );
+					
+					if( updateItem ) {
+						CTTools.cloneTo( updateItem, areaObj );
+					}
+					try {
+						areaObj["itemname"] = Application.instance.view.panel.src.editor.currentEditor.updateItem.name;
+					}catch( e:Error ) {
+						Console.log("Error: No AreaEditor..");
+					}
+					
+					if( L > 0 ) areaName =  CTTools.webFileName( String(args[0]), areaObj );
+					if( L > 1 ) areaType = String(args[1]);
+					if( L > 2 ) areaOffset = parseInt( args[2] );
+					if( L > 3 ) areaLimit = parseInt( args[3] );
+					if( L > 4 ) areaSubTemplateFilter = String(args[4]);
+					
+					showAreaItems()
+				}
+			}
 			else if( tp == "typed" ) {
 				if( args && args.length > 0 )
 				{
-					var types:Array = args[0] is Array ? args[0] : args;
+					var types:Array;
+					
+					if( args[0] is String ) {
+						var s2:int = args[0].indexOf(":");
+						if( s2 >= 1 ) {
+							types = [];
+							var tmp:Array = args[0].split(":");
+							if( CTTools.pageItems ) {
+								L = CTTools.pageItems.length;
+								for( i=0; i < L; i++) {
+									if( CTTools.pageItems[i].area == tmp[0] ) {
+										types.push( CTTools.pageItems[i][tmp[1]] );
+									}
+								}
+							}
+						
+						}
+					}else{
+						types = args[0] is Array ? args[0] : args;
+					}
+					
 					if( types ) {
 						
 						tfPopup = new Popup( [ new IconArrowDown( Application.instance.mainMenu.iconColor ), types[0] ], 0, textField.height - 1, this, styleSheet, '', 'textbox-typed', false);
@@ -1103,11 +1401,9 @@
 								tfPopup.rootNode.addItem( [ "" + types[i] ], styleSheet);
 							}
 						}
+						
 						tfPopup.addEventListener( Event.SELECT, ppTypedSelect );
 						textField.width = textField.width - tfPopup.cssSizeX;
-						tfPopup.x = textField.width - 1;
-						tfPopup.y = 1;
-						tfPopup.contLeft.x = tfPopup.cssLeft + 3;
 					}
 				}
 				setHeight( textField.height + 2 );
@@ -1118,7 +1414,7 @@
 					tfPopup = new Popup( [ new IconArrowDown( Application.instance.mainMenu.iconColor ) ], btWidth, textField.height - 1, this, styleSheet, '', 'textbox-popup', false);
 					tfPopup.alignH = "right";
 					tfPopup.textAlign = "right";
-					tfPopup.alignV = "current";
+					tfPopup.alignV = "bottom";
 					
 					if( args.length > 0) {
 						L = args.length;
@@ -1153,7 +1449,7 @@
 									
 									continue;
 								}else{
-									Console.log("Identifier not found: " + ta_str);
+									Console.log("Identifier Not Found: " + ta_str);
 								}
 							}
 							
@@ -1163,9 +1459,6 @@
 					}
 					tfPopup.addEventListener( Event.SELECT, ppListSelect );
 					textField.width = textField.width - tfPopup.cssSizeX;
-					tfPopup.x = textField.width - 1;
-					tfPopup.y = 1;
-					tfPopup.contLeft.x = tfPopup.cssLeft + 3;
 				}
 				setHeight( textField.height + 2 );
 			}else if( tp == "listappend" || tp == "listmultiple" ) {
@@ -1174,14 +1467,15 @@
 					tfPopup = new Popup( [ new IconArrowDown( Application.instance.mainMenu.iconColor ) ], btWidth, textField.height - 1, this, styleSheet, '', 'textbox-popup', false);
 					tfPopup.alignH = "right";
 					tfPopup.textAlign = "right";
-					tfPopup.alignV = "current";
+					tfPopup.alignV = "bottom";
 					
 					listAppendSeparator = args[0];
 					var ta_str2:String;
 					
 					if( args.length > 1) {
 						L = args.length;
-						for(i=1; i < L; i++) {
+						for(i=1; i < L; i++)
+						{
 							ta_str = args[i];
 							
 							if( ta_str.charAt(0) == "#" && ( ta_str != "#separator" ) )
@@ -1189,8 +1483,8 @@
 								if( CTTools.templateConstants && CTTools.templateConstants[ ta_str.substring(1) ] != undefined )
 								{
 									ta_arr = CTTools.templateConstants[ ta_str.substring(1) ].split(",");
-									
 								}
+								
 								if( !ta_arr ) {
 									try {
 										ta_str2 = String( Application.instance.strval( ta_str.substring(1), true ) );
@@ -1207,12 +1501,12 @@
 									for( ta_i=0; ta_i < ta_arr.length; ta_i++)
 									{
 										tfPopup.rootNode.addItem( [ "" + TemplateTools.obj2Text(ta_arr[ta_i], "#", propObj, false, false ) ], styleSheet);
-									
 									}
-									
 									continue;
-								}else{
-									Console.log("Identifier not found: " + ta_str);
+								}
+								else
+								{
+									Console.log("Identifier Not Found: " + ta_str);
 								}
 							}
 							
@@ -1223,9 +1517,6 @@
 					}
 					tfPopup.addEventListener( Event.SELECT, ppListAppendSelect );
 					textField.width = textField.width - tfPopup.cssSizeX;
-					tfPopup.x = textField.width - 1;
-					tfPopup.y = 1;
-					tfPopup.contLeft.x = tfPopup.cssLeft + 3;
 				}
 				setHeight( textField.height + 2 );
 			}else if( tp == "pagelist" ) {
@@ -1233,7 +1524,7 @@
 				tfPopup = new Popup( [ new IconArrowDown( Application.instance.mainMenu.iconColor ) ], btWidth, textField.height - 1, this, styleSheet, '', 'textbox-popup', false);
 				tfPopup.alignH = "right";
 				tfPopup.textAlign = "right";
-				tfPopup.alignV = "current";
+				tfPopup.alignV = "bottom";
 				var pages:Array = [];
 				
 				if( CTTools.pages )
@@ -1295,9 +1586,6 @@
 				}
 				tfPopup.addEventListener( Event.SELECT, ppListSelect );
 				textField.width = textField.width - tfPopup.cssSizeX;
-				tfPopup.x = textField.width - 1;
-				tfPopup.y = 1;
-				tfPopup.contLeft.x = tfPopup.cssLeft + 3;
 				setHeight( textField.height + 2 );
 				
 			}else if( tp == "arealist" ) {
@@ -1305,7 +1593,7 @@
 				tfPopup = new Popup( [ new IconArrowDown( Application.instance.mainMenu.iconColor ) ], btWidth, textField.height - 1, this, styleSheet, '', 'textbox-popup', false);
 				tfPopup.alignH = "right";
 				tfPopup.textAlign = "right";
-				tfPopup.alignV = "current";
+				tfPopup.alignV = "bottom";
 				var areas:Array = [];
 				
 				if( CTTools.activeTemplate && CTTools.activeTemplate.areasByName ) {
@@ -1323,20 +1611,17 @@
 				}
 				tfPopup.addEventListener( Event.SELECT, ppListSelect );
 				textField.width = textField.width - tfPopup.cssSizeX;
-				tfPopup.x = textField.width - 1;
-				tfPopup.y = 1;
-				tfPopup.contLeft.x = tfPopup.cssLeft + 3;
 				setHeight( textField.height + 2 );
 				
 			}else if( tp == "itemlist" ) {
 				
-				// ItemList( area-name, [field], [pre], [post] )
+				// ItemList( area-name, [field], [pre], [post], [labelfield] )
 				if( args && args.length > 0)
 				{
 					tfPopup = new Popup( [ new IconArrowDown( Application.instance.mainMenu.iconColor ) ], btWidth, textField.height - 1, this, styleSheet, '', 'textbox-popup', false);
 					tfPopup.alignH = "right";
 					tfPopup.textAlign = "right";
-					tfPopup.alignV = "current";
+					tfPopup.alignV = "bottom";
 					
 					var items:Array = [];
 					var area:String = args[0];
@@ -1362,20 +1647,18 @@
 					
 					tfPopup.addEventListener( Event.SELECT, ppLabelListSelect );
 					textField.width = textField.width - tfPopup.cssSizeX;
-					tfPopup.x = textField.width - 1;
-					tfPopup.y = 1;
-					tfPopup.contLeft.x = tfPopup.cssLeft + 3;
 					setHeight( textField.height + 2 );
 				}
-			}else if( tp == "itemlistappend" || tp == "itemlistmultiple" ) {
-				
-				// ItemList( area-name, [field], [pre], [post] )
+			}
+			else if ( tp == "itemlistappend" || tp == "itemlistmultiple" )
+			{
+				// ItemList( area-name, [field], [pre], [post], [labelfield] )
 				if( args && args.length > 1)
 				{
 					tfPopup = new Popup( [ new IconArrowDown( Application.instance.mainMenu.iconColor ) ], btWidth, textField.height - 1, this, styleSheet, '', 'textbox-popup', false);
 					tfPopup.alignH = "right";
 					tfPopup.textAlign = "right";
-					tfPopup.alignV = "current";
+					tfPopup.alignV = "bottom";
 
 					listAppendSeparator = args[0];
 					
@@ -1401,21 +1684,16 @@
 						}
 					}
 					
-					//tfPopup.addEventListener( Event.SELECT, ppLabelListAppendSelect );
 					tfPopup.addEventListener( Event.SELECT, ppListAppendSelect );
 					textField.width = textField.width - tfPopup.cssSizeX;
-					tfPopup.x = textField.width - 1;
-					tfPopup.y = 1;
-					tfPopup.contLeft.x = tfPopup.cssLeft + 3;
 					setHeight( textField.height + 2 );
-					
 				}
 			}else if( tp == "labellist" ) {
 				if( args && args.length > 0 ) {
 					tfPopup = new Popup( [ new IconArrowDown( Application.instance.mainMenu.iconColor ) ], btWidth, textField.height - 1, this, styleSheet, '', 'textbox-popup', false);
 					tfPopup.alignH = "right";
 					tfPopup.textAlign = "right";
-					tfPopup.alignV = "current";
+					tfPopup.alignV = "bottom";
 					if( args.length > 0) {
 						L = args.length;
 						var ppi2:PopupItem;
@@ -1426,9 +1704,6 @@
 					}
 					tfPopup.addEventListener( Event.SELECT, ppLabelListSelect );
 					textField.width = textField.width - tfPopup.cssSizeX;
-					tfPopup.x = textField.width - 1;
-					tfPopup.y = 1;
-					tfPopup.contLeft.x = tfPopup.cssLeft + 3;
 				}
 				setHeight( textField.height + 2 );
 			}else if( tp == "labellistmultiple"  || tp == "labellistappend" ) {
@@ -1436,7 +1711,7 @@
 					tfPopup = new Popup( [ new IconArrowDown( Application.instance.mainMenu.iconColor ) ], btWidth, textField.height - 1, this, styleSheet, '', 'textbox-popup', false);
 					tfPopup.alignH = "right";
 					tfPopup.textAlign = "right";
-					tfPopup.alignV = "current";
+					tfPopup.alignV = "bottom";
 					
 					listAppendSeparator = args[0];
 					
@@ -1450,9 +1725,6 @@
 					}
 					tfPopup.addEventListener( Event.SELECT, ppListAppendSelect );
 					textField.width = textField.width - tfPopup.cssSizeX;
-					tfPopup.x = textField.width - 1;
-					tfPopup.y = 1;
-					tfPopup.contLeft.x = tfPopup.cssLeft + 3;
 				}
 				setHeight( textField.height + 2 );
 			}else if( tp == "name" ) {
@@ -1474,15 +1746,18 @@
 					if( vectorMinusButton ) vectorMinusButton.visible = false;
 					_type = tptmp;
 				}
-			}else{
+			}
+			else if( type == "intern" || type == "hidden" )
+			{
+				textField.visible = false;
+				setHeight(0);
+			}
+			else
+			{
 				// String
 				setHeight( textField.height + 2);
 			}
 			
-			if( type == "intern" || type == "hidden" ) {
-				textField.visible = false;
-				setHeight(0);
-			}
 		}
 		
 		protected function formatVector () :void
@@ -1498,6 +1773,7 @@
 					yp += tf.cssSizeY;
 				}
 			}
+			
 			textField.height = yp;
 			textField.alpha = 0;
 		
@@ -1512,7 +1788,106 @@
 			}
 		}
 		
-		public static var rtNodeName:String = "span";
+		public function vectorImageHeightChange ( e:Event ) :void
+		{
+			setTimeout( function(){
+			formatVector();
+			setHeight( vectorPlusButton.y + vectorPlusButton.cssSizeY) ;
+			dispatchEvent( new Event("heightChange") );
+			},0);
+		}
+		
+		public function setCurrVector ( tf:InputTextBox ) :void
+		{			
+			if( vectorTextFields )
+			{
+				vectorCurrent = vectorTextFields.indexOf(tf);
+			}
+		}
+		
+		public function vectorPlusClick ( e:MouseEvent ) :void {
+			if( !TemplateEditor.clickScrolling ) {
+				if( vectorTextFields && vectorContainer )
+				{
+					var vecObj:Object = {};
+					
+					CTTools.cloneTo( propObj, vecObj );
+					var vecArgs:Array = [];
+					if(vectorTextFields.length > 0) {
+						var L:int=vectorTextFields[0].args.length;
+						for(var i:int=0; i<L; i++) {
+							// Not Dynmaic Type Vector
+							vecArgs.push( vectorTextFields[0].args[i] );
+						}
+					}
+					
+					var tf:VectorTextField = new VectorTextField( vectorType, vecArgs, vecObj, '', cssWidth, cssHeight, vectorContainer, styleSheet, '', nodeClass, false );
+					//var yp:int = 0;
+					
+					tf.rootVector = this;
+					if( vectorTextFields.length > 0) {
+						tf.wrap = vectorTextFields[0].wrap;
+					}
+					var ev:InputEvent = new InputEvent( this, "add" );
+					
+					if( vectorCurrent == -1) {
+						vectorTextFields.push( tf );
+						ev.val = vectorTextFields.length;
+					}else{
+						vectorTextFields.splice( vectorCurrent, 0, tf );
+						ev.val = vectorCurrent;
+					}
+					dispatchEvent( ev );
+					
+					//tf.y = yp
+					//yp += tf.cssSizeY;
+
+					setHeight( getHeight() + tf.cssSizeY );
+					init();
+					
+					formatVector();
+					
+					dispatchEvent ( new Event("heightChange") );
+					dispatchEvent( new Event("lengthChange") );
+					textEnter();
+				}
+			}else{
+				TemplateEditor.endClickScrolling();
+			}
+		}
+		
+		public function vectorMinusClick ( e:MouseEvent ) :void {
+			if( !TemplateEditor.clickScrolling ) {
+				if( vectorTextFields && vectorContainer )
+				{
+					var tf:VectorTextField;
+					
+					if( vectorCurrent == -1) {
+						tf = vectorTextFields.pop();
+					}else{
+						tf = vectorTextFields[vectorCurrent];
+						vectorTextFields.splice( vectorCurrent,1);
+						var ev:InputEvent = new InputEvent( this, "clear" );
+						ev.val = vectorCurrent;
+						dispatchEvent( ev );
+						vectorCurrent=-1;
+					}
+					
+					setHeight( getHeight() - tf.cssSizeY );
+					if(vectorContainer.contains( tf )) vectorContainer.removeChild(tf);
+					init();
+					
+					formatVector();
+					
+					dispatchEvent ( new Event("heightChange") );
+					dispatchEvent ( new Event("lengthChange") );
+					
+					textEnter();
+				}
+			}else{
+				TemplateEditor.endClickScrolling();
+			}
+		}
 		
 		protected function richtTextPPHandler ( e:PopupEvent ) :void {
 			var curr:PopupItem = e.selectedItem;
@@ -1629,6 +2004,8 @@
 					textField.setSelection( tp, tp );
 				}
 			}
+			
+		
 		}
 		
 		private function showSelectTextError () :void {
@@ -1758,30 +2135,6 @@
 					stage.focus = textField;
 					textField.setSelection( tp, tp );
 					
-				/*}else if( btn.options.originalLabel == ".Paragraph") {
-					historyPush( value );
-					value = textField.text.substring(0, beginid) + '[p]'+( beginid >= endid?"":textField.text.substring( beginid, endid )) + "[/p]" + textField.text.substring( endid );
-					tp = beginid + 3 + (endid > beginid ? (endid - beginid) : 0);
-					stage.focus = textField;
-					textField.setSelection( tp, tp );
-				}else if( btn.options.originalLabel == ".Left") {
-					historyPush( value );
-					value = textField.text.substring(0, beginid) + '[div class="text-left"]'+( beginid >= endid?"":textField.text.substring( beginid, endid )) + "[/div]" + textField.text.substring( endid );
-					tp = beginid + 23 + (endid > beginid ? (endid - beginid) : 0);
-					stage.focus = textField;
-					textField.setSelection( tp, tp );
-				}else if( btn.options.originalLabel == ".Center") {
-					historyPush( value );
-					value = textField.text.substring(0, beginid) + '[div class="text-center"]'+( beginid >= endid?"":textField.text.substring( beginid, endid )) + "[/div]" + textField.text.substring( endid );
-					tp = beginid + 25 + (endid > beginid ? (endid - beginid) : 0);
-					stage.focus = textField;
-					textField.setSelection( tp, tp );
-				}else if( btn.options.originalLabel == ".Right") {
-					historyPush( value );
-					value = textField.text.substring(0, beginid) + '[div class="text-right"]'+( beginid >= endid?"":textField.text.substring( beginid, endid )) + "[/div]" + textField.text.substring( endid );
-					tp = beginid + 234+ (endid > beginid ? (endid - beginid) : 0);
-					stage.focus = textField;
-					textField.setSelection( tp, tp );*/
 				}else if( btn.options.originalLabel == ".Link") {
 					// Get Link Window
 					var win:Window = Window( Application.instance.window.GetStringWindow( "LinkWindow", agf.ui.Language.getKeyword("CT-Get-Link"), Language.getKeyword("CT-Get-Link-MSG"), {
@@ -1856,7 +2209,7 @@
 			}
 		}
 		public function boolIcon (v:Boolean) :void {
-			tfBtn.clips = [ new IconFromFile(  (v ? Options.iconDir + CTOptions.urlSeparator + "toggle-on-btn.png" : Options.iconDir + CTOptions.urlSeparator + "toggle-off-btn.png"), Options.btnSize*1.25, Options.btnSize) ];
+			tfBtn.clips = [ new IconFromFile(  (v ? Options.iconDir + CTOptions.urlSeparator + "toggle-on-btn.png" : Options.iconDir + CTOptions.urlSeparator + "toggle-off-btn.png"), Options.btnSize, Options.btnSize) ];
 			tfBtn.init();
 		}
 		
@@ -1870,41 +2223,72 @@
 			return _boolValue;
 		}
 		
+		//public var blockBackground:Boolean=true;
+		public static var blocker:Sprite;
+		private static function blockHandler (e:MouseEvent) :void {}
+		
 		protected function onSelectColor ( e:MouseEvent ) :void {
 			var tc:CssSprite = Application.instance.topContent
 			var panel:CssSprite = Application.instance.view.panel;
-
-			var cp:ColorPicker = ColorPicker(tc.getChildByName("color_picker"));
-			if( cp ) {
-				tc.removeChild(cp);
-				textEnter();
-				return;
+			if( tc ) {
+				var cp:ColorPicker = ColorPicker(tc.getChildByName("color_picker"));
+				if( cp ) {
+					tc.removeChild(cp);
+					textEnter();
+					return;
+				}
+				var pw:int = panel.getWidth() * TemplateTools.editor_w;
+				
+				if( HtmlEditor.isPreviewOpen ) {
+					pw = HtmlEditor.previewX;
+				}
+				
+				var mmh:int = Application.instance.mainMenu.cssSizeY + 2;
+				
+				if( blocker == null ) blocker = new Sprite();
+				blocker.graphics.clear();
+				blocker.graphics.beginFill( 0x0,0);
+				blocker.graphics.drawRect( 0,0, tc.getWidth(), tc.getHeight() );
+				blocker.graphics.endFill();
+				blocker.addEventListener( MouseEvent.MOUSE_DOWN, blockHandler );
+				if( ! tc.contains( blocker) ) tc.addChild( blocker );
+				
+				// hardcode padding: 16px
+				colorPicker = new ColorPicker( pw, panel.getHeight() - mmh, tc, styleSheet, '', 'editor input-color-picker', false);
+				
+				colorPicker.name = "color_picker";
+				colorPicker.setLabel( labelText );
+				
+				if( displayMode == "rgba" || displayMode == "hsla" ) {
+					colorPicker.color32 = _color;
+				}else{
+					colorPicker.color = _color;
+				}
+				
+				colorPicker.x = 0;
+				colorPicker.y = mmh;
+				
+				if( CTOptions.animateBackground ) {
+					HtmlEditor.dayColorClip( colorPicker.bgSprite );
+					colorPicker.bgSprite.width  = pw + 16;
+					//colorPicker.bgSprite.height  = mmh;
+				}
+				
+				//if( colorPicker.y + colorPicker.cssSizeY > tc.getHeight() ) colorPicker.y = mmh;//panel.getHeight() - colorPicker.cssSizeY;
+				//if( colorPicker.y < 0 ) colorPicker.y = 0;
+				
+				colorPicker.target = this;
+				colorPicker.targetName = "setColorValue";
 			}
-			var pw:int = panel.getWidth() * TemplateTools.editor_w;
-			
-			if( HtmlEditor.isPreviewOpen ) {
-				pw = HtmlEditor.previewX;
-			}
-			
-			colorPicker = new ColorPicker( pw, panel.getHeight(), tc, styleSheet, '', 'editor input-color-picker', false);
-			colorPicker.name = "color_picker";
-			colorPicker.setLabel( labelText );
-			
-			colorPicker.color = _color;
-			colorPicker.x = 0;
-			colorPicker.y = 0;
-			
-			if( CTOptions.animateBackground ) {
-				HtmlEditor.dayColorClip( colorPicker.bgSprite );
-			}
-			
-			if( colorPicker.y + colorPicker.cssSizeY > tc.getHeight() ) colorPicker.y = tc.getHeight() - colorPicker.cssSizeY;
-			if( colorPicker.y < 0 ) colorPicker.y = 0;
-			
-			colorPicker.target = this;
-			colorPicker.targetName = "setColorValue";
 		}
 		
+		public function onRemoveCP () :void
+		{
+			if( blocker ) {
+				var tc:CssSprite = Application.instance.topContent
+				if( tc && tc.contains( blocker ) ) tc.removeChild( blocker );
+			}
+		}
 		public function setColorValue ( c:uint ) :void {
 			colorValue = c;
 			drawCurrentColor();
@@ -1912,7 +2296,7 @@
 		}
 			
 		protected function sliderBegin ( e:Event ) :void {
-			if( _type == "screennumber" || _type == "screeninteger" )
+			if( _supertype == "screennumber" || _supertype == "screeninteger" )
 			{
 				var s:String = textField.text;
 				var c:int=s.length;
@@ -1928,6 +2312,7 @@
 					StringMath.distFormat = unit;
 				}
 			}
+			activateValue = textField.text;
 		}
 		
 		protected function sliderChange ( e:Event ) :void {
@@ -1936,7 +2321,7 @@
 			}
 			if( tfSlider ) {
 				var gr:Number;
-				if( _type == "screennumber" || _type == "screeninteger" ) {
+				if( _supertype == "screennumber" || _supertype == "screeninteger" ) {
 					if( sliderGrid != 0 ) {
 						gr = sliderGrid;
 						textField.text = "" + (Math.round( (_type=="integer" ? Math.round( StringMath.forceNumber( String(tfSlider.value))) : StringMath.forceNumber( String(tfSlider.value) )) / gr ) * gr).toFixed(decPlaces) + StringMath.distFormat;
@@ -1953,94 +2338,14 @@
 				}
 			}
 		}
-
-		public function vectorPlusClick ( e:MouseEvent ) :void {
-			if( !TemplateEditor.clickScrolling ) {
-				if( vectorTextFields && vectorContainer )
-				{
-					var vecObj:Object = {};
-					
-					CTTools.cloneTo( propObj, vecObj );
-					var vecArgs:Array = [];
-					if(vectorTextFields.length > 0) {
-						var L:int=vectorTextFields[0].args.length;
-						for(var i:int=0; i<L; i++) {
-							// Not Dynmaic Type Vector
-							vecArgs.push( vectorTextFields[0].args[i] );
-						}
-					}
-					
-					var tf:VectorTextField = new VectorTextField( vectorType, vecArgs, vecObj, '', cssWidth, cssHeight, vectorContainer, styleSheet, '', nodeClass, false );
-					var yp:int = 0;
-					tf.rootVector = this;
-					if( vectorTextFields.length > 0) {
-						tf.wrap = vectorTextFields[0].wrap;
-						yp = vectorTextFields[ vectorTextFields.length - 1 ].y + vectorTextFields[ vectorTextFields.length-1].height;
-					}
-					var ev:InputEvent = new InputEvent( this, "add" );
-					
-					if( vectorCurrent == -1) {
-						vectorTextFields.push( tf );
-						ev.val = vectorTextFields.length;
-					}else{
-						vectorTextFields.splice( vectorCurrent, 0, tf );
-						ev.val = vectorCurrent;
-					}
-					dispatchEvent( ev );
-					
-					tf.y = yp
-					yp += tf.cssSizeY;
-
-					setHeight( getHeight() + tf.cssSizeY );
-					init();
-					
-					formatVector();
-					dispatchEvent ( new Event("heightChange") );
-					dispatchEvent( new Event("lengthChange") );
-					textEnter();
-				}
-			}else{
-				TemplateEditor.endClickScrolling();
-			}
-		}
-		
-		public function vectorMinusClick ( e:MouseEvent ) :void {
-			if( !TemplateEditor.clickScrolling ) {
-				if( vectorTextFields && vectorContainer )
-				{
-					var tf:VectorTextField;
-					
-					if( vectorCurrent == -1) {
-						tf = vectorTextFields.pop();
-					}else{
-						tf = vectorTextFields[vectorCurrent];
-						vectorTextFields.splice( vectorCurrent,1);
-						var ev:InputEvent = new InputEvent( this, "clear" );
-						ev.val = vectorCurrent;
-						dispatchEvent( ev );
-						vectorCurrent=-1;
-					}
-					
-					setHeight( getHeight() - tf.cssSizeY );
-					if(vectorContainer.contains( tf )) vectorContainer.removeChild(tf);
-					init();
-					
-					formatVector();
-					
-					dispatchEvent ( new Event("heightChange") );
-					dispatchEvent ( new Event("lengthChange") );
-					
-					textEnter();
-				}
-			}else{
-				TemplateEditor.endClickScrolling();
-			}
-		}
 		
 		protected function sliderUp ( e:MouseEvent ) :void {
 			if( tfSlider ) {
 				sliderChange(null);
-				textEnter();
+				//setTimeout( function () {
+				textEnter(); 
+				
+				//}, 950 );
 			}
 		}
 		
@@ -2050,8 +2355,6 @@
 			value = lb;
 			textEnter();
 		}
-		
-		
 		
 		protected function ppScreenNumberSelect ( e:PopupEvent ) :void {
 			var curr:PopupItem = e.selectedItem;
@@ -2095,7 +2398,6 @@
 			textEnter();
 		}
 		
-		
 		protected function ppTypedSelect ( e:PopupEvent ) :void {
 			var curr:PopupItem = e.selectedItem;
 			var lb:String = curr.label;
@@ -2121,13 +2423,11 @@
 			var curr:PopupItem = e.selectedItem;
 			var lb:String = curr.label;
 			
-			if( _type == "listmultiple" || _type == "labellistmultiple" || _type == "itemlistmultiple" )
+			if( _supertype == "listmultiple" || _supertype == "labellistmultiple" || _supertype == "itemlistmultiple" )
 			{
 				if (  _type != "listmultiple" ) {
 					lb = curr.options.labelValue;
 				}
-				
-				
 				if( Application.instance.shortcutMgr.shiftDown ) {
 					// force add
 					value += listAppendSeparator + lb;
@@ -2145,8 +2445,6 @@
 						}
 					}else{
 						
-						
-						//value = lb;
 						var id:int = args.indexOf( lb );
 						var i:int;
 						var s1:int = -1;
@@ -2215,28 +2513,32 @@
 			textEnter();
 		}
 		
-		public override function setWidth ( w:int ) :void {
-			super.setWidth(w-cssBoxX);
+		public override function setWidth ( w:int ) :void
+		{
+			super.setWidth(w -cssBoxX);
 			
-			if(itemList) {
-				itemList.x = w - (itemList.width) + 1;
+			if(rtItemList) {
+				if( rtItemList.vert ) {
+					rtItemList.x = w - (rtItemList.width + rtItemList.cssBoxX + 8);
+				}else{
+					rtItemList.x = cssLeft;
+					rtItemList.y = -rtItemList.height;
+				}
 				var H:int = textField.height;
 				
-				if( _type == "richtext" || _type == "text" || _type == "code" ) {
+				if( _supertype == "richtext" || _supertype == "text" || _supertype == "code" ) {
 					textField.autoSize = TextFieldAutoSize.LEFT;
 				}
 				
-				textField.width = w - ( textField.x + itemList.width + 8 );
+				textField.width = w - ( textField.x + rtItemList.width + 8 );
 				
-				if( _type == "richtext" || _type == "text" || _type == "code" )
+				if( _supertype == "richtext" || _supertype == "text" || _supertype == "code" )
 				{
 					textField.autoSize = TextFieldAutoSize.NONE;
 				
 					if( textField.height !=  H )  {
 						// autosize changed height..
-						
 						var m:TextLineMetrics = textField.getLineMetrics(0);
-						
 						setHeight( getHeight() + (textField.height-H) + m.ascent + m.descent + m.leading );
 						dispatchEvent ( new Event("heightChange") );
 					}
@@ -2244,61 +2546,104 @@
 						htmlTextField.width = textField.width;
 					}
 				}
-				
-			}else{
+			}
+			else
+			{
 				if( tfBtn ) {
-					textField.width = w-(tfBtn.cssSizeX+textField.x);
-					tfBtn.x = textField.width + textField.x;
+					textField.width = w - tfBtn.cssSizeX;
+					tfBtn.x =  w - tfBtn.cssSizeX;
 				}else if( tfPopup ) {
-					textField.width = w-(tfPopup.cssSizeX+textField.x);
-					tfPopup.x = textField.width + textField.x;
+					textField.width = w - tfPopup.cssSizeX
+					tfPopup.x = w - tfPopup.cssSizeX;
 				}else if( colorClip ) {
-					textField.width = w-(colorClip.width+textField.x);
-					colorClip.x = textField.width + textField.x;
+					textField.width = w-(colorClip.width );
+					colorClip.x =  w - colorClip.width;
 				}else{
 					textField.width = w;
 				}
 				
-				if( mediaInfo && mediaInfo.length > 0 ) {
+				if( mediaContainer && mediaInfo && mediaInfo.length > 0 ) {
 					var fmt:TextFormat = mediaInfo.getTextFormat( 0, 1 );
 					if( fmt && fmt.align == "right" ) {
-						mediaInfo.x = getWidth() - mediaInfo.width;
+						mediaInfo.x = w - (mediaInfo.width + mediaContainer.x + 8 );
 					}
 				}
 			}
+			var i:int;
+			var L:int;
+			
+			if( itemList ) {
+				if(itemList.items) {
+					var ppw:int = 0;
+					if( rtItemList ) {
+						ppw = 8 + Options.btnSize;
+					}
+					L = itemList.items.length;
+					for( i=0; i < L; i++) {
+						itemList.items[i].setWidth( w - (itemList.items[i].cssBoxX + cssBoxX + ppw + 2) );
+					}
+				}
+				itemList.setWidth(0);
+				itemList.init();
+			}
+			
+			if( multiSelectMenu ) {
+				multiSelectMenu.setWidth( w - (multiSelectMenu.cssBoxX) );
+			}
+			
 			if( vectorTextFields ) {
-				var L:int = vectorTextFields.length;
-				for(var i:int=0; i<L; i++) {
+				L = vectorTextFields.length;
+				for( i=0; i<L; i++) {
 					vectorTextFields[i].setWidth( w );
 				}
 				if( vectorPlusButton && vectorMinusButton ) {
 					vectorPlusButton.x = w - vectorPlusButton.cssSizeX-2;
-					vectorMinusButton.x = vectorPlusButton.x - (2+vectorMinusButton.cssSizeX);
+					vectorMinusButton.x = vectorPlusButton.x - (vectorMinusButton.cssSizeX + 2);
 				}
 			}
+			if( plugin ) {
+				plugin.setWidth( w  );
+			}
 			if( tfSlider ) {
-				tfSlider.setHeight( w ); 
+				tfSlider.setHeight( w  ); 
 			}
 		}
 		public override function setHeight ( h:int ) :void
 		{
-			if( itemList ) {
-				if( h < itemList.height ) h = itemList.height;
+			if( rtItemList ) {
+				if( h < rtItemList.height ) h = rtItemList.height;
 			}
 			
-			if(_type=="image"||_type=="video") super.setHeight(h+mediaHeight);
-			else super.setHeight(h);
-			
-			textField.height = h;
-			var sld:int=2;
-			if(tfSlider) {
-				sld = tfSlider.getWidth();
-				tfSlider.y = textField.height + int(sld / 2) + 1;
+			if(_supertype=="image")
+			{
+				super.setHeight( h );
+				if( mediaContainer ) {
+					mediaContainer.y = cssTop;
+					textField.y = cssTop + mediaContainer.height + 2;
+				}else{
+					textField.y = cssTop;
+				}
+				
+				if( mediaInfo && mediaInfo.length > 0 && tfBtn ) {
+					mediaInfo.y = tfBtn.y + tfBtn.cssSizeY;
+				}
 			}
-			if(tfBtn) tfBtn.setHeight(h + cssBoxY - (sld));
-			if(tfPopup) tfPopup.setHeight(h + cssBoxY - (sld));
+			else
+			{
+				super.setHeight(h);
+				
+				textField.y = cssTop;
+				textField.height = h;
+			}
+			
 			if( htmlTextField ) {
 				htmlTextField.height = textField.height;
+			}
+			
+			var sld:int=2;
+			if(tfSlider) {
+				//sld = tfSlider.cssSizeX;// tfSlider.getWidth();
+				tfSlider.y = textField.height + textField.y + 5;
 			}
 		}
 		
@@ -2310,20 +2655,20 @@
 			
 			textField.text = v || "";
 			
-			if ( _type == "boolean" && tfBtn) {
+			if ( _supertype == "boolean" && tfBtn) {
 				boolIcon( v == boolYes || CssUtils.stringToBool(v) );
 			}
 			
 			if( tfSlider ) {
-				if( _type == "number" ) 
+				if( _supertype == "number" ) 
 					tfSlider.value = Number( v );
-				else if( _type == "integer" ) 
+				else if( _supertype == "integer" ) 
 					tfSlider.value = Math.round( Number(v) );
 			}
 		}
 		
 		private function textChange (e:Event) :void {
-			if( _type == "richtext" || _type == "text" || _type == "code" ) {
+			if( _supertype == "richtext" || _supertype == "text" || _supertype == "code" ) {
 				historyPush( textField.text );
 			}
 		}
@@ -2332,8 +2677,8 @@
 		private function drawCurrentColor () :void {
 			if( colorClip ) 
 			{
+				// simulate padding-right:
 				var ofs:int = colorOfs;
-				
 				colorClip.graphics.beginFill( 0, 0 );
 				colorClip.graphics.drawRect(0, 2, Options.btnSize+ofs, textField.height );
 				colorClip.graphics.endFill();
@@ -2343,8 +2688,14 @@
 				colorClip.graphics.endFill();
 			}
 		}
+		
 		public function textEnter () :void
 		{
+			if( _type == "plugin" && superType != "" ) {
+				_type = superType;
+				textEnter();
+				return;
+			}
 			var v:String = value;
 			if( trimValue ) v = CssUtils.trim(v);	
 			if( trimQuotesValue ) v = CssUtils.trimQuotes(v);
@@ -2353,60 +2704,83 @@
 				value = "" + StringMath.evaluate( v, decPlaces, _type == "screennumber" );
 			}else if( _type == "integer" || _type=="screeninteger" ){
 				value = "" + StringMath.evaluate( v, 1, _type == "screeninteger" );
+			}else if( _type == "image" ) {
+				setTimeout( reloadImage, 250 );
 			}else if( _type == "color" ){
 				colorValue = v;
 				drawCurrentColor();
-			//}else if( _type == "date" ){
-				//colorValue = v;
-				//drawCurrentColor();
 			}else if( _type == "boolean" ){
 				boolValue = v == boolYes || v == "1" || v.toLowerCase() == "true" ? true : false;
 				textField.text = boolValue ? boolYes : boolNo;
 			}else if( _type == "name" ){
 				value = parseName(v);
-			}else if( (_type == "vector" || _type == "vectorlink") && vectorTextFields && vectorTextFields.length > 0) {
-				var str:String = "";
-				var L:int = vectorTextFields.length;
-				var vt:VectorTextField;
-				for( var i:int = 0; i < L; i++) {
-					vt = vectorTextFields[i];
-					if( vt.type == "number" || vt.type=="screennumber" ){
-						str += vectorSeparator + StringMath.evaluate( vt.value, 4, vt.type == "screennumber" );
-					}else if( vt.type == "integer" || vt.type=="screeninteger" ){
-						str += vectorSeparator + StringMath.evaluate( vt.value, 1, vt.type == "screeninteger" );
-					}else{
-						str += vectorSeparator + vt.value;
+			}
+			else if( (_type == "vector" || _type == "vectorlink") && vectorTextFields)
+			{
+				if( vectorTextFields.length > 0 )
+				{
+					var str:String = "";
+					var L:int = vectorTextFields.length;
+					var vt:VectorTextField;
+					for( var i:int = 0; i < L; i++) {
+						vt = vectorTextFields[i];
+						if( vt.type == "number" || vt.type=="screennumber" ){
+							str += vectorSeparator + StringMath.evaluate( vt.value, 4, vt.type == "screennumber" );
+						}else if( vt.type == "integer" || vt.type=="screeninteger" ){
+							str += vectorSeparator + StringMath.evaluate( vt.value, 1, vt.type == "screeninteger" );
+						}else if( vt.type == "typed" ){
+							str += vectorSeparator + vt.tfPopup.label + ":" + vt.value;
+						}else{
+							str += vectorSeparator + vt.value;
+						}
 					}
+					textField.text = str.substring(1);
+					if( textField.text == vectorSeparator ) textField.text = "";
 				}
-				
-				textField.text = str.substring(1);
+				else
+				{
+					textField.text = "";
+				}
 			}
 			
 			if( value != activateValue )
 			{
+				if( _type == "plugin" ) {
+					plugin.setText( value );
+				}
 				dispatchEvent( new Event(ENTER, false, true) );
 			}
 		}
 		
 		public function set colorValue (t:*) :void {
 			
-			if( t is String ) {
-				if( String(t).charAt(1) == "x" || String(t).charAt(0) == "#" ) {
+			if( t is String )
+			{
+				if( t.charAt(0) == "#" ) {
 					displayMode = "hex";
-				}else if( t.indexOf("gradient") >= 0 || t.indexOf("url(") >= 0 || t == "none" ) {
+				}else if( t == "none" || t == "currentcolor" || t == "inherit"|| t.indexOf("gradient") >= 0  || t.indexOf("url(") >= 0 ) {
 					return;
-				}else if( isNaN(Number(t) ) ) {
+				}else if( t.indexOf("rgba") >= 0  ) {
+					displayMode = "rgba";
+				}else if( t.indexOf("rgb") >= 0  ) {
 					displayMode = "rgb";
+				}else if( t.indexOf("hsla") >= 0  ) {
+					displayMode = "hsla";
+				}else if( t.indexOf("hsl") >= 0  ) {
+					displayMode = "hsl";
+				}else if( t.length > 2 && t.charAt(1) == "x" ) {
+					t = t.substring(1);
+					displayMode = "hex";
 				}
-				
 				_color = CssUtils.stringToColor(t);
 			}else{
 				_color = uint(t);
-			}
+			}      
 			
 			var r:int = _color >> 16 & 255;
 			var g:int = _color >> 8 & 255;
 			var b:int = _color & 255;
+			var a:int = 0;
 			
 			if(displayMode == "hex") {
 				var r16:String = r.toString(16);
@@ -2423,6 +2797,16 @@
 				}else{
 					value = "#" + r16.toUpperCase() + g16.toUpperCase() + b16.toUpperCase();
 				}
+			}else if(displayMode == "hsla") {
+				var hsb:Object = ColorUtils.RGBtoHSV( r, g, b );
+				a = _color >> 24 & 255;
+				value = "hsla(" + hsb.h + "," + hsb.s + "%," + hsb.v + "%," + (Math.round((a/255)*100)/100) + ")";
+			}else if(displayMode == "hsl") {
+				var hsb2:Object = ColorUtils.RGBtoHSV( r, g, b );
+				value = "hsl(" + hsb2.h + "," + hsb2.s + "%," + hsb2.v + "%)";
+			}else if( displayMode == "rgba" ) {
+				a = _color >> 24 & 255;
+				value = "rgba(" + r+ "," + g + "," + b + "," + (Math.round((a/255)*100)/100)  + ")";
 			}else{
 				value = "rgb(" + r+ "," + g + "," + b + ")";
 			}
@@ -2441,12 +2825,17 @@
 				}
 			}
 		}
+	
+		protected function tfDown (event:MouseEvent) :void {
+			setTimeout(TemplateEditor.abortClickScrolling, 0);
+		}
 		
 		protected function onActivate (e:Event) :void {
 			if( textField )
 			{
+				addEventListener( MouseEvent.MOUSE_DOWN, tfDown );
 				
-				if( _type == "screennumber" || _type == "screeninteger" )
+				if( _supertype == "screennumber" || _supertype == "screeninteger" )
 				{
 					var s:String = textField.text;
 					var c:int=s.length;
@@ -2468,7 +2857,7 @@
 				
 				textField.setTextFormat( fmt );
 				
-				if( stage && _type != "richtext" &&  _type != "text" && _type != "code" ) {
+				if( stage && _supertype != "richtext" &&  _supertype != "text" && _supertype != "code" ) {
 					stage.addEventListener( KeyboardEvent.KEY_DOWN, enterListener);
 				}
 				if(this is VectorTextField) {
@@ -2477,18 +2866,6 @@
 				swapState( "active" );
 			}
 			setTimeout( TemplateEditor.abortClickScrolling, 0);
-		}
-		
-		public function setCurrVector( tf:InputTextBox ) :void {
-			if( vectorTextFields ) {
-				var id:int = vectorTextFields.indexOf(tf);
-				if(id>=0) {
-					vectorCurrent = id;
-				}
-				if(this is VectorTextField) {
-					VectorTextField(this).rootVector.vectorCurrent = -1;
-				}
-			}
 		}
 		
 		protected function onBoolDeactivate (e:Event) :void {
@@ -2501,10 +2878,11 @@
 			textEnter();
 			
 			if( textField ) {
+				removeEventListener( MouseEvent.MOUSE_DOWN, tfDown );
 				fmt = styleSheet.getTextFormat( stylesArray, "normal");
 				textField.setTextFormat( fmt );
 				if( stage ) {
-					if(_type != "richtext" && _type != "text" && _type != "code" ) {
+					if(_supertype != "richtext" && _supertype != "text" && _supertype != "code" ) {
 						stage.removeEventListener( KeyboardEvent.KEY_DOWN, enterListener);
 					}
 				}
@@ -2522,9 +2900,10 @@
 				directory.browseForDirectory("Select Directory");
 				directory.addEventListener(Event.SELECT, dirSelected);
 			}catch (error:Error){
-				//s("Failed:", error.message);
+				
 			}
 		}
+		
 		private function dirSelected (event:Event) :void {
 			var directory:File = event.target as File;
 			lastSelectedFiles[this.name] = directory.url;
@@ -2533,59 +2912,65 @@
 			textEnter();
 		}
 		
-		private function selectFile (e:MouseEvent) :void {
-			// Get Files from User
-			var docsDir:File;
-			
-			if( lastSelectedFiles[this.name] != null ) docsDir = new File( lastSelectedFiles[this.name] );
-			else if( lastSelectedFiles["_lastdir"] != null ) docsDir = new File( lastSelectedFiles["_lastdir"] );
-			else docsDir = File.documentsDirectory;
-			
-			var flt:FileFilter = null;
-			if( allowed_extensions ) {
-				flt = new FileFilter( Language.getKeyword(fileFilterDescription), allowed_extensions );
-			}else{
-				flt = new FileFilter( Language.getKeyword(fileFilterDescription), "*.*");
+		private function selectFile (e:MouseEvent) :void
+		{
+			if( ! TemplateEditor.clickScrolling ) {
+				// Get Files from User
+				var docsDir:File;
+				
+				if( lastSelectedFiles[this.name] != null ) docsDir = new File( lastSelectedFiles[this.name] );
+				else if( lastSelectedFiles["_lastdir"] != null ) docsDir = new File( lastSelectedFiles["_lastdir"] );
+				else docsDir = File.documentsDirectory;
+				
+				var flt:FileFilter = null;
+				if( allowed_extensions ) {
+					flt = new FileFilter( Language.getKeyword(fileFilterDescription), allowed_extensions );
+				}else{
+					flt = new FileFilter( Language.getKeyword(fileFilterDescription), "*.*");
+				}
+				try {
+					docsDir.browseForOpen("Select File", [flt]);
+					docsDir.addEventListener(Event.SELECT, fileSelected);
+				}catch (error:Error){
+					Console.log("Select File Error: " + error.message);
 			}
-			try {
-				docsDir.browseForOpen("Select File", [flt]);
-				docsDir.addEventListener(FileListEvent.SELECT_MULTIPLE, fileSelected);
-			}catch (error:Error){
-				Console.log("Select file error: " + error.message);
 			}
 		}
-		private function selectFiles (e:MouseEvent) :void {
-			var docsDir:File;
-			if( lastSelectedFiles[this.name] != null ) docsDir = new File( lastSelectedFiles[this.name] );
-			if( lastSelectedFiles["_lastdir"] != null ) docsDir = new File( lastSelectedFiles["_lastdir"] );
-			else docsDir = File.documentsDirectory;
-			
-			var flt:FileFilter = null;
-			if( allowed_extensions ) {
-				flt = new FileFilter( Language.getKeyword(fileFilterDescription), allowed_extensions );
-			}else{
-				flt = new FileFilter( Language.getKeyword(fileFilterDescription), "*.*");
-			}
-			try {
-				docsDir.browseForOpenMultiple("Select Files", [flt]);
-				docsDir.addEventListener(FileListEvent.SELECT_MULTIPLE, filesSelected);
-			}catch (error:Error){
-				Console.log("Select files error: " + error.message);
+		
+		private function selectFiles (e:MouseEvent) :void
+		{
+			if( ! TemplateEditor.clickScrolling ) {
+				var docsDir:File;
+				if( lastSelectedFiles[this.name] != null ) docsDir = new File( lastSelectedFiles[this.name] );
+				if( lastSelectedFiles["_lastdir"] != null ) docsDir = new File( lastSelectedFiles["_lastdir"] );
+				else docsDir = File.documentsDirectory;
+				
+				var flt:FileFilter = null;
+				if( allowed_extensions ) {
+					flt = new FileFilter( Language.getKeyword(fileFilterDescription), allowed_extensions );
+				}else{
+					flt = new FileFilter( Language.getKeyword(fileFilterDescription), "*.*");
+				}
+				try {
+					docsDir.browseForOpenMultiple("Select Files", [flt]);
+					docsDir.addEventListener(FileListEvent.SELECT_MULTIPLE, filesSelected);
+				}catch (error:Error){
+					Console.log("Select Files Error: " + error.message);
+				}
 			}
 		}
 		
 		// File browser handler
-		private function fileSelected (event:FileListEvent) :void {
-			textField.text = event.files[0].url;
-			lastSelectedFiles[this.name] = event.files[0].parent.url;
+		private function fileSelected (event:Event) :void
+		{
+			var str:String = File(event.target).url;
+			
+			textField.text = str;
+			lastSelectedFiles[this.name] = str;
 			lastSelectedFiles["_lastdir"] = lastSelectedFiles[this.name];
 			
+			activateValue = " ";
 			textEnter();
-			
-			if( _type == "image") {
-				reloadImage();
-			}
-			
 		}
 		
 		// File browser handler
@@ -2594,35 +2979,90 @@
 			
 			lastSelectedFiles[this.name] = event.files[0].parent.url;
 			lastSelectedFiles["_lastdir"] = lastSelectedFiles[this.name];
+			var i:uint;
 			
-			if( event.files.length > 1 ) {
-				for (var i:uint = 1; i < event.files.length; i++) {
-					str += "," + event.files[i].url;
-				}
-			}
-			
-			textField.text = str;
-			if( _type == "image") {
-				reloadImage();
-			}
-			textEnter();
-		}
-		public function reloadImage () :void {
-			if( _type == "image") {	
-				if( mediaContainer && contains(mediaContainer)) removeChild( mediaContainer );
+			if( this is VectorTextField )
+			{
+				var vt:VectorTextField = VectorTextField(this);
 				
+				if( vt )
+				{
+				
+					if( vt.rootVector.vectorTextFields && vt.rootVector.vectorTextFields.length > 0 ) {
+						vt.rootVector.vectorTextFields[0].textField.text = str;
+						//vt.rootVector.vectorTextFields[i].textEnter();
+					}
+					
+					var vcurr:int = 0; //vt.rootVector.vectorCurrent;
+					
+					for ( i = 0; i < vt.rootVector.vectorTextFields.length; i++ ) {
+						if ( vt.rootVector.vectorTextFields[i] == this ) {
+							vcurr = i;
+							break;
+						}
+					}
+					
+					trace("Vector Curr: " + vcurr );
+					vt.rootVector.vectorTextFields[vcurr].textField.text = str;
+					
+					if ( event.files.length > 1 )
+					{
+						for (i = 1; i < event.files.length; i++)
+						{
+						//	str += vt.rootVector.vectorSeparator + event.files[i].url;
+							
+							if( vt.rootVector.vectorTextFields && vt.rootVector.vectorTextFields.length > i + vcurr ) {
+								vt.rootVector.vectorTextFields[i+vcurr].textField.text = event.files[i].url;
+								
+								vt.rootVector.vectorTextFields[i].reloadImage();
+							}
+						}
+					}
+					
+					//vt.rootVector.value= str;
+					vt.rootVector.activateValue = " ";
+					vt.rootVector.textEnter();
+					setType( _type );
+				}
+			}else{
+				
+				if( event.files.length > 1 ) {
+					for (i = 1; i < event.files.length; i++)
+					{
+						str += "," + event.files[i].url;
+					}
+				}
+				
+				activateValue = " ";
+				textField.text = str;
+				textEnter();
+			}
+		}
+		
+		public function reloadImage () :void
+		{
+			if( _supertype == "image")
+			{
+				if( mediaContainer) { 
+					if( mediaInfo && mediaContainer.contains(mediaInfo) ) mediaContainer.removeChild( mediaInfo );
+					if(contains(mediaContainer)) removeChild( mediaContainer );
+					mediaContainer = null;
+				}
 				var v:String = textField.text;
 				
-				if( v != "" && v.toLowerCase() != "none") {
+				setHeight( textField.textHeight + 4);
+				
+				dispatchEvent( new Event("heightChange") );
+				
+				if( v != "" && v.toLowerCase() != "none")
+				{
 					mediaContainer = new Sprite();
-					mediaContainer.y = textField.height + 5;
-					mediaContainer.x = 3;
 					addChild(mediaContainer);
-					
-					loadImage( v );
+					loadImage( CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderRaw + CTOptions.urlSeparator + v );
 				}
 			}
 		}
+		
 		private function initDragNDrop ( tgt:InteractiveObject ) :void {
 			_tgt = tgt;
 			_tgt.addEventListener(NativeDragEvent.NATIVE_DRAG_ENTER,_onDragIn);
@@ -2652,15 +3092,219 @@
 						 lastSelectedFiles[this.name] = File(df[i]).parent.url;
 						 lastSelectedFiles["_lastdir"] = lastSelectedFiles[this.name];
 						
-						 if( _type == "image") {
+						 if( _supertype == "image") {
 							reloadImage();
 						 }
-						  textEnter();
+						 textEnter();
 						 return;
 					 }
 				 }
 			}
 		}
 		
+		protected override function showMultiSelectMenu () :void {
+			super.showMultiSelectMenu();
+			multiSelectMenu.y = -multiSelectMenu.cssSizeY;
+		}
+		public override function displayInsertForm ( tmpl:Template, isUpdateForm:Boolean=false, subform:Boolean=false, inlineArea:String="", _areaItems:Array=null ) :void
+		{
+			try {
+				if( Application.instance.view.panel.src.editor.currentEditor is AreaEditor ) {
+					Application.instance.view.panel.src.editor.currentEditor.updateItem = updateItem;
+					Application.instance.view.panel.src.editor.currentEditor.displayInsertForm ( tmpl, isUpdateForm, true, areaName, areaItems );
+				}
+			}catch(e:Error) {
+				Console.log("Error NO-AreaEditor: " + e );
+			}
+		}
+		
+		protected function ppNewAreaItem (e:PopupEvent) :void 
+		{
+			var curr:PopupItem = e.selectedItem;
+			var rawName:String = curr.options.templateID;
+			var T:Template = CTTools.findTemplate( rawName, "name" );
+			
+			if(T) {
+				displayInsertForm( T, false, true, areaName );
+			}else{
+				Console.log("No Template Found For: " + rawName);
+			}
+		}
+		protected override function areaItemDown (e:MouseEvent) :void
+		{
+			_subform = true;
+			_inlineArea = areaName;
+			super.areaItemDown(e);
+		}
+		
+		protected override function dragItemUp (e:MouseEvent) :void {
+			super.dragItemUp(e);
+		}
+		
+		public override function showAreaItems () :void
+		{			
+			if( CTTools.subTemplates )
+			{
+				// Inline Area for AreaProcessor
+				if( !currentArea ) {
+					currentArea = new Area( 0,0,[],0, areaName );
+				}
+				if( rtItemList && contains( rtItemList )) removeChild( rtItemList );
+				if( itemList && contains( itemList )) removeChild( itemList );
+				
+				rtItemList = new ItemList(0,0,this,this.styleSheet,'','richtext-btn-list', false);
+				
+				var pp:Popup = new Popup( [ new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "plus.png", Options.iconSize, Options.iconSize) ], btWidth, textField.height - 1, rtItemList, styleSheet, '', 'richtext-popup', false);
+				//pp.setWidth( Options.btnSize );
+				pp.setHeight( Options.iconSize );
+				
+				var i:int;
+				var L:int = CTTools.subTemplates.length;
+				var ppi:PopupItem;
+				
+				for(i=0; i < L; i++)
+				{
+					if( areaSubTemplateFilter != "" ) {
+						if( CTTools.subTemplates[i].name != areaSubTemplateFilter ) continue;
+					}
+					ppi = pp.rootNode.addItem( [ new IconFromFile( CTTools.parseFilePath( CTTools.subTemplates[i].listicon ) || (Options.iconDir + CTOptions.urlSeparator + "create.png"), Options.iconSize, Options.iconSize),Language.getKeyword( CTTools.subTemplates[i].name )], 
+											styleSheet);
+					ppi.options.templateID = CTTools.subTemplates[i].name;
+				}
+				
+				pp.addEventListener( Event.SELECT, ppNewAreaItem );
+				pp.alignV = "current";
+				pp.alignH = "right";
+								
+				itemList = new ItemList(0, 0, this, styleSheet, '', 'area-container', false);
+				itemList.margin = 1;
+				
+				L = CTTools.pageItems.length;
+				
+				var r:Object;
+				areaItems = [];
+				
+				for(i=0; i<L; i++) {
+					r = CTTools.pageItems[i];
+					if( r && r.area && r.area == areaName ) areaItems.push(r);
+				}
+				areaItems.sortOn( "sortid", Array.NUMERIC );
+				L = areaItems.length;
+				
+				var ico_col:int = Application.instance.mainMenu.iconColor;
+				var created:Boolean;
+				var labelText:String;
+				var j:int;
+				var jL:int;
+				var listIcon:String;
+				var T:Template;
+				var icos:Array;
+				var pf:ProjectFile;
+				var pg:Button;
+				
+				for (i = 0; i < L; i++)
+				{
+					r = areaItems[i];
+					
+					if( areaSubTemplateFilter != "" && r.subtemplate != areaSubTemplateFilter ) continue;
+					
+					T = CTTools.findTemplate( r.subtemplate, "name" );
+					created = false;
+					listIcon = "";
+					
+					if( T )
+					{
+						labelText = TemplateTools.obj2Text(T.listlabel, "#", r, false, true);
+								
+						if( T.parselistlabel ) {
+							labelText = TemplateTools.obj2Text(labelText, "#", r, true, false);
+							labelText = HtmlParser.fromDBText( labelText );
+						}
+						
+						if( T.listlabel )
+						{
+							if( T.listicon ) {
+								listIcon = CTTools.parseFilePath( T.listicon );
+								icos = [ new IconFromFile( listIcon, Options.iconSize, Options.iconSize), labelText ];
+							}else{
+								icos = [new IconMenu(ico_col, Options.iconSize, Options.iconSize), labelText];
+							}
+							
+							/*if ( T.articlepage != "" )
+							{
+								if( r.inputname == undefined ) {
+									r.inputname = r.name;
+								}
+								filename = CTTools.webFileName( T.articlename, r );
+								
+								pf = CTTools.findArticleProjectFile( CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderTemplate + CTOptions.urlSeparator + filename, "path");
+								
+								if ( pf && pf.templateAreas && pf.templateAreas.length > 0 )
+								{
+									article_areas = new Popup( [new IconArrowDown(Application.instance.mainMenu.iconColor, 1, Options.iconSize, Options.iconSize)], 
+															Options.btnSize, Options.btnSize, null, styleSheet, '', 'article-areas-popup', true );
+									article_areas.alignH = "right";
+									article_areas.textAlign = "right";
+									
+									jL = pf.templateAreas.length;
+									
+									for (j = 0; j < jL; j++ )
+									{
+										if ( CTTools.activeTemplate.areasByName[pf.templateAreas[j].name] == undefined) {
+											ppi = article_areas.rootNode.addItem( [pf.templateAreas[j].name], styleSheet );
+											ppi.options.area = pf.templateAreas[j];
+										}
+									}
+									if( article_areas.rootNode.children && article_areas.rootNode.children.length > 0 ) {
+										article_areas.addEventListener( PopupEvent.SELECT, gotoAreaPP );
+										icos.push( article_areas );
+									}
+								}
+							}else{
+								if( T.numAreas > 0 ) {
+									area_ico = new IconFromFile( Options.iconDir + CTOptions.urlSeparator + "anmeldung-abgerundet.png", Options.iconSize, Options.iconSize);
+									area_ico.addEventListener( MouseEvent.MOUSE_DOWN, gotoAreaHandler );
+									icos.push( area_ico );
+								}
+							}*/
+							
+							pg = new Button(icos, 0, 0, itemList, styleSheet, '', 'page-item-btn', false);
+							
+							if( pg.contRight ) {
+								pg.contRight.mouseEnabled = true;
+								pg.contRight.mouseChildren = true;
+							}
+							created = true;
+						}
+					}
+					
+					if(!created) {
+						pg = new Button([ "" + Language.getKeyword(r.subtemplate) + ": " + r.name, new IconMenu(ico_col) ], 0, 0, itemList, styleSheet, '', 'page-item-btn', false);
+					}
+					
+					if( areaItems[i].visible == false ) {
+						pg.alpha = 0.35;
+					}
+					
+					pg.options.result = r;
+					pg.name = r.name;
+					pg.addEventListener( MouseEvent.MOUSE_DOWN, areaItemDown);
+					itemList.addItem( pg, true);
+				}
+				itemList.x = cssLeft;
+				itemList.format(false);
+				itemList.init();
+			}
+			
+			// Bugfix: remove all html comments from inline areas
+			textField.text = CompactCode.removeHtmlComments( CTTools.getAreaText( areaName, areaOffset, areaLimit, areaSubTemplateFilter ) );
+			
+			setWidth( cssSizeX );
+			setHeight( itemList.height );
+			
+			dispatchEvent( new Event("heightChange") );
+			textField.visible = false;
+		}
+		
 	}
-}
+}

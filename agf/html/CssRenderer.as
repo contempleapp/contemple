@@ -8,19 +8,16 @@
 	import flash.utils.Timer;
 	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
-	
 	import agf.io.Resource;
 	
 	public class CssRenderer
 	{
-		public function CssRenderer() {}
-		
 		/*
 		* last rendered css object properties
 		*/
 		public static var co:CssObject = new CssObject();
-		
-		public static var cssFilePath:String="";
+		public static var cssFilePath:String = "";
+		private static var targetClips:Object = {};
 		
 		/**
 		* Sprites, Images, MovieClip References wich are referenced in css files are stored here
@@ -36,7 +33,7 @@
 		* @parameter h height of the sprite
 		* @parameter ignoreSize if true, the width and height properties of the style sheet is ignored
 		*/
-		public static function drawBox (style:Array, target:CssSprite, parent:CssSprite, w:Number=0, h:Number=0, ignoreSize:Boolean=false) :void 
+		public static function drawBox (sta:Array, target:CssSprite, parent:CssSprite, w:Number=0, h:Number=0, ignoreSize:Boolean=false) :void 
 		{
 			
 			co.makeDefaults();
@@ -44,13 +41,8 @@
 			var bgSprite:Sprite = target.bgSprite;			
 			bgSprite.graphics.clear();
 			
-			var stylesRev:Array=[];
 			var i:int;
-			var sta:Array = style;
-			
-			for(i=0; i < sta.length; i++ ) {
-				stylesRev.push( [sta[i][0], CssUtils.parse( sta[i][1], parent )] );
-			}
+			var stL:int = sta.length;
 			
 			var st:*;
 			var cmd:Array;
@@ -60,25 +52,33 @@
 			var c:int;
 			var k:int;
 			var name:String;
+			var kwc:String;
+			var end:int;
+			var path:String="";
+			
+			if(w==0) w = target.getWidth() || 0;
+			if(h==0) h = target.getHeight() || 0;
+			
+			var clipPath:String="";
+			var gradient:String="";
 			
 			// copy required properties to dynamic CssObject - co
-			for(k=0; k < stylesRev.length; k++) 
+			for(k=0; k < stL/* stylesRev.length*/; k++) 
 			{
-				name = stylesRev[k][0];
-				st = stylesRev[k][1];
+				name = sta[k][0];
+				st = sta[k][1];
 				
 				switch ( name ) 
 				{
 					case "alpha":
 					case "opacity":
-						target./*bgSprite.*/alpha = st;
+						target.alpha = CssUtils.parse(st, parent, "h");
 						// break; //Store opacity in co !!  use background alpha also ---v^v^v---v^v^v---v^v^v---v^v^v---v^v^v/\___/\___/\___|O-O||O-O||O-O||O-O||O-O||O-O|___/\___/\___/\v^v^v---v^v^v---v^v^v---v^v^v---v^v^v---
 					case "overflow":
 						
 					case "backgroundAlpha":
 					case "backgroundRepeat":
 					case "backgroundSize":
-						
 					case "borderTopWidth":
 					case "borderRightWidth":
 					case "borderBottomWidth":
@@ -94,29 +94,26 @@
 					case "borderTopLeftRadius":
 					case "borderTopRightRadius":
 					case "borderBottomLeftRadius":
-					case "borderBottomRightRadius":
-						
+					case "borderBottomRightRadius":	
 					case "paddingLeft":
 					case "paddingRight":
-					case "paddingTop":
-					case "paddingBottom":
-					
 					case "marginLeft":
 					case "marginRight":
+					case "color":
+					case "textAlign":
+						co[name] = CssUtils.parse(st, parent, "h");
+						break;
+					case "paddingTop":
+					case "paddingBottom":
+					case "verticalAlign":
 					case "marginTop":
 					case "marginBottom":
-						
-					case "color":
-						
-					case "textAlign":
-					case "verticalAlign":
-						
-						co[name] = st;
+						co[name] = CssUtils.parse(st, parent, "v");
 						break;
 					case "borderColor":
 					case "borderAlpha":
 						st2 = name.substring(6,name.length);
-						co["borderLeft"+st2] = co["borderTop"+st2] = co["borderRight"+st2] = co["borderBottom"+st2] = st;
+						co["borderLeft"+st2] = co["borderTop"+st2] = co["borderRight"+st2] = co["borderBottom"+st2] = CssUtils.parse(st, parent, "h");
 						break;
 					case "border":
 						cmd = st.split(" ");
@@ -137,10 +134,10 @@
 						}
 						break;
 					case "borderRadius":
-					
+						st = CssUtils.parse(st, parent, "v");
 						if(typeof(st) == "number") 
 						{
-							co.borderTopLeftRadius = co.borderTopRightRadius = co.borderBottomLeftRadius = co.borderBottomRightRadius = st;
+							co.borderTopLeftRadius = co.borderTopRightRadius = co.borderBottomLeftRadius = co.borderBottomRightRadius = CssUtils.parse(st, parent, "h");
 						}
 						else
 						{
@@ -163,7 +160,7 @@
 						}
 						break;
 					case "padding":
-						
+						st = CssUtils.parse(st, parent, "v");
 						if( typeof st == "string" && st.indexOf( " " ) >= 0 )
 						{
 							var padgs:Array = st.split(" ");
@@ -184,11 +181,11 @@
 						}
 						else
 						{
-							co.paddingLeft = co.paddingRight = co.paddingTop = co.paddingBottom = st;
+							co.paddingLeft = co.paddingRight = co.paddingTop = co.paddingBottom = CssUtils.parse(st, parent, "h");
 						}
 						break;
 					case "margin":
-						
+						st = CssUtils.parse(st, parent, "v");
 						if( typeof st == "string" && st.indexOf( " " ) >= 0 )
 						{
 							var margs:Array = st.split(" ");
@@ -209,95 +206,73 @@
 						}
 						else
 						{
-							co.marginLeft = co.marginRight = co.marginTop = co.marginBottom = st;
+							co.marginLeft = co.marginRight = co.marginTop = co.marginBottom = CssUtils.parse(st, parent, "h");
 						}
 						break;
 					case "borderTop":
 					case "borderRight":
 					case "borderBottom":
 					case "borderLeft":
-						if(st == "none") {
-							co[name+"Width"] = 0;
-						}else{
-							cmd = st.split(" ");
-							for(i=0; i<cmd.length; i++) {
-								st2 = cmd[i];
-								st3 = CssUtils.parse(st2, parent);
-								if(st3 is Number) {
-									if( CssUtils.isColor(st2) ) {
-										co[name+"Color"] = st3;
-									}else{
-										co[name+"Width"] = st3;
+						if( typeof(st) == "string" ) {
+							if(st == "none") {
+								co[name+"Width"] = 0;
+							}else{
+								cmd = st.split(" ");
+								for(i=0; i<cmd.length; i++) {
+									st2 = cmd[i];
+									st3 = CssUtils.parse(st2, parent);
+									if(st3 is Number) {
+										if( CssUtils.isColor(st2) ) {
+											co[name+"Color"] = st3;
+										}else{
+											co[name+"Width"] = st3;
+										}
 									}
 								}
 							}
 						}
 						break;
-					default:
-						break;
-					
-				}
-			}
-			
-			if(w==0) w = target.getWidth() || 0;
-			if(h==0) h = target.getHeight() || 0;
-			
-			for(k=0; k < stylesRev.length; k++) 
-			{
-				name = stylesRev[k][0];
-				st = stylesRev[k][1];
-				
-				switch (name) 
-				{
+						
+						
+						
+						
+						
+						
 					case "width":
 						if( ! ignoreSize) {
-							if( st != "auto" ) w = st;
+							if( st != "auto" ) w = CssUtils.parse(st, parent, "h");
 						}
 						break;
 					case "height":
 						if(!ignoreSize) {
-							if( st != "auto" )	h = CssUtils.parse(sta[k][1], parent, "v");
+							if( st != "auto" )	h = CssUtils.parse(st, parent, "v");
 						}
 						break;
 					case "minWidth":
 					case "maxWidth":
-						co[name] = st;
+						co[name] = CssUtils.parse(st, parent, "h");
 						break;
 					case "minHeight":
 					case "maxHeight":
-						co[name] = CssUtils.parse(sta[k][1], parent, "v");
+						co[name] = CssUtils.parse(st, parent, "v");
 						break;
-					default:
-						break;
-				}
-			}
-			
-			if(w < co.minWidth) w = co.minWidth;
-			if(h < co.minHeight) h = co.minHeight;
-			
-			if(co.maxWidth > 0 && w > co.maxWidth) w = co.maxWidth;
-			if(co.maxHeight > 0 && h > co.maxHeight) h = co.maxHeight;
-			
-			co.width = w;
-			co.height = h;
-			
-			var clipPath:String="";
-			var gradient:String="";
-			
-			for(k=0; k < stylesRev.length; k++) 
-			{
-				name = stylesRev[k][0];
-				st = stylesRev[k][1];
-				switch (name) 
-				{
+					
+					
+					
+					
+					
+					
+					
 					case "background":
 					case "backgroundImage":
+						st = CssUtils.parse(st, parent, "h");
 						if(st == "none") {
 							co.bgSolid = false;
 							co.backgroundImage = false;
 							clipPath = "";
 						}
-						else if(isNaN(Number(st)))
+						
+						else if( isNaN(Number(st)) )
 						{
 							var cc:int;
 							var icmd:String="";
@@ -339,9 +314,7 @@
 								}
 								else
 								{
-									var kwc:String;
-									var end:int;
-									var path:String="";
+									path = "";
 									
 									for(var kw:int=0; kw<st2.length; kw++) 
 									{
@@ -394,7 +367,7 @@
 							}
 						}else{
 							co.bgSolid = true;
-							co.backgroundColor = st;
+							co.backgroundColor = CssUtils.parse(st, parent, "h");
 							clipPath = "";
 							break;
 						}
@@ -414,13 +387,24 @@
 						break;
 					case "backgroundColor": 
 						co.bgSolid = true;
-						co.backgroundColor = st;
+						co.backgroundColor = CssUtils.parse(st, parent, "h");
 						break;
+					
+					
 					default:
 						break;
 					
 				}
 			}
+			
+			if(w < co.minWidth) w = co.minWidth;
+			if(h < co.minHeight) h = co.minHeight;
+			
+			if(co.maxWidth > 0 && w > co.maxWidth) w = co.maxWidth;
+			if(co.maxHeight > 0 && h > co.maxHeight) h = co.maxHeight;
+			
+			co.width = w;
+			co.height = h;
 			
 			target.textAlign = co.textAlign;
 			target.verticalAlign = co.verticalAlign;
@@ -480,7 +464,7 @@
 			co.w = p3x;
 			co.h = p3y;
 			
-			// draw transparent background rect for mouse hover...
+			bgSprite.graphics.clear();
 			bgSprite.graphics.lineStyle( undefined,0,1 );
 			bgSprite.graphics.beginFill( 0,0 );
 			bgSprite.graphics.drawRect( p5x,p5y,p7x-p5x,p7y-p5y );
@@ -502,21 +486,18 @@
 				loadClip( clipPath, target, p1x, p1y, p2x, p2y, p3x, p3y, p4x, p4y );
 			}
 			
-			if( co.borderBottomLeftRadius == 0 && co.borderTopLeftRadius == 0 && co.borderBottomRightRadius == 0 && co.borderTopRightRadius == 0 ) {
+			if ( co.borderBottomLeftRadius == 0 && co.borderTopLeftRadius == 0 && co.borderBottomRightRadius == 0 && co.borderTopRightRadius == 0 )
+			{
+				if (co.borderLeftWidth > 0) drawQuadPoly(bgSprite, co.borderLeftColor, 0, undefined, p1x, p1y, p5x, p5y, p8x, p8y, p4x, p4y, co.borderLeftAlpha);
 				
-				if(co.borderLeftWidth > 0) {
-					drawQuadPoly(bgSprite, co.borderLeftColor, 0, undefined, p1x,p1y, p5x,p5y, p8x,p8y, p4x,p4y, co.borderLeftAlpha);
-				}
+				if (co.borderTopWidth > 0) drawQuadPoly(bgSprite, co.borderTopColor, 0, undefined, p1x, p1y, p2x, p2y, p6x, p6y, p5x, p5y, co.borderTopAlpha);
 				
-				if(co.borderTopWidth > 0) {
-					drawQuadPoly(bgSprite, co.borderTopColor, 0, undefined, p1x,p1y, p2x,p2y, p6x,p6y, p5x,p5y, co.borderTopAlpha);
-				}
+				if (co.borderRightWidth > 0) drawQuadPoly(bgSprite, co.borderRightColor, 0, undefined, p6x, p6y, p2x, p2y, p3x, p3y, p7x, p7y, co.borderRightAlpha);
 				
-				if(co.borderRightWidth > 0) drawQuadPoly(bgSprite, co.borderRightColor, 0, undefined, p6x,p6y, p2x,p2y, p3x,p3y, p7x,p7y, co.borderRightAlpha);
 				if(co.borderBottomWidth > 0) drawQuadPoly(bgSprite, co.borderBottomColor, 0, undefined, p8x,p8y, p7x,p7y, p3x,p3y, p4x,p4y, co.borderBottomAlpha);
-				
-			}else{
-				
+			}
+			else
+			{
 				var ct:Number;
 				
 				if( co.borderTopWidth > 0 ) {
@@ -558,7 +539,6 @@
 					}
 				}
 				
-				
 				if( co.borderBottomWidth > 0 )
 				{					
 					bgSprite.graphics.lineStyle( co.borderBottomWidth, co.borderBottomColor, co.borderBottomAlpha);
@@ -577,7 +557,6 @@
 						bgSprite.graphics.lineTo( p4x + ct, p4y - ct );
 					}
 				}
-				
 				
 				if( co.borderLeftWidth > 0 )
 				{					
@@ -602,8 +581,8 @@
 			if(co.overflow != "visible") {
 				target.scrollRect = new Rectangle(0,0,p3x,p3y);
 			}
-			
 		}
+		
 		public static function drawBorderRect (co:Object, bgSprite:Sprite, p5x:Number, p5y:Number, p6x:Number, p6y:Number, p7x:Number, p7y:Number, p8x:Number, p8y:Number, ignoreTL:Boolean=false, ignoreTR:Boolean=false, ignoreBL:Boolean=false, ignoreBR:Boolean=false) :void {
 			if( co.borderTopLeftRadius > 0 && !ignoreTL) {
 				bgSprite.graphics.moveTo( p5x, p5y + co.borderTopLeftRadius );
@@ -687,8 +666,7 @@
 						
 						if( cssObj.backgroundSize == "contain" ) {
 							mt.scale( cssObj.width/ clip.width, cssObj.height/clip.height  );
-						}else if( cssObj.backgroundSize == "cover" ) {
-							
+						//}else if( cssObj.backgroundSize == "cover" ) {
 						}
 						
 						if(clip is Bitmap) 
@@ -715,8 +693,6 @@
 		private static function clearSprite (target:DisplayObjectContainer) :void {
 			if(target.numChildren > 0) for(var i:int=target.numChildren-1; i>=0; i--) target.removeChildAt(i);
 		}
-		
-		private static var targetClips:Object = {};
 		
 		public static function loadClip (path:String, target:CssSprite, p5x:Number, p5y:Number, p6x:Number, p6y:Number, p7x:Number, p7y:Number, p8x:Number, p8y:Number) :void
 		{
@@ -766,7 +742,6 @@
 		
 		public static function clipLoaded(e:Event, res:Resource) :void 
 		{
-			
 			if( !res.loaded || !res.obj ) return;
 			
 			var clip:DisplayObject = DisplayObject(res.obj);

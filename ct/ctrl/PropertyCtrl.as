@@ -1,4 +1,4 @@
-﻿package ct.ctrl
+﻿ package ct.ctrl
 {
 	import agf.Options;
 	import agf.html.*;
@@ -53,10 +53,14 @@
 		
 		public override function setWidth (w:int) :void {
 			super.setWidth(w);
-			if( w ) {
-				//if( label ) label.setWidth( w - ( ctrlOptions ? ctrlOptions.cssSizeY + ctrlOptions.cssMarginX : 0) );
+			if( w )
+			{
+				if( label )
+				{
+					label.setWidth( w - ( ctrlOptions ? ctrlOptions.cssSizeY + ctrlOptions.cssBoxX : 0) );
+				}
 				if( textBox ) textBox.setWidth( w );
-				if( ctrlOptions ) ctrlOptions.x = w - (ctrlOptions.cssSizeX + ctrlOptions.cssMarginRight);
+				if( ctrlOptions ) ctrlOptions.x = w - (Options.btnSize + ctrlOptions.cssPaddingRight);
 			}
 		}
 		
@@ -90,8 +94,8 @@
 			ctrlOptions.clips = [ new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "ellipse-small.png", Options.iconSize, int(Options.iconSize/2) ) ];
 			ctrlOptions.init();
 			
-			ctrlOptions.x = cssRight - ctrlOptions.cssMarginRight;
-			ctrlOptions.y = cssTop + ctrlOptions.cssMarginTop;
+			ctrlOptions.x = int(cssRight - ctrlOptions.cssMarginRight);
+			ctrlOptions.y = int(cssTop + ctrlOptions.cssMarginTop);
 			
 			ctrlOptions.alignH = "right";
 			ctrlOptions.textAlign = "right";
@@ -100,7 +104,7 @@
 			
 			ctrlOptions.rootNode.addItem( [ Language.getKeyword("Revert to Default Value") ], styleSheet);
 			
-			label.x = cssLeft;
+			label.x = int(cssLeft);
 			label.setWidth( getWidth() - (ctrlOptions.cssSizeX + ctrlOptions.cssMarginX));
 			
 			if ( Language.hasKeyword(aname.toLowerCase() + "-help") ) {

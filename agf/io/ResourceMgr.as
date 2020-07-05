@@ -3,6 +3,7 @@
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
 	import flash.utils.setTimeout;
+	import flash.net.*;
 	
 	public class ResourceMgr extends EventDispatcher
 	{
@@ -23,10 +24,12 @@
 			finFuncs = [];
 		}
 		
-		public function loadResource (file:String, fin:Function=null, isTextFile:Boolean=true, binaryTextFile:Boolean = false) :int 
+		public function loadResource (file:String, fin:Function=null, isTextFile:Boolean=true, binaryTextFile:Boolean = false, clearFileCache:Boolean=false, postVars:URLVariables=null) :int 
 		{
 			if(!_res) _res = new Vector.<Resource>();
 			if(!_resByName ) _resByName = {};
+			
+			if ( clearFileCache ) clearResourceCache( file );
 			
 			var L:int = _res.length;
 			var ldd:Boolean=false;
@@ -51,7 +54,7 @@
 				_res.push( r );
 				_resByName[ file ] = r;
 				
-				r.load(file, isTextFile, resLoaded, null, binaryTextFile);
+				r.load(file, isTextFile, resLoaded, postVars, binaryTextFile);
 			}
 			else
 			{
@@ -97,11 +100,9 @@
 			}
 			if( e ) dispatchEvent( e );
 		}
-		
 			
 		public function clearResourceCache (url:String, clearHandlers:Boolean=true) :void 
 		{
-			
 			var res:Resource;
 			var i:int;
 			
@@ -115,8 +116,6 @@
 					break;
 				}
 			}
-			
-			
 			if( clearHandlers && res) {
 				for(i = finFuncs.length-1; i>=0; i--) {
 					if(finFuncs[i].res == res) {
@@ -124,8 +123,8 @@
 					}	
 				}
 			}
-			
 		}
+		
 		public function getResourceById (id:int) :Resource 
 		{
 			if( _res && _res.length > id && id >= 0 ) {
@@ -139,7 +138,6 @@
 			if( _resByName[ url ] != undefined ) {
 				return _resByName[ url ];
 			}
-			
 			return null;
 		}
 	}

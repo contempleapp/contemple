@@ -3,16 +3,17 @@
 	import agf.Main;
 	import agf.html.*;
 	import agf.db.*;
+	import agf.io.*;
 	import agf.ui.*;
 	import agf.tools.*;
-	import agf.utils.StringMath;
-	import flash.utils.setTimeout;
+	import agf.utils.*;
+	import flash.utils.*;
 	import flash.text.TextField;
 	import flash.display.Sprite;
 	import ct.ctrl.*;
 	import flash.events.*;
 	import flash.filesystem.*;
-	import flash.external.ExtensionContext;
+	//import flash.external.ExtensionContext;
 	import flash.net.*;
 	
 	/**
@@ -134,16 +135,61 @@
 				logTemplatePriorities();
 			}
 			
+			// export sub template extension table as sql:
 			var exp:int = args.indexOf("export-sql");
 			if( exp >= 0  ) {
-				
 				var template:Template = CTTools.findTemplate( arrStringFrom( args, exp+1 ) );
-				var sql = export_sql( template );
+				var sql:String = export_sql( template );
 				if( CTOptions.debugOutput ) {
 					Console.log( "SQL for '"+template.name+"':");
 					Console.log(sql);
 				}
 			}
+			
+			// export sub template extension table as xml:
+			var exp2:int = args.indexOf("export-xml");
+			if( exp2 >= 0  ) {
+				var template2:Template = CTTools.findTemplate( arrStringFrom( args, exp2+1 ) );
+				var xm:String = export_xml( template2 );
+				
+				if( CTOptions.debugOutput ) {
+					Console.log( "XML for '"+template2.name+"':");
+					Console.log(xm);
+				}
+			}
+			
+			// export website content as xml (theme default content):
+			var exp3:int = args.indexOf("export-all");
+			if( exp3 >= 0  ) {
+				var xm2:String = export_all();
+				Console.log( xm2 );
+			}
+			
+			// export website content as xml (theme default content):
+			var impatch:int = args.indexOf("import-patch");
+			if( impatch >= 0  ) {
+				if( args.length > impatch+1 ) {
+					importContentPatchFile( arrStringFrom( args, impatch+1 ) );
+				}else{
+					selectImportPatchFile();
+				}
+			}
+			
+			// export website content as xml (theme default content):
+			var pubhistory:int = args.indexOf("publish-history");
+			if ( pubhistory >= 0  )
+			{
+				if ( args.length > pubhistory + 1 )
+				{
+					
+				//	importContentPatchFile( arrStringFrom( args, pubhistory+1 ) );
+				}
+				else
+				{
+					CTMain(Application.instance).showPublishHistory();
+				}
+			}
+			
 			complete( cmdComplete, cmdCompleteArgs );
 		}
 		
@@ -158,7 +204,7 @@
 		*
 		* Properties:
 		*
-		* {page#-BG:Image} -> {#Blog-BG:Image}
+		* {#page#-BG:Image} -> {#Blog-BG:Image}
 		* {#Folder.10.page#-BG:Image} -> {#Folder.10.Blog-BG:Image}
 		**/
 		public static function rewritePage (txt:String, pageName:String, props:Object=null) :String
@@ -193,22 +239,145 @@
 			}
 			return txt;
 		}
+		private static var _uploadUrl:String;
 		
-		public static function installTemplate (url:String) :void {
+		public static function installTemplate (url:String) :void
+		{
 			installingTemplate = true;
-			var r:URLRequest = new URLRequest( url );
-			var tmplDir:File = File.applicationStorageDirectory.resolvePath( CTOptions.templateStorage );
-			tmplDir.createDirectory();
-			newFolder = CTImporter.extractZipFile( r, tmplDir, installTmplExtractComplete );
+			
+			if( url.indexOf(":/") > 3 )
+			{
+				// load directly
+				
+				var r:URLRequest = new URLRequest( url );
+				var tmplDir:File = File.applicationStorageDirectory.resolvePath( CTOptions.templateStorage );
+				tmplDir.createDirectory();
+				
+				newFolder = CTImporter.extractZipFile( r, tmplDir, installTmplExtractComplete );
+				
+			}
+			else
+			{
+				_uploadUrl = url;
+				newFolder = url;
+				
+				var pwd:String = "";
+				var sh:SharedObject = SharedObject.getLocal( CTOptions.localSharedObjectId );
+				if ( sh )
+				{
+					if( sh.data && sh.data.userPwd ) {
+						pwd = sh.data.userPwd;
+					}else{
+						Application.instance.cmd( "CTTools get-password", resumeOnPwd);
+						installingTemplate = false;
+						return;
+					}
+				}
+				
+				// get zip file from cthub by template-name
+				var res:Resource = new Resource();
+				var vars:URLVariables = new URLVariables();
+				vars.src = 1;
+				vars.name = url;
+				vars.pwd = pwd;
+				
+				// dowload zip file..
+				res.load( CTOptions.uploadScript, true, onHubZipFile, vars, true );
+			}
 		}
 		
-		public static function updateTemplate (url:String) :void {
-			installingTemplate = true;
-			var r:URLRequest = new URLRequest( url );
-			var tmplDir:File =  File.applicationStorageDirectory.resolvePath( CTOptions.tmpDir );
-			tmplDir.createDirectory();
-			newFolder = CTImporter.extractZipFile( r, tmplDir, updateTmplExtractComplete );
+		private static function resumeOnPwd () :void {
+			installTemplate( _uploadUrl );
 		}
+		
+		private static function resumeOnPwdUpdate () :void {
+			updateTemplate( _uploadUrl );
+		}
+		
+		public static function onHubZipFile ( e:Event, res:Resource ) :void
+		{
+			if (res && res.loaded == 1 )
+			{
+				var f:File = File.applicationStorageDirectory.resolvePath ( CTOptions.tmpDir + CTOptions.urlSeparator + _uploadUrl + ".zip");
+				var fs:FileStream = new FileStream();
+				fs.open( f, FileMode.WRITE );
+				fs.writeBytes( ByteArray(res.obj) );
+				fs.close();
+				
+				setTimeout( function () {
+					installTemplate( f.url );
+				}, 789);
+			}
+			else
+			{
+				Console.log("Error: Install package not available");
+			}
+		}
+		
+		public static function onHubZipFileUpdate ( e:Event, res:Resource ) :void
+		{
+			if ( res.loaded == 1 )
+			{
+				var f:File = File.applicationStorageDirectory.resolvePath ( CTOptions.tmpDir + CTOptions.urlSeparator + _uploadUrl + ".zip");
+				var fs:FileStream = new FileStream();
+				fs.open( f, FileMode.WRITE );
+				fs.writeBytes( ByteArray(res.obj) );
+				fs.close();
+				setTimeout( function () {
+					updateTemplate( f.url );
+				}, 789);
+			}
+			else
+			{
+				Console.log("Error: Update package not available");
+			}
+		}
+		
+		public static function updateTemplate (url:String) :void
+		{
+			installingTemplate = true;
+			
+			if( url.indexOf(":/") > 3 )
+			{
+				// load directly
+				var r:URLRequest = new URLRequest( url );
+				var tmplDir:File =  File.applicationStorageDirectory.resolvePath( CTOptions.tmpDir );
+				tmplDir.createDirectory();
+				newFolder = CTImporter.extractZipFile( r, tmplDir, updateTmplExtractComplete );
+			}
+			else
+			{
+				_uploadUrl = url;
+				newFolder = url;
+				
+				var pwd:String = "";
+				var sh:SharedObject = SharedObject.getLocal( CTOptions.localSharedObjectId );
+				if ( sh )
+				{
+					if( sh.data && sh.data.userPwd ) {
+						pwd = sh.data.userPwd;
+					}else{
+						Application.instance.cmd( "CTTools get-password", resumeOnPwdUpdate);
+						installingTemplate = false;
+						return;
+					}
+				}
+				
+				// get zip file from cthub by template-name
+				var res:Resource = new Resource();
+				var vars:URLVariables = new URLVariables();
+				vars.src = 1;
+				vars.patch = 1;
+				vars.name = url;
+				vars.pwd = pwd;
+				
+				// dowload zip file..
+				res.load( CTOptions.uploadScript, true, onHubZipFileUpdate, vars, true );
+			}
+		}
+		
+		
+		
 		private static var installingTemplate:Boolean = false;
 		private static var newFolder:String="";
 		
@@ -233,6 +402,57 @@
 		public static function get lastExtractedTemplate () :String {
 			return newFolder; 
 		}
+		
+		
+		private static var importingPatch:Boolean = false;
+		
+		private static function importPatch ( patch:XML ) :void
+		{
+			if ( importingPatch == false )
+			{
+				
+				importingPatch = true;
+				
+				// process insert, update and delete querys on the db
+				
+				// TODO Import patch Files...
+				
+			}
+		}
+		
+		
+		private static function importContentPatchFile (url:String) :void {
+			var txt:String = CTTools.readTextFile( url );
+			if ( importingPatch == false )
+			{
+				if ( txt )
+				{
+					try
+					{
+						var x:XML = new XML( txt );
+						importPatch( x );
+					}
+					catch (e:Error)
+					{
+						Console.log("Error Import Patch: " + e);
+					}
+				}
+				else
+				{
+					Console.log("Error: Import Patch file is empty");
+				}
+			}
+			else
+			{
+				Console.log("Error: Already importing Patch file..");
+			}
+		}
+		
+		private static function importPatchSelected (event:Event) :void
+		{
+			importContentPatchFile( File(event.target).url );
+		}
+		
 		private static function installTemplateSelected (event:Event) :void {
 			installingTemplate = true;
 			var r:URLRequest = new URLRequest( File( event.target ).url );
@@ -243,8 +463,8 @@
 		private static var tmplUpdateConfig:XML;
 		private static var updateType:String="template";
 		
-		private static function updateTmplDone ( res:DBResult ) :void {
-			
+		private static function updateTmplDone ( res:DBResult ) :void
+		{
 			CTTools.saveDirty = true;
 			CTTools.invalidateFiles();
 			
@@ -260,27 +480,22 @@
 		}
 		private static var templateUpdateCmds:String="";
 		
-		private static function updateTmplExtractComplete () :void {
-			if( newFolder != "" ) {
-				
+		private static function updateTmplExtractComplete () :void
+		{
+			if( newFolder != "" )
+			{
 				var dir:File = File.applicationStorageDirectory.resolvePath( CTOptions.tmpDir + CTOptions.urlSeparator + newFolder );
+				
 				var fs:Array = dir.getDirectoryListing();
 				var L:int = fs.length;
 				var i:int;
 				var f:File = dir.resolvePath("ctx.xml");
+				
 				updateType = "template";
 				templateUpdateCmds = "";
 				
 				if( f.exists )
 				{
-					// Provide Update instructions:
-					/* <ct>
-						<ctx name="Version-Code-Name | subtemplate-name | plugin-name" version="1.0.0" date="22-11-2018" 
-							type="template | root-template | sub-template | config | plugin |" src="plugin-file" dependencies="template-name | plugin-name,..."
-							sqlquery="update-sql.sql" 
-						/>
-					</ct> */
-					
 					var updateConfig:XML = new XML( CTTools.readTextFile(f.url) );
 					tmplUpdateConfig = updateConfig;
 					var s:String = " Installing Update\n==================\n";
@@ -290,14 +505,13 @@
 					if( updateConfig.ctx.@date != undefined ) s += " ("+ updateConfig.ctx.@date + ")\n";
 					if( updateConfig.ctx.@cmds != undefined ) templateUpdateCmds = updateConfig.ctx.@cmds.toString();
 					
-					
 					if( updateConfig.ctx.@type != undefined ) {
 						updateType = updateConfig.ctx.@type;
 						s += "Type: "+ updateType + "\n";
 					}
 				}
 				
-				if( updateType == "template" || updateType == "root-template" )
+				if( updateType == "template" )
 				{
 					// Copy zip contents to project-dir/tmpl/
 					// move ctx/st/subtempl/ to tmpl/subtempl/
@@ -323,7 +537,6 @@
 							// Copy file in folder to /tmpl/
 							CTTools.copyFile( f.url, CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderTemplate + CTOptions.urlSeparator + f.name );
 						}
-						
 					}
 					
 					if( updateConfig ) {
@@ -340,14 +553,10 @@
 					// Copy icons in zip/icons to tmpl/st/icons
 					// Update cmd.xml
 					// Store New Subtemplate local for app-restarts to load installed subtemplates
-					
-					//var tmplFolder:File = CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderTemplate + CTOptions.urlSeparator;
-					
 					for (i=0; i<L; i++)
 					{						
 						f = fs[i];
 						if( f.isDirectory ) {
-							Console.log( "INSTALL ST FROM UPDATE: " + f.url);
 							Application.instance.cmd( "CTTools subtemplate " + f.url );
 						}
 					}
@@ -471,7 +680,6 @@
 					
 					var L:int = pi.length;
 					var sid:int=0;
-					var p:RegExp = /\n/gi;  
 					
 					for( i=0; i<L; i++) 
 					{
@@ -492,13 +700,13 @@
 								if( fields[j] == "crdate" ) {
 									sql += '"now",';
 								}else{
-									sql += '"'+String( pg[ fields[j] ] ).replace(p, "#BR#")+'",';
+									sql += '"' + HtmlParser.toDBText( pg[ fields[j] ], true, true ) + '",';
 								}
 							}
 							if( fields[L2-1] == "crdate" ) {
 								sql += '"now");\n';
 							}else{
-								sql += '"'+ String( pg[ fields[L2-1] ] ).replace(p, "#BR#")+'");\n';
+								sql += '"' + HtmlParser.toDBText( pg[ fields[L2-1] ], true, true ) + '");\n';
 							}
 							sid++;
 						}					
@@ -511,6 +719,231 @@
 			return "";
 		}
 		
+		public static function export_xml ( T:Template ) :String
+		{
+			var tistr:String = CTTools.readTextFile( T.genericPath + CTOptions.urlSeparator + CTOptions.templateIndexFile );
+			
+			if( tistr )
+			{
+				var txo:XML = new XML( tistr );
+				
+				if( txo.@template )
+				{
+					var i:int;
+					var j:int;
+					var L2:int;
+					
+					var name:String = txo.template.@name;
+					
+					var fld:String = txo.template.@fields;
+					var fields:Array = fld.split(",");
+					L2 = fields.length;
+					var xm:String = "";
+					var pi:Array = CTTools.pageItems;
+					var pg:Object;
+					
+					var L:int = pi.length;
+					
+					for( i=0; i<L; i++) 
+					{
+						pg = pi[i];
+						
+						if( pg.subtemplate == name ) 
+						{
+							xm += "<item";
+							for(j=0; j<L2-1; j++) {
+								if( fields[j] == "crdate" ) {
+									xm += ' crdate="now"'
+								}else{
+									xm += ' ' + fields[j] + '="' + HtmlParser.toDBText( pg[ fields[j] ], true, true) + '"';
+								}
+							}
+							if( fields[L2-1] == "crdate" ) {
+								xm += ' crdate="now"/>\n'
+							}else{
+								xm += ' ' + fields[L2-1] + '="' + HtmlParser.toDBText( pg[ fields[L2-1] ], true, true ) + '"/>\n';
+							}
+						}					
+					}
+					return xm;					
+				}
+				else Console.log("EXPORT-XML: TEMPLATE-ERROR No Template Node Found: Missing In " + T.genericPath );
+			}
+			else Console.log("EXPORT-XML: TEMPLATE-ERROR No Template Index File Found: 'config.xml' Missing In " + T.genericPath );
+			return "";
+		}
+		
+		public static function export_all () :String
+		{
+			// Export all PageItems in sorting order as xml..
+			// Sort PageItems By Area & sortid
+			
+			var xm:String = '<?xml version="1.0" encoding="utf-8" ?>\n<ct>\n';
+			var tmpl:Template = CTTools.activeTemplate;
+			
+			if( tmpl )
+			{
+				var L:int;
+				var i:int;
+				var aname:String;
+				
+				var date:Date = new Date();
+				xm += "<!-- \n   Contemple "+CTOptions.version+"\n   Website Content Export\n   Theme: " + Language.getKeyword(tmpl.name) + " (" + tmpl.name +")\n   Date: " + date.getDate() + ". " + (date.getMonth()+1) + ". " + date.getFullYear() + "\n-->\n";
+				
+				// Export <tmpl from activeTemplate + CTTools.subTemplates
+				
+				xm += "\n   <!-- Templates -->\n";
+				xm += '   <tmpl name="'+ tmpl.name +'" indexfile="'+ tmpl.indexFile +'" />\n';
+				if( CTTools.subTemplates && CTTools.subTemplates.length > 0 ) {
+					L = CTTools.subTemplates.length;
+					for( i=0; i<L; i++) {
+						xm += '   <tmpl name="'+ CTTools.subTemplates[i].name +'" indexfile="'+ CTTools.subTemplates[i].indexFile + '" />\n';
+					}
+				}
+				
+				xm += "\n   <!-- Template Properties -->\n";
+				
+				// Export <prop form activeTemplate.dbProps
+				if( tmpl.dbProps )
+				{	
+					L = CTTools.procFiles.length;
+					var pf:ProjectFile;
+					var jL:int;
+					var j:int;
+					var propName:String;
+					var propType:String;
+					var secj:String;
+					var propVal:String;
+					var propStore:Object = {};
+					
+					for(i = 0; i<L; i++)
+					{
+						pf = CTTools.procFiles[ i ] as ProjectFile;
+						
+						if( pf.templateId == tmpl.name )
+						{
+							if( pf.templateProperties )
+							{
+								jL = pf.templateProperties.length;
+								for(j=0; j<jL; j++)
+								{
+									propName = pf.templateProperties[j].name;
+									if( propName == "name" ) continue;
+									propType = pf.templateProperties[j].defType.toLowerCase();
+									
+									if( propType == "folder" || propType == "label" || propType == "section" ) {
+										continue;
+									}
+									
+									
+									if( pf.templateProperties[j].sections != null ) {
+										secj = pf.templateProperties[j].sections.join(".");
+									}else{
+										secj = "";
+									}
+									
+									
+									// Input
+									if( secj && tmpl.dbProps[ secj + "." + propName ] )
+									{
+										if( propStore[ secj + "." + propName] ) continue;
+										propStore[ secj + "." + propName] = true;
+										
+										propVal = tmpl.dbProps[secj + "." + propName].value;
+										
+	xm += '   <prop name="'+propName+'" type="'+pf.templateProperties[j].defType+'" section="' + secj + '" value="'+ HtmlParser.toDBText( propVal, true, true)+'" templateid="1" />\n';
+
+									}
+									else if( !secj && tmpl.dbProps[ propName ] )
+									{
+										propVal = typeof tmpl.dbProps[ propName ] == "object" ? tmpl.dbProps[ propName ].value : tmpl.dbProps[ propName ];
+	xm += '   <prop name="'+propName+'" type="'+pf.templateProperties[j].defType+'" section="" value="'+ HtmlParser.toDBText( propVal, true, true)+'" templateid="'+pf.templateId+'" />\n';
+
+									}
+								}
+							}
+						}
+					}
+				}
+				
+				if( CTTools.pageItems )
+				{	
+					var pageItems:Array = CTTools.pageItems;
+					
+					pageItems.sortOn("sortid", Array.NUMERIC);
+					
+					L = pageItems.length;
+					var piByArea:Object = { };
+					
+					for( i = 0; i < L; i++ ) {
+						if( piByArea[ pageItems[i].area ] == undefined ) {
+							piByArea[ pageItems[i].area ] = [];
+						}
+						piByArea[ pageItems[i].area ].push( pageItems[i] );
+					}
+					
+					var arr:Array;
+					var fields:Array;
+					var T:Template;
+					var L2:int;
+					
+					for( aname in piByArea )
+					{
+						xm += "\n   <!-- Page Items in Area '" + aname + "' -->\n";
+						
+						arr = piByArea[ aname ];
+						L = arr.length;
+						
+						for( i=0; i<L; i++ )
+						{
+							xm += '   <item name="' + arr[i].name + '" sortid="'+i+'" visible="' + (( arr[i].visible == undefined || arr[i].visible == null)  ? "true" : arr[i].visible) + '" area="' + aname + '" subtemplate="'+arr[i].subtemplate+'" ';
+							
+							T = CTTools.findTemplate( arr[i].subtemplate, "name" );
+							
+							if( T ) {
+								fields = T.fields.split(",");
+								
+								if( fields && fields.length > 0 ) {
+									L2 = fields.length;
+									for(j=0; j<L2; j++ )
+									{
+										if( arr[i][fields[j]] != undefined )
+										{
+											if( fields[j] != "name" && fields[j] != "visible"  ) {
+												xm += " " + fields[j] + '="'+ HtmlParser.toDBText( arr[i][fields[j]], true, true ) +'"';
+											}
+										}
+									}
+									xm += "/>\n";
+								}
+							}
+							// for fields...
+						} // for area items
+					} // for areas
+				}
+				
+				xm += "\n   <!-- Pages -->\n";
+				// Export <page from CTTools.pages + CTTools.articlePages
+				if( CTTools.pages )
+				{
+					L = CTTools.pages.length;
+					for( i=0; i<L; i++) {
+						xm += '   <page name="'+CTTools.pages[i].name+'" visible="'+CTTools.pages[i].visible+'" title="'+CTTools.pages[i].title+'" type="'+CTTools.pages[i].type+'" template="'+CTTools.pages[i].template+'" parent="'+CTTools.pages[i].parent+'" webdir="'+CTTools.pages[i].webdir+'" filename="'+CTTools.pages[i].filename+'" crdate="now" />\n';
+					}
+				}
+				if( CTTools.articlePages )
+				{
+					L = CTTools.articlePages.length;
+					for( i=0; i<L; i++) {
+						xm += '   <page name="'+CTTools.articlePages[i].name+'" visible="'+CTTools.articlePages[i].visible+'" title="'+CTTools.articlePages[i].title+'" type="'+CTTools.articlePages[i].type+'" template="'+CTTools.articlePages[i].template+'" parent="'+CTTools.articlePages[i].parent+'" webdir="'+CTTools.articlePages[i].webdir+'" filename="'+CTTools.articlePages[i].filename+'" crdate="now" />\n';
+					}
+				}
+			}
+			
+			xm += "\n</ct>\n";
+			
+			return xm;
+		}
 		
 		public static function createTemplate ( name:String, type:String, index:String, files:String, folders:String, tables:String, fields:String, sortproperties:String, label:String, icon:String ) :Boolean {
 			newSTName = name;
@@ -742,8 +1175,8 @@
 			var ww2:int = cw - 48;
 			Application.instance.windows.addChild( win );
 			
-			form.cssWidth = 0;//ww;
-			form.cssHeight = 0;//ch;
+			form.cssWidth = 0;
+			form.cssHeight = 0;
 			form.init();
 			
 			var sp:ScrollContainer = new ScrollContainer(ww,ch-48,form,styl,'','new-subtemplate-form-container',false);
@@ -851,6 +1284,21 @@
 			}
 		}
 		
+		// browser for import patch xml-file (.ctx)
+		private static function selectImportPatchFile () :void
+		{
+			if( importingPatch == false ) {
+				var docsDir:File = File.desktopDirectory;
+				var flt:FileFilter = new FileFilter( Language.getKeyword("XML"), "*.ct;*.xml;" );
+				try {
+					docsDir.browseForOpen("Select Content Patch File", [flt]);
+					docsDir.addEventListener(Event.SELECT, importPatchSelected); 
+				}catch (error:Error){
+					Console.log("Select template file error: " + error.message);
+				}
+			}
+		}
+		
 		// browser for template zip-file (.ctx)
 		private static function selectInstallTemplateFile () :void {
 			// Get template ctx file from User
@@ -865,6 +1313,7 @@
 				}
 			}
 		}
+		
 		private static function selectUpdateTemplateFile () :void {
 			// Get template ctx file from User
 			if( installingTemplate == false ) {
@@ -1166,7 +1615,6 @@
 										}else {
 											if ( isNaN(Number(tmp4)) ) {
 												tmp2 = subnm.indexOf(tmp4);
-												//if(tmp2==-1) tmp2 = s
 											}else{
 												tmp2 = parseInt(tmp4);
 											}	
@@ -1272,6 +1720,8 @@
 										val = isHtml ? "&apos;" : "'";
 									}else if( nm == "at") {
 										val = "@";
+									}else if( nm == "hashtag") {
+										val = "#";
 									/*}else if( nm == "separator") {
 										val = "#separator";*/
 									}else if( nm == "br") {
@@ -1311,8 +1761,10 @@
 												if(p is AreaEditor) {
 													val = AreaEditor(p).updateItem.name || "";
 												}else if(p is ConstantsEditor) {
-													var pc:PropertyCtrl = ConstantsEditor(p).currItem;
-													val = pc.name;
+													var pc:PropertyCtrl = ConstantsEditor(p).currentItem;
+													if( pc ) {
+														val = pc.name;
+													}
 												}else{
 													val = "";
 												}
@@ -1320,7 +1772,7 @@
 												val = nm;
 											}
 										}catch(e:Error) {
-											if(CTOptions.debugOutput) Console.log("Error: Editor undefined " +e);
+											if(CTOptions.debugOutput) Console.log("Error: Editor Undefined " +e);
 											val = nm;
 										}
 									}

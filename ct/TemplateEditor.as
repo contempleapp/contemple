@@ -82,6 +82,24 @@
 			}
 		}
 		
+		public static function startClickScrolling () :void {
+			var currentEditor:CssSprite;
+			if( Application.instance.view.panel.src is HtmlEditor &&  HtmlEditor(Application.instance.view.panel.src).editor ) {
+				currentEditor = HtmlEditor(Application.instance.view.panel.src).editor.currentEditor;
+			}
+			if ( currentEditor ) {
+				if ( currentEditor is AreaEditor ) {
+					AreaEditor.clickScrolling = true;
+				}else if ( currentEditor is ConstantsEditor ) {
+					ConstantsEditor.clickScrolling = true;
+				}else if ( currentEditor is MediaEditor ) {
+					MediaEditor.clickScrolling = true;
+				}else if ( currentEditor is PageEditor ) {
+					PageEditor.clickScrolling = true;
+				}
+			}
+		}
+		
 		public override function setWidth( w:int) :void {
 			super.setWidth(w);
 			_w = w;
@@ -103,7 +121,7 @@
 				if( lb == Language.getKeyword("Template") || lb == Language.getKeyword("Options") ) {
 					currentEditor = new ConstantsEditor( _w-8, getHeight(), this, styleSheet, '', '', 'constant-editor',false);
 					var cte1:ConstantsEditor = ConstantsEditor( currentEditor );
-					cte1.displayTemplateProps( CTTools.activeTemplate );
+					cte1.displayTemplateProps( CTTools.activeTemplate, "", 0, 2 );
 					cte1.y = cssTop;
 				}else if( lb == Language.getKeyword("Pages") ) {
 					currentEditor = new PageEditor( _w-8, getHeight(), this, styleSheet, '', '', 'page-editor',false);
@@ -116,7 +134,7 @@
 				}else if( lb == Language.getKeyword("Media") ){
 					currentEditor = new MediaEditor( _w-8, getHeight(), this, styleSheet, '', '', 'media-editor',false);
 					var meded:MediaEditor = MediaEditor ( currentEditor );
-					meded.showMediaItems();
+					meded.showMediaItems("", 2);
 					currentEditor.y = currentEditor.cssTop;
 				}
 				else{

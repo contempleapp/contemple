@@ -23,6 +23,7 @@
 		public var filename:String="";	          // File name with extension
 		public var extension:String="";      	  // File extension
 		
+		internal var hasRandoms:Boolean = false;
 		internal var template:String = "";          // raw template text
 		
 		private var text:String = "";             // translated text with template and database
@@ -46,6 +47,14 @@
 		internal var textSaveDirty:Boolean = false;	// and will be always set to true when content changed
 		private var pageItemName:String=""; // for temporary subtemplate parsing
 		
+		public function clear () :void
+		{
+			path = name = filename = extension = templateId = template = text = compact = compactTemplate = splitPath = pageItemName = "";
+			compactDirty = templateDirty = textDirty = compactTemplateDirty =  textSaveDirty = splits = templateSaveDirty = false;
+			templateStruct = [];
+			templateProperties = [];
+			templateAreas = new Vector.<Area>();
+		}
 		
 		public function setUrl ( url:String ) :void {
 			path = url;
@@ -104,7 +113,6 @@
 			// trace("FileMonitor CHANGE: " + e.file.url);
 			
 			setTemplate( s );
-			
 			
 			if( templateId && CTTools.activeTemplate && templateId != CTTools.activeTemplate.name  )
 			{
@@ -211,7 +219,5 @@
 			}
 			return compact;
 		}
-		
 	}
-	
 }

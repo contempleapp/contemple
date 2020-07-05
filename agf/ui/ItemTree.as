@@ -35,7 +35,6 @@
 				for( var i:int = 0; i < itemList.items.length; i++ ) {
 					itemList.items[i].setWidth(w);
 				}
-				itemList.setWidth(0);
 				itemList.init();
 			}
 		}
@@ -58,19 +57,22 @@
 			
 			if( this == rootNode ) {
 				if(!_opened) {
-					if( itemList) itemList.visible = true;
+					// always open root node
 					_opened = true;
 				}
 			}else{
+				icons.push("Test BTN Label");
 				btn = new Button( icons, 0,0, this, styleSheet, '', 'item-tree-btn', false);
 				btn.addEventListener( MouseEvent.CLICK, toggle );
 			}
 			
 			if( itemList && contains( itemList ) ) removeChild( itemList );
 			itemList = new ItemList(0,0,this,styleSheet,'','tree-item-list');
-			itemList.visible = _opened;
+			if( !_opened ) {
+				removeChild( itemList );
+			}
 			
-			itemList.y = btn ? Math.max(btn.cssMarginBottom, itemList.cssMarginTop ) + cssTop + btn.cssSizeY + 4 : cssTop + itemList.cssMarginTop;
+			itemList.y = btn ? Math.max(btn.cssMarginBottom, itemList.cssMarginTop ) + cssTop + btn.cssSizeY + 8 : cssTop + itemList.cssMarginTop;
 		}
 		
 		public function addFolder ( icons:Array, noFormat:Boolean=false ) :ItemTree {
@@ -84,18 +86,24 @@
 			toggle(null);
 		}
 		public function toggle (e:Event) :void {
-			itemList.visible = _opened = !_opened;
+			_opened = !_opened;
+			
+			if( _opened && !contains( itemList ) ) addChild(itemList);
+			else if( contains( itemList ) ) removeChild( itemList );
+			
 			rootNode.format(fsw);
 		}
 		public function open (e:Event) :void {
 			if( !_opened ) {
-				itemList.visible = _opened = true;
+				_opened = true;
+				if( !contains( itemList ) ) addChild(itemList);
 				rootNode.format(fsw);
 			}
 		}
 		public function close (e:Event) :void {
 			if( _opened ) {
-				itemList.visible = _opened = false;
+				_opened = false;
+				if( contains( itemList ) ) removeChild( itemList );
 				rootNode.format(fsw);
 			}
 		}
@@ -127,15 +135,12 @@
 						
 						if( (c is ItemTree) ) {
 							ItemTree(c).format( forceSameWidth );
-							c.init();
 						}
 					}
 					list.format( forceSameWidth );
-					list.init();
 				}
 			}
 		}
-		
 		
 	}
 }

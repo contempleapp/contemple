@@ -139,7 +139,6 @@
 		public override function setHeight (h:int) :void {
 			super.setHeight( h );
 			bg.setHeight( h );
-			
 		}
 		public function createWindow ( nameUid:String, titleText:String, titleClass:String='', closeButtonClass:String='', backgroundClass:String='' ) :void
 		{

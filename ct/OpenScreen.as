@@ -27,6 +27,7 @@
 			container.addEventListener(Event.RESIZE, newSize);
 			create();
 		}
+		
 		private function create () :void
 		{
 			var i:int;
@@ -75,20 +76,22 @@
 				
 				for( i=ish.data.recentProjects.length-1; i >= 0; i--)
 				{
-					file = new File( ish.data.recentProjects[i] );
-					
-					if( file && file.exists && file.isDirectory) 
-					{
-						fid = ish.data.recentProjects[i].lastIndexOf( CTOptions.urlSeparator );
-						if( fid >= 0 ) {
-							fd_name = ish.data.recentProjects[i].substring( fid+1 );
+					if( ish.data.recentProjects[i] ) {
+						file = new File( ish.data.recentProjects[i] );
+						
+						if( file && file.exists && file.isDirectory) 
+						{
+							fid = ish.data.recentProjects[i].lastIndexOf( CTOptions.urlSeparator );
+							if( fid >= 0 ) {
+								fd_name = ish.data.recentProjects[i].substring( fid+1 );
+							}else{
+								fd_name = ish.data.recentProjects[i];
+							}
+							pi = recentProjects.rootNode.addItem( [fd_name], recentProjects.styleSheet );
+							pi.options.folder = ish.data.recentProjects[i];
 						}else{
-							fd_name = ish.data.recentProjects[i];
+							ish.data.recentProjects.splice(i,1);
 						}
-						pi = recentProjects.rootNode.addItem( [fd_name], recentProjects.styleSheet );
-						pi.options.folder = ish.data.recentProjects[i];
-					}else{
-						ish.data.recentProjects.splice(i,1);
 					}
 				}
 			}

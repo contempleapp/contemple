@@ -4,6 +4,8 @@
 	import flash.events.*;
 	import agf.html.*;
 	import agf.ui.*;
+	import agf.Options;
+	import agf.icons.IconFromFile;
 	
 	public class SearchBox extends CssSprite
 	{
@@ -13,21 +15,23 @@
 			create(w, h);
 		}
 		
-		private var label:Label;
+		private var tf:InputTextField;
 		private var searchButton:Button;
 		private var cancelButton:Button;
 		
 		public function create (w:int, h:int) :void
 		{
-			if(label && contains(label)) removeChild( label );
+			if(tf && contains(tf)) removeChild( tf );
 			if(searchButton && contains(searchButton)) removeChild( searchButton );
 			if(cancelButton && contains(cancelButton)) removeChild( cancelButton );
 			
-			label = new Label(0, 0, this, styleSheet, '', 'searchbox-textfield', false);
-			label.label = "";
+			tf = new InputTextField(w, 0, this, styleSheet, '', 'searchbox-textfield', false);
+			tf.text = "Search...";
+			tf.init();
 			
-			searchButton = new Button( [Language.getKeyword( "Search" )], 0, 0, this, styleSheet, '', 'searchbox-ok-button',false);
-			cancelButton = new Button( [Language.getKeyword( "Cancel Search" )], 0, 0, this, styleSheet, '', 'searchbox-cancel-button',false);
+			searchButton = new Button( [ new IconFromFile( Options.iconDir + "/search-btn.png", Options.btnSize, Options.btnSize)], 0, 0, this, styleSheet, '', 'searchbox-button',false);
+			/* cancelButton = new Button( [ Language.getKeyword( "Cancel Search" )], 0, 0, this, styleSheet, '', 'searchbox-cancel-button',false); */
+			
 			setWidth( w );
 			setHeight( h );
 		}
@@ -36,16 +40,14 @@
 		{
 			super.setWidth( w );
 			
-			if( label && searchButton && cancelButton )
+			if( tf && searchButton )
 			{
 				var sb:Button = searchButton;
-				var cb:Button = cancelButton;
 				
-				label.x = Math.floor( cssLeft + label.cssMarginLeft );
-				label.setWidth( w - ( label.cssMarginX + sb.cssSizeX + Math.max( sb.cssMarginRight, cb.cssMarginLeft) + cb.cssSizeX + Math.max(label.cssMarginRight, sb.cssMarginLeft) + Math.max(cssMarginRight, cb.cssMarginRight) ) );
+				tf.x = Math.floor( cssLeft + tf.cssMarginLeft );
+				tf.setWidth( w - ( tf.cssMarginX + sb.cssSizeX + sb.cssMarginRight + Math.max(tf.cssMarginRight, sb.cssMarginLeft) + cssMarginRight ) );
 				
-				sb.x = Math.floor( label.x + label.cssSizeX + Math.max( label.cssMarginRight, sb.cssMarginLeft ) );
-				cb.x = Math.floor( sb.x + sb.cssSizeX + Math.max( sb.cssMarginRight, cb.cssMarginLeft ) );
+				sb.x = Math.floor( tf.x + tf.cssSizeX + Math.max( tf.cssMarginRight, sb.cssMarginLeft ) );
 			}
 		}
 			
@@ -53,12 +55,13 @@
 		{
 			super.setHeight( h );
 			
-			if( label && searchButton && cancelButton ) {
+			if( tf && searchButton ) {
 				var sb:Button = searchButton;
-				var cb:Button = cancelButton;
-				label.y = Math.floor( (h - label.cssSizeY) * .5 );
-				sb.x = Math.floor( (h - sb.cssSizeY) * .5 );
-				cb.x = Math.floor( (h - cb.cssSizeY) * .5 );
+				//var cb:Button = cancelButton;
+				tf.y = cssTop;
+				tf.setHeight( h - tf.cssBoxY);
+				sb.y = cssTop;
+				//cb.x = Math.floor( (h - cb.cssSizeY) * .5 );
 			}
 		}
 		

@@ -114,9 +114,7 @@
 						// play next loop on loop-finish
 						nextBgLoop = name;
 					}
-					
 				}
-				
 			}
 		}
 		

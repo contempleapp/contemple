@@ -116,8 +116,8 @@
 			minSizePopup.addEventListener( PopupEvent.SELECT, minSizeClick );
 			
 			setWidth( getWidth() );
-			setHeight( Math.max( textBox.cssSizeY, visibleBtn.cssSizeY) + Math.max( deleteButton.cssSizeY, closeButton.cssSizeY, nextButton.cssSizeY, prevButton.cssSizeY, saveButton.cssSizeY, saveAndCloseButton.cssSizeY) );
-			
+			setHeight( Math.max( textBox.cssSizeY+textBox.cssMarginTop, visibleBtn.cssSizeY+visibleBtn.cssMarginTop) + Math.max( deleteButton.cssSizeY, closeButton.cssSizeY, nextButton.cssSizeY, prevButton.cssSizeY, saveButton.cssSizeY, saveAndCloseButton.cssSizeY) );
+		
 		}
 		protected function closeClick (e:MouseEvent) :void {
 			dispatchEvent( new Event("close") );
@@ -150,13 +150,20 @@
 			}
 		}
 		
-		public override function setWidth (w:int) :void {
+		public override function setWidth (w:int) :void
+		{
 			//  bug fix for input-height-change event from AreaEditor.displayInsertForm resize bug and name field
 			// fix bug in itemList.format or AreaEditor? only appears with richtext in forms wich can dispatch height change ecents on resize
 			if( w == 0 ) return;
 			
 			super.setWidth(w);
 			
+			closeButton.x = cssLeft - 5;
+			
+			if( label ) {
+				label.setWidth(0);
+				label.init();
+			}
 			if( visibleBtn ) {
 				if( textBox ) textBox.setWidth( w - visibleBtn.cssSizeX );
 				visibleBtn.x = w - visibleBtn.cssSizeX;
@@ -168,8 +175,8 @@
 			minSizePopup.rootNode.removeItems();
 			
 			var minSize:Boolean = false;
-			var spc:Number = w - label.getWidth();
-			var p1:Number = label.getWidth() + minSizePopup.cssSizeX;
+			var spc:Number = w - (label.getWidth() + label.x );
+			var p1:Number = label.getWidth() + minSizePopup.cssSizeX + closeButton.cssSizeX;
 			var ppi:PopupItem;
 			
 			if ( saveAndCloseButton && saveAndCloseButtonVisible )
@@ -211,27 +218,7 @@
 					saveButton.y = cssTop + yofs;
 				}
 			}
-			
-			if ( closeButton && closeButtonVisible )
-			{
-				if ( minSize || w - (ofs + closeButton.cssSizeX) < p1 )
-				{
-					minSize = true;
-					closeButton.visible = false;
-					
-					ppi = minSizePopup.rootNode.addItem( [new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "close.png", Options.iconSize, Options.iconSize), "Close"], styleSheet );
-					ppi.options.action = "closeClick";
-				}
-				else
-				{
-					closeButton.visible = true;
-					ofs += closeButton.cssSizeX;
-					if( closeButton.cssSizeY > mh ) mh = closeButton.cssSizeY;
-					closeButton.x = w - ofs;
-					closeButton.y = cssTop + yofs;
-				}
-			}
-			
+
 			if ( nextButton && nextButtonVisible )
 			{
 				if ( minSize || w - (ofs + nextButton.cssSizeX) < p1 )
@@ -274,7 +261,7 @@
 			
 			if ( deleteButton && deleteButtonVisible )
 			{
-				if ( minSize || w - (ofs + deleteButton.cssSizeX) < p1 )
+				if ( minSize )
 				{
 					minSize = true;
 					deleteButton.visible = false;
@@ -309,7 +296,8 @@
 			
 			if ( minSize ) {
 				minSizePopup.visible = true;
-				minSizePopup.x = w - (ofs + minSizePopup.cssSizeX );
+				ofs += minSizePopup.cssSizeX;
+				minSizePopup.x = w - (ofs);
 				minSizePopup.y = cssTop + yofs;
 				if ( mh == 0 ) {
 					mh = minSizePopup.cssSizeY;
@@ -320,12 +308,17 @@
 			
 			if ( textBox )
 			{
-				textBox.y = mh + cssTop;
+				textBox.y = mh + visibleBtn.cssMarginTop + cssTop;
 			
 				if ( visibleBtn )
 				{
-					visibleBtn.y = mh + cssTop + (textBox.cssSizeY-visibleBtn.cssSizeY);
+					visibleBtn.y = mh + cssTop + visibleBtn.cssMarginTop + (textBox.cssSizeY-visibleBtn.cssSizeY);
 				}
+			}
+			
+			if( label ) {
+				label.x = int((w-(ofs+closeButton.cssSizeX)-label.getWidth())/2 + closeButton.x + closeButton.cssSizeX);
+				label.y = int(closeButton.y + (closeButton.cssSizeY - label.getHeight())/2);
 			}
 		}
 		

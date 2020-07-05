@@ -5,7 +5,7 @@
 
 		// Interface methods:
 		
-		// Empty window with body CssSprie */
+		// Empty window with body CssSprite */
 		function ContentWindow ( nameUid:String, title:String="", content:Sprite=null, options:Object=null, cssClass:String="" ) :Sprite;
 		
 		/** Events: complete( void ) */

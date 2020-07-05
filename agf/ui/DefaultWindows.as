@@ -15,6 +15,7 @@
 	import agf.tools.Application;
 	import agf.ui.WindowsController;
 	import agf.html.CssSprite;
+	import agf.html.CssUtils;
 	
 	/**
 	*
@@ -89,12 +90,6 @@
 				
 				newbmp.x = win.bg.cssLeft;
 				newbmp.y = win.bg.cssTop;
-				
-				var tf:DisplayObject = win.body.getChildByName( "msg_tf" );
-				if( tf ) {
-					tf.width = tf.width - newbmp.width;
-					tf..x = newbmp.width;
-				}
 			}
 		}
 		
@@ -207,37 +202,77 @@
 			if(inputText) tf.type = TextFieldType.INPUT;
 			else tf.type = TextFieldType.DYNAMIC;
 			
+			var styl:Object = win.styleSheet.getStyle( ".window-" + (inputText ? "input" : "message") );
+			
+			if( styl.backgroundColor ) {
+				tf.background = true;
+				tf.backgroundColor = CssUtils.stringToColor( styl.backgroundColor );
+			}
+			
+			if( styl.color ) tf.textColor = CssUtils.stringToColor( styl.color );
+			
+			if( styl.borderColor ) {
+				tf.border = true;
+				tf.borderColor = CssUtils.stringToColor( styl.borderColor );
+			}
+			var marginLeft:int = 2;
+			var marginTop:int = 2;
+			var marginRight:int = 2;
+			var marginBottom:int = 2;
+			
+			if( styl.marginLeft != undefined ) {
+				marginLeft = CssUtils.parse( styl.marginLeft, win.body );
+			}
+			if( styl.marginTop != undefined ) {
+				marginTop = CssUtils.parse( styl.marginTop, win.body, "v" );
+			}
+			
+			if( styl.marginRight != undefined ) {
+				marginRight = CssUtils.parse( styl.marginRight, win.body );
+			}
+			if( styl.marginBottom != undefined ) {
+				marginBottom = CssUtils.parse( styl.marginBottom, win.body, "v" );
+			}
+			
+			win.options.marginLeft = marginLeft;
+			win.options.marginTop = marginTop;
+			win.options.marginRight = marginRight;
+			win.options.marginBottom = marginBottom;
+			
 			tf.text = msg;
+			
 			if( options && options.icon != undefined && options.icon != "" ) {
-				if( msgWIconTFMT == null ) msgWIconTFMT = win.styleSheet.getTextFormat( ["*","window",".window","body",".window-message-wimg"]);
+				if( msgWIconTFMT == null ) msgWIconTFMT = win.styleSheet.getTextFormat( ["*","window",".window","body",".window-"+ (inputText ? "input" : "message") + "-wimg"  ]);
 				tf.setTextFormat( msgWIconTFMT );
 			}else{
-				if( msgTFMT == null ) msgTFMT = win.styleSheet.getTextFormat( ["*","window",".window","body",".window-message"]); 
+				if( msgTFMT == null ) msgTFMT = win.styleSheet.getTextFormat( ["*","window",".window","body",".window-" + (inputText ? "input" : "message")]); 
 				tf.setTextFormat( msgTFMT );
 			}
 			if( options && options.autoWidth ) {
 				tf.autoSize = TextFieldAutoSize.LEFT;
-				win.setWidth( tf.width );
 				tf.autoSize = TextFieldAutoSize.NONE;
+				tf.width = tf.width - (marginLeft + marginRight);
+				win.setWidth( tf.width + (marginLeft + marginRight) );
 			}
 			
-			tf.width = win.getWidth() - (win.bg.cssBoxX + 4);
+			tf.width = win.bg.getWidth() - (win.cssBoxX + win.bg.cssBoxX + marginLeft + marginRight + 4);
+			
 			var bt:Button = Button(win.body.getChildByName("okButton_button"));
 			var bt2:Button;
 			
 			if( options && options.autoHeight ) {
 				tf.autoSize = TextFieldAutoSize.LEFT;
-				win.setHeight( tf.height + win.title.cssSizeY + win.title.y + bt.cssSizeY + bt.cssMarginY + win.bg.cssBoxY + win.cssBoxY + 8 );
+				win.setHeight( tf.height + win.title.cssSizeY + win.title.y + bt.cssSizeY + bt.cssMarginY + win.bg.cssBoxY + win.cssBoxY + marginTop + marginBottom );
 				
 				tf.autoSize = TextFieldAutoSize.NONE;
-				tf.width = win.getWidth() - win.bg.cssBoxX -4;
+				tf.width = win.getWidth() - (win.bg.cssBoxX  + marginLeft + marginRight + 4);
 				
 			}else{
-				tf.height = win.getHeight() - win.title.cssSizeY - win.title.y - bt.cssSizeY - bt.cssMarginY - win.bg.cssBoxY  - 8;
+				tf.height = win.getHeight() - ( win.title.cssSizeY + win.title.y + bt.cssSizeY + bt.cssMarginY + win.bg.cssBoxY + marginTop + marginBottom /* + 8*/ );
 			}
 			
-			tf.x = win.bg.cssLeft + win.cssLeft + 2;
-			tf.y = win.title.cssSizeY + win.title.y + win.cssTop + win.bg.cssTop;
+			tf.x = win.bg.cssLeft + win.cssLeft + marginLeft;
+			tf.y = win.title.cssSizeY + win.title.y + win.cssTop + win.bg.cssTop + marginTop;
 			
 			if( options && options.autoHeight ) {
 				if( bt ) {

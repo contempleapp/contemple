@@ -16,16 +16,14 @@
 			var varname:String = args[1] || "";
 			var value:String = args[2] || "";
 			
-		
 			if( vartype && varname )
 			{
 				var pt:int = varname.lastIndexOf(".");
-			
+				
 				if( pt >= 0 ) 
 				{
 					var tar:String = varname.substring(0, pt);
 					var prop:String = varname.substring( pt+1 );
-					
 					var obj:* = Application.getClass( tar );
 					if(!obj) obj = Application.instance.strval(tar, true );
 					
@@ -55,19 +53,8 @@
 						Console.log( "SetValue::Target not found: " + tar);
 					}
 				}
-				/*else
-				{
-					
-				}*/
 			}
-			
-			trace("Set Value complete... " + cmdComplete + ", " + cmdCompleteArgs);
-			
 			complete( cmdComplete, cmdCompleteArgs );
-			//if(cmdComplete != null) cmdComplete();
 		}
-		
-
 	}
-	
 }

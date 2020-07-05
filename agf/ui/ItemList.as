@@ -13,10 +13,17 @@
 			super(w, h, parentCS, style,cssId,cssClasses, noInit);
 		}
 		
+		public var vert:Boolean = true; // v or h
+		
 		public override function format (forceSameWidth:Boolean=false) :void 
 		{
 			if(items)
 			{
+				if( !vert ) {
+					super.format(forceSameWidth);
+					return;
+				}
+				
 				var L:int = items.length;
 				
 				if(L > 0) 
@@ -24,7 +31,7 @@
 					var i:int;
 					var it:CssSprite;
 					var tmp:CssSprite = CssSprite(items[0]);
-					tmp.y = cssTop;
+					tmp.y = cssTop + margin;
 					
 					if(!contains(tmp)) addChild(tmp);
 				
@@ -44,7 +51,6 @@
 						}
 					}
 				}
-				
 				init();
 			}
 		}

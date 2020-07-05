@@ -33,7 +33,7 @@
 		
 		public function create () :void {
 			if(scroller && contains(scroller)) removeChild(scroller);
-			scroller = new CssSprite(0, 0,this, styleSheet, 'sliderbutton','', this.nodeClass + '-button', false);
+			scroller = new CssSprite(0, 0, this, styleSheet, 'sliderbutton', '', this.nodeClass + '-button', false);
 			scroller.x = cssLeft;
 			scroller.y = cssTop;
 			scroller.addEventListener( MouseEvent.MOUSE_DOWN, onDown );

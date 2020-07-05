@@ -35,8 +35,12 @@
 			if( v < 0 ) v = 0;
 			else if( v > 1) v = 1;
 			_value = v;
+			
 			if( showProgressBar ) updateProgressBar();
+			else if( _prg ) _prg.visible = false;
+			
 			if( showPercentValue ) updatePercentValue();
+			else if( _lbl ) _lbl.visible = false;
 		}
 		
 		public override function setWidth( w:int) :void

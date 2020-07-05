@@ -5,7 +5,6 @@
 	import flash.net.*;
 	import flash.system.*;
 	import flash.ui.*;
-
 	
 	import agf.view.ViewContainer;
 	import agf.events.AppEvent;
@@ -29,7 +28,6 @@
 	import agf.tools.SetValue;
 	import agf.ui.Language;
 	import agf.icons.IconLoading;
-	
 	
 	/**
 	 * 
@@ -79,11 +77,12 @@
 		public var rtContainer:CssSprite; // the root of the app on the stage, everything should be in here 
 		public var view:ViewContainer;
 		protected var plugins:Object;
-		protected var pluginCount:int;
-		protected var pluginsLoaded:int;
+		private var pluginCount:int;
+		private var pluginsLoaded:int;
 		protected var pluginContainer:Sprite;
 		private var loadSprite:CssSprite;
-		private var loadSpriteContent:Sprite;
+		private var loadSpriteContent:CssSprite;
+		
 		public var shortcutMgr:ShortcutMgr;
 		public var mainMenu:Menu;
 		public var secMenu:Menu;
@@ -259,7 +258,7 @@
 					
 					if(p.length>0) {
 						for(var i:int=0; i<p.length; i++) {
-							loadPlugin( p[i][0], p[i][1] );
+							loadPlugin( p[i][0], p[i][1], true );
 						}
 					}
 				}
@@ -272,10 +271,24 @@
 		public function cmd ( text:String, cmdComplete:Function=null, cmdCompleteArgs:Array=null) :void {
 			Command.process( text, cmdComplete, cmdCompleteArgs );
 		}
+		
 		public function strval ( str:String, forceSingleProp:Boolean=false ) :* {
 			return forceSingleProp ? StrVal.strval( "{*"+str+"}" ) : StrVal.strval( str );
 		}
 		
+		public function findPluginClass ( name:String, className:String ) :Class {
+			if( plugins && plugins[name] ) {
+				 try {
+					var loader:Loader = Loader(plugins[name].parent);
+					if( loader ) {
+						return loader.contentLoaderInfo.applicationDomain.getDefinition(className) as Class;
+					}
+				} catch (e:Error) {
+					throw new Error(className + " definition not found in plugin: " + name);
+				}
+			}
+			return null;
+		}
 		public function setSize (w:Number, h:Number) :void 
 		{
 			if(view)
@@ -283,18 +296,14 @@
 				rtContainer.cssWidth = topContent.cssWidth = appContent.cssWidth = view.cssWidth = cssWidth = w;
 				rtContainer.cssHeight = topContent.cssHeight = appContent.cssHeight = view.cssHeight = cssHeight = h;
 				
-				
 				topContent.setWidth( w );
 				topContent.setHeight( h );
-				
 				
 				appContent.setWidth( w );
 				appContent.setHeight( h );
 				
 				view.setWidth( w );
 				view.setHeight( h );
-				
-				
 				view.y = mainMenu.getHeight();
 				view.cssHeight -= mainMenu.getHeight();
 				view.resize(w, h);
@@ -315,46 +324,34 @@
 		
 		public function showLoading (loadDisplay:Sprite = null) :void {
 			
-			if ( loadSprite && loadSpriteContent && loadSprite.contains(loadSpriteContent) ) loadSprite.removeChild(loadSpriteContent);
 			if ( loadSprite && topContent.contains(loadSprite) ) topContent.removeChild(loadSprite);
 			
-			loadSprite = new CssSprite( 0,0, topContent, config, 'loader', '', 'app-loading', false);
-			loadSprite.addEventListener(MouseEvent.CLICK, loadHandlerClick );
+			loadSprite = new CssSprite(0,0, topContent, config, 'loader', '', 'app-loading-wrap', false);
 			
-			if ( loadDisplay == null) {
-				loadDisplay = new IconLoading(0x0, 1, 6, 48);
-				loadDisplay.rotation = -90;
-				loadDisplay.addEventListener( MouseEvent.CLICK, loadIconClickHandler);
-			}
-			loadSpriteContent = loadDisplay;
-			loadSprite.addChild( loadSpriteContent );
+			loadSpriteContent = new CssSprite( 0,0, loadSprite, config, 'loader', '', 'app-loading', false);
+			loadSpriteContent.addEventListener(MouseEvent.CLICK, loadHandlerClick );
 			
-			setLoadingSize( stage.stageWidth, stage.stageHeight);
+			setLoadingSize( stage.stageWidth, stage.stageHeight );
 		}
 		
-		private function loadIconClickHandler (e:MouseEvent) :void 
-		{
-				var msg:String = Language.getKeyword("There may be an error somewhere during the action, open the Console?");
-				
-				// Have to load a project or template...
-				var win:Window = Window( window.GetBooleanWindow( "ExitLoadWindow", Language.getKeyword("Abort-Loading"), msg, {
-				complete: function (bool:Boolean) { 
-					if (bool) {
-						hideLoading();
-						Application.instance.cmd( "Console show console");
-					}
-				},
-				continueLabel: Language.getKeyword("Abort-Loading-OK"),
-				allowCancel: true,
-				autoWidth:false,
-				autoHeight:true,
-				cancelLabel: Language.getKeyword("Abort-Loading-Cancel")
-				}, 'load-abort-window') );
-				this.topContent.addChild( win );
-				
-		}
 		private function loadHandlerClick (e:MouseEvent) :void {
-			//Console.log("Application Click Handler: Application is currently loading");
+			var msg:String = Language.getKeyword("There may be an error somewhere during the action, open the Console?");
+			
+			// Have to load a project or template...
+			var win:Window = Window( window.GetBooleanWindow( "ExitLoadWindow", Language.getKeyword("Abort-Loading"), msg, {
+			complete: function (bool:Boolean) { 
+				if (bool) {
+					hideLoading();
+					Application.instance.cmd( "Console show console");
+				}
+			},
+			continueLabel: Language.getKeyword("Abort-Loading-OK"),
+			allowCancel: true,
+			autoWidth:false,
+			autoHeight:true,
+			cancelLabel: Language.getKeyword("Abort-Loading-Cancel")
+			}, 'load-abort-window') );
+			this.topContent.addChild( win );
 		}
 		
 		public function hideLoading (disableApp:Boolean = true) :void {
@@ -365,27 +362,10 @@
 		}
 		
 		public function setLoadingSize (w:Number, h:Number) :void {
-			loadSprite.setWidth( w - loadSprite.cssBoxX);
-			loadSprite.setHeight( h - loadSprite.cssBoxY);
-			if( loadSpriteContent ) {
-				if( loadSprite.textAlign == "center" ) {
-					loadSpriteContent.x = Math.round( w/2 - loadSpriteContent.width/2 );
-				}else if( loadSprite.textAlign == "right") {
-					loadSpriteContent.x = loadSprite.cssRight - loadSpriteContent.width;
-				}else{
-					loadSpriteContent.x = loadSprite.cssLeft;
-				}
-				if( loadSpriteContent.x < loadSprite.cssLeft ) loadSpriteContent.x = loadSprite.cssLeft;
-				
-				if( loadSprite.verticalAlign == "middle" ) {
-					loadSpriteContent.y = Math.round( h/2 - loadSpriteContent.height/2 );
-				}else if( loadSprite.verticalAlign == "bottom") {
-					loadSpriteContent.y = loadSprite.cssBottom - loadSpriteContent.height;
-				}else{
-					loadSpriteContent.y = loadSprite.cssTop;
-				}
-				if( loadSpriteContent.y < loadSprite.cssTop ) loadSpriteContent.y = loadSprite.cssTop;
-			}
+			loadSprite.setWidth( w - loadSprite.cssBoxX );
+			loadSprite.setHeight( h - loadSprite.cssBoxY );
+			loadSpriteContent.setWidth( w - (loadSprite.cssBoxX + loadSpriteContent.cssBoxX) );
+			
 		}
 		
 		private function shortcutHandler ( e:ShortcutEvent ) :void {
@@ -413,7 +393,7 @@
 				}
 				Mouse.hide();
 			}else{
-				Mouse.show()
+				Mouse.show();
 			}
 		}
 		
@@ -535,7 +515,7 @@
 			}
 		}
 		
-		private function pluginLoaded (e:Event) :void {
+		private function pluginLoadedInit (e:Event) :void {
 			pluginsLoaded++;
 			var ldr:Loader = LoaderInfo(e.target).loader;
 			plugins[ldr.name] = ldr.content as MovieClip;
@@ -544,19 +524,61 @@
 			}
 		}
 		
-		private function pluginError (e:IOErrorEvent) :void {
+		private function pluginErrorInit (e:IOErrorEvent) :void {
 			pluginsLoaded++;
+			Console.log( "Error: " + e );
 			if(pluginsLoaded == pluginCount) {
 				startApp();
 			}
 		}
 		
-		public function loadPlugin (name:String, file:String) :void
+		private function pluginLoaded (e:Event) :void {
+			var ldr:Loader = LoaderInfo(e.target).loader;
+			plugins[ldr.name] = ldr.content as MovieClip;
+			if( pluginHandler[ ldr.name ] && typeof(pluginHandler[ ldr.name ].loadHandler) == "function" ) {
+				 pluginHandler[ ldr.name ].loadHandler(e);
+			}
+			
+		}
+		
+		private function pluginError (e:IOErrorEvent) :void {
+			var ldr:Loader = LoaderInfo(e.target).loader;
+			if( pluginHandler && pluginHandler[ ldr.name ] && typeof(pluginHandler[ ldr.name ].errorHandler) == "function" ) {
+				 pluginHandler[ ldr.name ].errorHandler(e);
+			}else{
+				Console.log("Error: Plugin " + ldr.name + " not found.");
+			}
+		}
+		private static var pluginHandler:Object={};
+		
+		public function loadPlugin (name:String, file:String, initLoad:Boolean = false, loadHandler:Function=null, errorHandler:Function=null) :void
 		{
 			var ldr:Loader = new Loader();
-			var ldrContext:LoaderContext = new LoaderContext(false, ApplicationDomain.currentDomain );
-			ldr.contentLoaderInfo.addEventListener(Event.COMPLETE, pluginLoaded);
-			ldr.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, pluginError);
+			var ldrContext:LoaderContext = new LoaderContext(false);//, ApplicationDomain.currentDomain );
+			
+			
+			if(plugins == null) plugins = {};
+			if(pluginContainer == null) pluginContainer = new Sprite();
+			
+			if( initLoad ) {
+				ldr.contentLoaderInfo.addEventListener(Event.COMPLETE, pluginLoadedInit);
+				ldr.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, pluginErrorInit);
+			}else{
+				ldr.contentLoaderInfo.addEventListener(Event.COMPLETE, pluginLoaded);
+				ldr.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, pluginError);
+			}
+			
+			if( loadHandler != null || errorHandler != null )
+			{
+				pluginHandler[name] = {}
+				
+				if( loadHandler != null  ) {
+					pluginHandler[name].loadHandler = loadHandler;
+				}
+				if( errorHandler != null ) {
+					pluginHandler[name].errorHandler = errorHandler;
+				}
+			}
 			
 			try 
 			{

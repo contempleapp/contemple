@@ -1,6 +1,7 @@
 ﻿package agf.ui
 {
 	import flash.events.*;
+	import flash.text.*;
 	import agf.html.*;
 	import agf.utils.ColorUtils;
 	import flash.text.TextField;
@@ -27,13 +28,11 @@
 		}
 		
 		private var _color:uint=0; // current color
+		
+		private var _32:Boolean = false; // alpha: 0-1
+		private var _alpha:int = 1; // alpha: 0-1
+		
 		private var _multiplier:Number=1;
-		//private var mulR:Number = 1;
-		//private var mulG:Number = 1;
-		//private var mulB:Number = 1;
-		
-		//private var lightness:Number = 1; // 0-20
-		
 		public var target:Object;
 		public var targetName:String="colorValue";
 		
@@ -54,27 +53,6 @@
 		private var colorPreviewWidth:int=40;
 		
 		public function get color () :uint {
-			/*
-			var col:Object = {};
-			ColorUtils.getRGBAComponents( _color, col );
-			if( multiplier != 1 ) {
-				if( col.r <= 1 ) col.r = 1;
-				if( col.g <= 1 ) col.g = 1;
-				if( col.b <= 1 ) col.b = 1;
-				
-				if( col.r <= 127 ) mulR = (127/col.r)*(_multiplier-1);
-				else mulR = 1;
-				if( col.g <= 127 ) mulG = 127/col.g*(_multiplier-1);
-				else mulG = 1;
-				if( col.b <= 127 ) mulB = 127/col.b*(_multiplier-1);
-				else mulB = 1;	
-				
-				if( mulR < 1 ) mulR = 1;
-				if( mulG < 1 ) mulG = 1;
-				if( mulB < 1 ) mulB = 1;
-			}
-			return ColorUtils.combineRGB( col.r * (_multiplier*mulR), col.g * (_multiplier*mulG), col.b * (_multiplier*mulB) ); 
-			*/
 			if ( _multiplier != 1 ) {
 				var lght:Number = multiplier < 1 ? multiplier : Math.pow( multiplier, 8 );
 				var col:Object = {};
@@ -84,8 +62,19 @@
 				return _color; 
 			}
 		}
-		public function set color (v:uint) :void {
+		
+		public function set color32 (v:uint) :void {
+			_32 = true;
+			var tmp:Object = {};
+			ColorUtils.getRGBAComponents( v, tmp );
+			_alpha = tmp.a;
+			color = ColorUtils.combineRGB( tmp.r, tmp.g, tmp.b );
+		}
+		
+		public function set color (v:uint) :void
+		{
 			_color = v;
+			
 			if( colorPreview ) drawColor();
 			updateColorText();
 		}
@@ -112,15 +101,8 @@
 		}
 		private function updateColor (px:uint) :void {
 			_multiplier = 1;
-			//mulR = 1;
-			//mulG = 1;
-			//mulB = 1;
-			// lightness = 1;
 			sb.value = 100;
-			
 			color = px;
-			//_color = px;
-			
 		}
 		public function setLabel (s:String) :void {
 			if( label ) {
@@ -142,46 +124,42 @@
 			if(sb && contains(sb)) removeChild(sb);
 			
 			sb = new Slider(0, w, this, styleSheet, '', 'color-picker-slider', false);
-			var ltlw:int = w/2;
+			var ltlw:int = w;
 			
 			label = new Label(0,0,this,styleSheet,'','color-picker-label',false);
 			label.label = Language.getKeyword( "Select Color" );
-			
-			setButton = new Button( [Language.getKeyword( "Set Color" )], 0, 0, this, styleSheet, '', 'color-picker-set-button',false);
-			cancelButton = new Button( [Language.getKeyword( "Cancel Color" )], 0, 0, this, styleSheet, '', 'color-picker-cancel-button',false);
+			label.x = cssLeft;
 			
 			colorText = new TextField();
+			colorText.selectable = true;
+			colorText.multiline = false;
+			colorText.text = "#1234567890";
+			colorText.height = colorText.textHeight + 4;
+			colorText.text = "";
+			
 			var fmt:TextFormat = styleSheet.getTextFormat( stylesArray );
 			colorText.defaultTextFormat = fmt;
 			
-			var previewWidth:int = cancelButton.cssSizeY + setButton.cssSizeY + setButton.cssMarginBottom + cancelButton.cssMarginBottom;
+			var previewWidth:int = 64;
 			colorPreviewWidth = previewWidth;
 			
 			colorPreview = new Sprite();
 			addChild( colorPreview );
 			addChild( colorText );
 			
-			ltlw -= int(previewWidth/2);
+			ltlw -= int(previewWidth);
 			
-			setButton.setWidth( ltlw - (setButton.cssBoxX + setButton.cssMarginX) );
-			cancelButton.setWidth( ltlw - (cancelButton.cssBoxX + cancelButton.cssMarginX) );
-			colorText.width = ltlw - 8;
-			colorText.x = 4;
+			colorText.width = previewWidth;
 			
+			setButton = new Button( [Language.getKeyword( "Set Color" )], 0, 0, this, styleSheet, '', 'color-picker-set-button',false);
 			setButton.addEventListener( MouseEvent.CLICK, setColorHandler );
+			cancelButton = new Button( [Language.getKeyword( "Cancel Color" )], 0, 0, this, styleSheet, '', 'color-picker-cancel-button',false);
 			cancelButton.addEventListener( MouseEvent.CLICK, cancelColorHandler );
 			
-			colorPreview.x = ltlw;
-			setButton.x = ltlw + colorPreviewWidth + setButton.cssMarginLeft;
-			cancelButton.x = ltlw + colorPreviewWidth + cancelButton.cssMarginLeft;
+			colorPreview.x = w - (previewWidth + cssLeft);
 			
-			var muih:Number = Math.max( colorText.height, setButton.cssSizeY, colorPreviewWidth );
+			var muih:Number = Math.ceil( setButton.cssSizeY + setButton.cssMarginTop*2 + colorPreviewWidth + colorText.height );
 			var uih:int = muih;
-			
-			colorPreview.y =
-			colorText.y = 
-			setButton.y = (h-label.getHeight()) - colorPreviewWidth;
-			cancelButton.y = setButton.y + setButton.cssSizeY + setButton.cssMarginBottom;
 			
 			h = h - uih;
 			
@@ -206,23 +184,35 @@
 			sb.rotation = -90;
 			
 			sb.x = cssLeft;
-			sb.y = img2.y+img2.height + 16;
+			sb.y = img2.y+img2.height + 24;
 			sb.minValue = 0;
 			sb.maxValue = 200;
 			sb.value = 100;
 			
 			sb.addEventListener( Event.CHANGE, scrollbarChange);
 			
+			colorText.y = sb.y + sb.cssSizeX;
+			colorPreview.y = colorText.y + 24;
+			colorText.x = colorPreview.x;
+			
+			setButton.y = colorPreview.y + colorPreviewWidth + setButton.cssMarginTop;
+			cancelButton.y = setButton.y;
+				
+			var xp:int = (setButton.cssSizeX + cancelButton.cssSizeX + cancelButton.cssMarginRight);
+			
+			cancelButton.x = ( w - xp ) / 2;
+			setButton.x = cancelButton.x + cancelButton.cssSizeX + cancelButton.cssMarginRight;
+			
 			kcbox = new ScrollContainer(0,0,this,styleSheet,'','colorpicker-known-colors',false);
 			
-			var cols:Number = Math.floor( imgw / kcsize );
+			var cols:Number = Math.floor( (imgw-previewWidth) / kcsize ) - 2;
 			var kch:Number = kcsize;
 			var L:int = knownColors.length;
 			if( L > cols ) {
 				kch = Math.ceil( (L / cols ) * kcsize );
 			}
 			
-			var bmd:BitmapData = new BitmapData( imgw, kch, true, 0x00000000);
+			var bmd:BitmapData = new BitmapData( imgw - previewWidth, kch, true, 0x00000000);
 			kcbmp = new Bitmap( bmd );
 			kcbmp.name = "bmp";
 			kcbox.content.addChild( kcbmp );
@@ -243,9 +233,9 @@
 			}
 			
 			kcbox.x = cssLeft;
-			kcbox.y = sb.y + sb.cssSizeX; // rotation flipped x/y
+			kcbox.y = colorPreview.y; // rotation flipped x/y
 			kcbox.setHeight( setButton.y - kcbox.y );
-			kcbox.setWidth( imgw );
+			kcbox.setWidth( imgw - previewWidth );
 			kcbox.contentHeightChange();
 			
 			setChildIndex( sb, numChildren-1);
@@ -276,15 +266,17 @@
 				mouse_up(null);
 			}
 		}
+		
 		private function mouse_up (e:MouseEvent) :void {
 			if( currEditImg ) {
-				var px:int =  currEditImg.bitmapData.getPixel32( currEditImg.parent.mouseX, currEditImg.parent.mouseY );
+				var px:int =  currEditImg.bitmapData.getPixel( currEditImg.parent.mouseX, currEditImg.parent.mouseY );
 				updateColor(px);
 			}
 			currEditImg = null;
 			stage.removeEventListener( MouseEvent.MOUSE_MOVE, mouse_move );
 			stage.removeEventListener( MouseEvent.MOUSE_UP, mouse_up );
 		}
+		
 		private function click (e:MouseEvent) :void
 		{
 			if( e.target is ColorSelectImage ) {
@@ -292,7 +284,7 @@
 			}else{
 				currEditImg = Bitmap(  e.target.getChildByName("bmp") );
 			}
-			var px:int =  currEditImg.bitmapData.getPixel32( currEditImg.parent.mouseX, currEditImg.parent.mouseY );
+			var px:int =  currEditImg.bitmapData.getPixel( currEditImg.parent.mouseX, currEditImg.parent.mouseY );
 			updateColor(px);
 			
 			if( stage ) {
@@ -304,24 +296,40 @@
 		public function scrollbarChange (e:Event) :void {
 			multiplier = sb.value/100;
 		}
+		
 		private function setColorHandler (e:MouseEvent) :void {
 			updateRequester();
 			testColor( color );
-			if(parent && parent.contains(this)) parent.removeChild(this);
+			removeCP()
 		}
+		
 		private function cancelColorHandler (e:MouseEvent) :void {
+			removeCP();
+		}
+		
+		private function removeCP ():void {
+			if( target && target['onRemoveCP'] ) {
+				target.onRemoveCP();
+			}
 			if(parent && parent.contains(this)) parent.removeChild(this);
 		}
+		
 		private function updateRequester ():void {
 			if( target && target[targetName] != null ) {
-				if( typeof target[targetName] == "function") {
-					target[targetName]( color );
-				}else{
-					target[targetName] = color;
+				var val:uint = color;
+				if( _32 ) {
+					val = _alpha << 24 | val;
+				}
+				if( typeof target[targetName] == "function")
+				{
+					target[targetName]( val );
+				}
+				else
+				{
+					target[targetName] = val;
 				}
 			}
 		}
 
-	}
-	
+	}	
 }

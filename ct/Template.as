@@ -29,25 +29,28 @@
 		public var genericPath:String="";         // The original template directory during installation or the /tmpl dir (read-only)
 		public var relativePath:String = "tmpl";  // Relative path in the project directory, for root templates is "tmpl", for subtemplates "tmpl/a-subtemplate
 		public var indexFile:String = "";         //"index.html"  // Index filename [ProjectDir]/[RelativePath]/[indexFile]
-		public var indexStr:String;               // index file string
-		public var name:String;                   // unique template name! Set any name in language help.xml file and use com.company.subtemplate-name
+		public var indexStr:String="";               // index file string
+		public var name:String="";                   // unique template name! Set any name in language help.xml file and use com.company.subtemplate-name
 		public var version:String = "0.0.0";      // template version
 		public var sortareas:String = "name";     // the string "name" or "priority" for sorting in editor
 		public var sortproperties:String = "name";// the string "name" or "priority" for sorting in editor
-		public var files:String;                  // Template text files (only html, js css with template objects etc..)
+		public var files:String="";                  // Template text files (only html, js css with template objects etc..)
 		public var pagetemplates:String="";       // Template text files (only html)
 		public var homeAreaName:String="";        // Name of area to display first
+		public var imgdir:String="";              // Images Directory for MediaEdotor Images Add File
 		public var articlepage:String="";         // page-template, optional page for the item
 		public var articlename:String="";         // articlepage-name
-		public var staticfiles:String;        // Any additional files in the /raw and /min folders
-		public var folders:String;            // static folders in /raw and /min folders (duplicate)
-		public var templatefolders:String;    // static folder in /tmpl dir
-		public var help:String;               // name of the hep file in the template directory
-		public var dbcmds:String;             // name of the command-xml file for root templates only
-		public var tables:String;             // DB Table name
-		public var fields:String;             // DB Field names, comma separated
+		public var staticfiles:String="";        // Any additional files in the /raw and /min folders
+		public var folders:String="";            // static folders in /raw and /min folders (duplicate)
+		public var templatefolders:String="";    // static folder in /tmpl dir
+		public var help:String="";               // name of the hep file in the template directory
+		public var dbcmds:String="";             // name of the command-xml file for root templates only
+		public var tables:String="";             // DB Table name
+		public var fields:String="";             // DB Field names, comma separated
 		
-		public var nolocation:Boolean = false;
+		public var defaultcontent:String="";  // XML File with default content wich can be installed as an option with the Theme. To generate the XML File, Run the following Command in Contemple: 'TemplateTools export-all' and copy the XML from the Console (MainMenu / Developer / Process Command )
+		
+		public var nolocation:Boolean = false;// Insert Html Anker Tags
 		
 		public var parselistlabel:Boolean = false;
 		public var listlabel:String = "";   // Item Label of a Subtemplate in the Area Item List. Keywords with db-fields: #NAME# #SUBTEMPLATE# #SORTID# #AREA# etc can be used inside the String
@@ -318,11 +321,12 @@
 		{
 			// Parse pf.template and store into pf.templateStruct, Areas and Properties
 			pf.splits = false;
+			pf.hasRandoms = false;
 			pf.splitPath = "";
 			
 			var tmpl_struct:Array = [""];
 			var areas:Vector.<Area> = new Vector.<Area>();
-			
+			 
 			var areasByName:Object;
 			var filesByName:Object;
 			var propertiesByName:Object;
@@ -332,7 +336,7 @@
 				areasByName = { };
 				propertiesByName = { };
 				filesByName = { };
-			}else {
+			}else{
 				areasByName = template.areasByName;
 				propertiesByName = template.propertiesByName;
 				filesByName = template.filesByName;
@@ -532,7 +536,7 @@
 										}else {
 											if ( nam == "#" ) {
 												// Ignore end codes in root scope
-												if( CTOptions.debugOutput ) Console.log("Ignoring unexpected end-split code in root scope at "+i );
+												if( CTOptions.debugOutput ) Console.log("Ignoring Unexpected End-Split Code In Root Scope At Position "+i );
 												i = en;
 												continue;
 											}
@@ -662,7 +666,7 @@
 												continue;
 											}
 										}
-									}// if 3 ### (Split)
+									}// if 3 ### (Split)  
 									
 									//else // NO SPLIT
 									if( !splitCode ) {
@@ -811,8 +815,6 @@
 										sections = null;
 										prio = 0;
 										
-										// TODO render area into file... {##section.0.NAME(ico, "page-template.html > root:/blog#YEAR#/blog-entry-#NAME#.html" ):content}
-										
 										if( nam.indexOf(".") >= 0 ) {
 											sections = nam.split(".");
 											namL = sections.length;
@@ -832,7 +834,7 @@
 												nam = tpsv.join(".");
 												
 												if ( CTTools.activeTemplate && CTTools.activeTemplate.areasByName[nam] != undefined ) {
-													areas.push( CTTools.activeTemplate.areasByName[nam] );
+													areasByName[nam] = areas[ areas.push( CTTools.activeTemplate.areasByName[nam] ) - 1];
 													i = en;
 													continue;
 												}
@@ -854,7 +856,7 @@
 												
 												if ( t2tstr == "root" ) {
 													if ( CTTools.activeTemplate && CTTools.activeTemplate.areasByName[nam] != undefined ) {
-														areas.push( CTTools.activeTemplate.areasByName[nam] );
+														areasByName[nam] = areas[ areas.push( CTTools.activeTemplate.areasByName[nam] ) - 1];
 														i = en;
 														continue;
 													}
@@ -1136,22 +1138,27 @@
 												// get integer random value: min, max: {#my-rnd:random(0,1,0.01)} -> returns a value between 0 and 1
 												t2tnum = Number(args[0]);
 												t2tnum = Math.random() * (Number(args[1]) - t2tnum) + t2tnum;
-												tmpl_struct[sid] += args.length > 2 ? ( Math.round( t2tnum/Number(args[2]) ) * Number(args[2])) : t2tnum;
+												tmpl_struct[sid] += args.length > 2 ? ( Math.round( t2tnum / Number(args[2]) ) * Number(args[2])) : t2tnum;
+												pf.hasRandoms = true;
 											}
-										}else{
-											tmpl_struct[sid] += InputTextBox.getUniqueName( "", args && args.length > 0 ? Number(args[0]) : 2 );
 										}
+										else
+										{
+											tmpl_struct[sid] += InputTextBox.getUniqueName( "", args && args.length > 0 ? Number(args[0]) : 2 );
+											pf.hasRandoms = true;
+										}
+										
 										i = en;
 										continue;
 									}
-									else if( nam == "include" || defType == "include" )
+									else if( defType == "include" )
 									{
 										// include text file relative to project-dir with root template file or page
 										
 										if( args.length > 1 )
 										{
 											// include template file
-											filepath = CTTools.projectDir + CTOptions.urlSeparator + /* CTOptions.projectFolderTemplate + CTOptions.urlSeparator + */ args[0];
+											filepath = CTTools.projectDir + CTOptions.urlSeparator + args[0];
 											pftxt = ProjectFile( CTTools.procFiles[ CTTools.projFileBy( filepath, "path") ]);
 											if( pftxt )
 											{
@@ -1187,7 +1194,6 @@
 											// access root template property from sub template: {#root:page-title}
 											if( CTTools.activeTemplate.dbProps && CTTools.activeTemplate.dbProps[defType] != undefined ) 
 											{
-												
 												tmpl_struct[sid] += CTTools.activeTemplate.dbProps[defType].value;
 											}
 											else if( CTTools.activeTemplate.propertiesByName && CTTools.activeTemplate.propertiesByName[ defType ] != undefined ) 
@@ -1222,19 +1228,50 @@
 										continue;
 									}
 									
+									bfound = false;
+									smm = false;
+									if( sections && sections.length > 0 && propertiesByName[sections + "." +nam] )
+									{
+										defValue = propertiesByName[sections + "." +nam].defValue;
+										defType = propertiesByName[sections + "." +nam].defType;
+										argv = propertiesByName[sections + "." +nam].argv;
+										args = propertiesByName[sections + "." +nam].args;
+										properties.push( propertiesByName[sections + "." +nam] );
+										bfound = true;
+									}
+									else if ( propertiesByName[nam]  )
+									{
+										if( propertiesByName[nam].sections && sections )
+										{
+											// test if section matches
+											if( propertiesByName[nam].sections == sections ) {
+												smm = false;
+											}else{
+												smm = true;
+											}
+										}
+										
+										if( !smm ) {
+											defValue = propertiesByName[nam].defValue;
+											defType = propertiesByName[nam].defType;
+											argv = propertiesByName[nam].argv;
+											args = propertiesByName[nam].args;
+											properties.push( propertiesByName[nam] );
+											bfound = true;
+										}
+									}
 									
 									if( atc >= 1 )
 									{
 										// access type specific object properties (width,height,size..): {#a-img@width}
-										tpy = atstr;// nam.substring( dp6+1 );
 										
-										if ( propertiesByName && propertiesByName[nam] != undefined /*pageItemName != "" && CTTools.pageItemTable*/ )
+										tpy = atstr;
+										
+										if ( propertiesByName && propertiesByName[nam] != undefined )
 										{
 											defType = propertiesByName[nam].defType.toLowerCase();
 											t2tstr = "";
-// TODO:											
-//intern, hidden, name, string, code, richtext, number, integer, screennumber, screeninteger, boolean, color, nodestyle, list, listappend, listmultiple, labellist, arealist, vector<T>, vectorlink, file, files, image, audio, video, pdf, or directory
-
+											
 											if ( defType == "image" )
 											{
 												t2tpth = "";
@@ -1242,22 +1279,24 @@
 												if ( pageItemName == "" ) 
 												{
 													if ( template && typeof( template.dbProps[nam] ) != "undefined" && template.dbProps[nam].value && template.dbProps[nam].value != "none" ) {
-														t2tpth = CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderRaw + CTOptions.urlSeparator + (/*typeof(template.dbProps[nam]) == "object" ? */ template.dbProps[nam].value /* : template.dbProps[nam]*/);
+														t2tpth = CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderRaw + CTOptions.urlSeparator + template.dbProps[nam].value;
 													}else if ( typeof( propertiesByName[nam] ) != "undefined" && propertiesByName[nam].defValue && propertiesByName[nam].defValue != "none" ) {
 														t2tpth = CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderRaw + CTOptions.urlSeparator + propertiesByName[nam].defValue;
 													}else{
-														if ( CTOptions.debugOutput ) Console.log( "Error: Image Property not found: " + nam + " path: " + t2tpth + ", tpy: " + tpy +", pi: " + pageItemName + ", p: " + pageName);
+														if ( CTOptions.debugOutput ) Console.log( "Error: Image Property Not Found: " + nam + " Path: " + t2tpth + ", tpy: " + tpy +", pi: " + pageItemName + ", p: " + pageName);
 													}
-												}else{
+												}
+												else
+												{
 													if( CTTools.pageItemTable && 
 														CTTools.pageItemTable[ pageItemName ] && 
 														CTTools.pageItemTable[ pageItemName ][ nam ] && 
-														CTTools.pageItemTable[ pageItemName ][ nam ] != "none" ) {
-														
+														CTTools.pageItemTable[ pageItemName ][ nam ] != "none" )
+													{
 														t2tpth = CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderRaw + CTOptions.urlSeparator + CTTools.pageItemTable[ pageItemName ][ nam ];
-														
 													}
 												}
+												
 												if(t2tpth &&  t2tpth != "" ) 
 												{
 													
@@ -1307,6 +1346,22 @@
 														
 														rm.loadResource( t2tpth, null, false );
 													}
+												}
+											}
+											
+											else if ( defType == "plugin" )
+											{
+												// string properties: length, toUpperCase..
+												try {
+													if ( pageItemName != "" ) 
+													{
+														if( args && args.length > 1 ) {
+															
+															t2tstr = Main( Application.instance ).findPluginClass( args[0], args[1] ).getMember( pageItemName, tpy );
+														}
+													}
+												}catch(e:Error) {
+													if( CTOptions.debugOutput ) Console.log( e.toString() );
 												}
 											}
 											else if ( defType == "number" || defType == "integer" || defType == "screennumber" || defType == "screeninteger" )
@@ -1373,7 +1428,7 @@
 														}
 														else
 														{
-															if (CTOptions.debugOutput) Console.log("Error: Number property not found: " + nam + ":" + tpy );
+															if (CTOptions.debugOutput) Console.log("Error: Number Property Not Found: " + nam + ":" + tpy );
 														}
 													}
 													
@@ -1432,7 +1487,6 @@
 																t2tstr = "#" + ColorUtils.colorToString( ColorUtils.combineRGB( t2tnum, t2tnum, t2tnum ), true);
 															}else{
 																t2ttmp = tpy.substring(0, 4);
-																
 																if ( t2ttmp == "mul " ) {
 																	t2tstr = "#" +  ColorUtils.colorToString( ColorUtils.lightness( color, parseFloat( tpy.substring(4) )));
 																}else if ( t2ttmp == "sat " ) {
@@ -1457,7 +1511,6 @@
 																t2tstr = "#" + ColorUtils.colorToString( ColorUtils.combineRGB( t2tnum, t2tnum, t2tnum ), true);
 															}else{
 																t2ttmp = tpy.substring(0, 4);
-																
 																if ( t2ttmp == "mul " ) {
 																	t2tstr = "#" +  ColorUtils.colorToString( ColorUtils.lightness( color, parseFloat( tpy.substring(4) )));
 																}else if ( t2ttmp == "sat " ) {
@@ -1467,7 +1520,7 @@
 														}
 														else
 														{
-															if (CTOptions.debugOutput) Console.log("Error: Number property not found: " + nam + ":" + tpy );
+															if (CTOptions.debugOutput) Console.log("Error: Number Property Not Found: " + nam + ":" + tpy );
 														}
 													}
 													else
@@ -1487,7 +1540,6 @@
 															t2tstr = "#" + ColorUtils.colorToString( ColorUtils.combineRGB( t2tnum, t2tnum, t2tnum ), true);
 														}else{
 															t2ttmp = tpy.substring(0, 4);
-															
 															if ( t2ttmp == "mul " ) {
 																t2tstr = "#" +  ColorUtils.colorToString( ColorUtils.lightness( color, parseFloat( tpy.substring(4) )));
 															}else if ( t2ttmp == "sat " ) {
@@ -1500,7 +1552,7 @@
 												}
 												
 											}
-											else if( defType == "video" ) {
+											/*else if( defType == "video" ) {
 												
 											
 											}else if( defType == "audio" ) {
@@ -1508,7 +1560,7 @@
 											
 											}else if( defType == "file" || defType == "pdf" ) {
 												
-											}
+											}*/
 											else if ( defType == "string" || defType == "text" || defType == "code" ||  defType == "richtext" )
 											{
 												// string properties: length, toUpperCase..
@@ -1525,7 +1577,7 @@
 														}
 														else
 														{
-															if (CTOptions.debugOutput) Console.log("Error: String property not found: " + nam + ":" + tpy );
+															if (CTOptions.debugOutput) Console.log("Error: String Property Not Found: " + nam + ":" + tpy );
 														}
 													}
 													else
@@ -1545,43 +1597,9 @@
 										
 									}
 									
-									bfound = false;
-									smm = false;
-									
-									if( sections && sections.length > 0 && propertiesByName[sections + "." +nam] )
-									{
-										defValue = propertiesByName[sections + "." +nam].defValue;
-										defType = propertiesByName[sections + "." +nam].defType;
-										argv = propertiesByName[sections + "." +nam].argv;
-										args = propertiesByName[sections + "." +nam].args;
-										properties.push( propertiesByName[sections + "." +nam] );
-										bfound = true;
-									}
-									else if ( propertiesByName[nam]  )
-									{
-										if( propertiesByName[nam].sections && sections )
-										{
-											// test if section matches
-											if( propertiesByName[nam].sections == sections ) {
-												smm = false;
-											}else{
-												smm = true;
-											}
-										}
-										
-										if( !smm ) {
-											defValue = propertiesByName[nam].defValue;
-											defType = propertiesByName[nam].defType;
-											argv = propertiesByName[nam].argv;
-											args = propertiesByName[nam].args;
-											properties.push( propertiesByName[nam] );
-											bfound = true;
-										}
-									}
-									
 									if( !bfound ) {
 										if( noType && !smm ) {
-											if( CTOptions.debugOutput ) {
+											if( CTOptions.debugOutput && !(pageItemName != "" && pageName != "") ) { // exclude wrong logs in article pages..
 												Console.log("WARNING: '" + nam + "' Property In " + (template ? template.name : "") + CTOptions.urlSeparator + pf.filename + " Template Has No Type");
 											}
 											i = en;
@@ -1589,14 +1607,16 @@
 										}
 										
 										propertiesByName[nam] = properties[ properties.push( {st:st, en:en, name:nam, sections:sections, priority:prio, defType:defType, defValue:CssUtils.trimQuotes(defValue), argv:argv, args:args} ) - 1 ];
-									
+										
+										tpe = defType.toLowerCase();
+										
 										if( sections && sections.length > 0 ) {
 											propertiesByName[ sections.join(".") + "." + nam ] = propertiesByName[nam];
 										}
+									}else{
+									
+										tpe = defType.toLowerCase();
 									}
-									
-									tpe = defType.toLowerCase();
-									
 									if( tpe == "vectorlink" )
 									{
 										// VectorLink ( 'Vector-TmplObj-Name', Type:String || None, wrap, separator, wrap0... )
@@ -1605,7 +1625,7 @@
 										if( template && args && args.length > 2 )
 										{
 											// get reference vector list
-											vecProcVal = /* typeof template.dbProps[args[0]] == "object" ? */ template.dbProps[args[0]].value /*: template.dbProps[args[0]]*/;
+											vecProcVal = template.dbProps[args[0]].value;
 											
 											if( vecProcVal )
 											{
@@ -1656,7 +1676,6 @@
 												tmpl_struct[sid] += vecProcVal;
 											}
 										}
-									
 									}
 									
 									if( sections && sections.length > 0 )
@@ -1746,7 +1765,7 @@
 											{
 												if(isNaN(Number(args[0]))) {
 													vecL = 0;
-													Console.log("Error: First Vector Argument is not a Number (len, type, wrap, separator, dynaLen, type_arguments.., default_values..): " + args );
+													Console.log("Error: First Vector Argument Is Not A Number (len, type, wrap, separator, dynaLen, type_arguments.., default_values..): " + args );
 												}else{
 													vecL = int(args[0]);
 												}
@@ -1774,6 +1793,7 @@
 													{
 														vecArgs = [];
 														viStart = 9 + vi*6;
+														template.dbProps["vectorindex"] = vi;
 														
 														if( args.length > viStart )
 															vecValue = args[ viStart ];
@@ -1796,7 +1816,6 @@
 															}
 															if(args.length > viStart+5) {
 																
-																template.dbProps.vectorindex = vi;
 																
 																vecWrap = args[viStart+5].split("|");
 																if( vecWrap.length > 1 ) {
@@ -1832,6 +1851,7 @@
 													{
 														vecArgs = [];
 														viStart = 5 + vi*2;
+														template.dbProps["vectorindex"] = vi;
 														
 														if( args.length > viStart )
 															vecValue = args[ viStart ];
@@ -1840,7 +1860,20 @@
 															vecValue = vecValues[vi];
 														
 														vecValue = TemplateTools.obj2Text( vecValue, '#', /*richTextProps*/template.dbProps, true, false );
-													
+														
+														template.dbProps["vectorvalue"] = vecValue;
+														
+														if( vecType == "typed" ) {
+															
+															tps = vecValue.split(":");
+															if( tps ) {
+																if( tps.length > 1) {
+																	template.dbProps['typename'] = tps.shift();
+																	vecValue = tps.join(":");
+																	template.dbProps["vectorvalue"] = vecValue;
+																}
+															}
+														}
 														if(args.length > viStart+1) {
 															
 															vecWrap = args[viStart+1].split("|");
@@ -1874,7 +1907,12 @@
 										
 									}else{
 										// Replace Key with Template setting
-										tmpl_struct[sid] += defValue.replace(re, "<br/>");
+										if( tpe == "text" || tpe == "richtext" || tpe == "line" ) {
+											tmpl_struct[sid] += HtmlParser.fromDBText( TemplateTools.obj2Text( propertiesByName[nam].defValue.replace(re, "<br/>"), '#',null,true,false) );
+											
+										}else{
+											tmpl_struct[sid] += defValue.replace(re, "<br/>");
+										}
 									}
 								}
 								
@@ -1897,6 +1935,57 @@
 			pf.templateStruct = tmpl_struct;
 			pf.templateAreas = areas;
 			pf.templateProperties = properties;
+		}
+		
+		public static function transformRichText ( procVal:String, args:Array, template:Template ) :String
+		{
+			var hasBr:Boolean = procVal.toLowerCase().indexOf("#br#") >= 0;
+			
+			var wrapSplit:Array;
+			var defWrapPre:String;
+			var defWrapPost:String;
+			var vecL:int;
+			var vecValue:String;
+			var brSplit:Array;
+			var i:int;
+			var vi:int;
+			
+			procVal = TemplateTools.obj2Text( procVal, '#', template.dbProps, true, false );
+			procVal = HtmlParser.fromDBText( procVal );
+			
+			if( args && args.length > 1 ) 
+			{
+				// Split <BR/> and apply line wraps
+				
+				wrapSplit = args[1].split("|");
+				
+				if( wrapSplit.length > 1 )
+				{
+					defWrapPre =  TemplateTools.obj2Text( wrapSplit[0], '#', template.dbProps, true, false );
+					defWrapPost = TemplateTools.obj2Text( wrapSplit[1], '#', template.dbProps, true, false );
+					
+					if( hasBr ) {
+						brSplit = procVal.split("<br/>");
+					}else{
+						brSplit = procVal.split("\n");
+					}
+					vecL = brSplit.length;
+					if( vecL > 0 ) {
+						vecValue = "";
+						for( vi = 0; vi < vecL; vi++) {
+							
+							if( brSplit[vi] == "" || StringUtils.isWhite( brSplit[vi] )  ) {
+								vecValue += defWrapPre +"&nbsp;" + defWrapPost;
+							}else{
+								vecValue += defWrapPre + brSplit[vi] + defWrapPost;
+							}
+							
+						}
+						procVal = vecValue;
+					}	
+				}
+			}
+			return procVal;
 		}
 	}
 }

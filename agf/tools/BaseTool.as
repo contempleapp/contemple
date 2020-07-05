@@ -1,5 +1,5 @@
-﻿package agf.tools  {
-	
+﻿package agf.tools
+{	
 	public class BaseTool
 	{
 		public static function argv2Array (argv:String) :Array 
@@ -24,8 +24,10 @@
 			return s;
 		}
 		
-		public static function complete (cmdComplete:Function=null,cmdCompleteArgs:Array=null) :void {
-			if( cmdComplete != null ) {
+		public static function complete (cmdComplete:Function=null, cmdCompleteArgs:Array=null) :void
+		{
+			if ( cmdComplete != null )
+			{
 				if( cmdCompleteArgs != null) {
 					cmdComplete.apply(null, cmdCompleteArgs);
 				}else{
@@ -33,6 +35,6 @@
 				}
 			}
 		}
+		
 	}
-	
 }

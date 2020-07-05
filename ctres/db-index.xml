@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8" ?>
-<agf>
-    <db type="sqlite" filename="local.db" initquery="ctres/emptydb.sql"/>
-</agf>
-

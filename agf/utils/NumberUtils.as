@@ -1,13 +1,12 @@
-﻿package agf.utils {
-	
-	public class NumberUtils {
-
-		//public function NumberUtils() {}
-		
-		public static function getUnit (str:String) :String {
-			
+﻿package agf.utils
+{	
+	public class NumberUtils
+	{
+		public static function getUnit (str:String) :String
+		{	
 			var rv:String="";
 			var b:int=-1;
+			var c:String;
 			
 			if(str)
 			{
@@ -19,14 +18,13 @@
 						continue;
 					}
 					if( b == -1 ) {
-						if( isNaN(Number(str.charAt(i))) ) {
+						c = str.charAt(i);
+						if( isNaN(Number(c)) && c != "." ) {
 							b = i;
 							rv = str.charAt(i);
 						}
 					}else{
-						
 						rv += str.charAt(i);
-						
 					}
 				}
 			}
@@ -46,9 +44,6 @@
 				var l:int = str.length;
 				for( var i:int=0; i<l; i++) {
 					c = str.charAt(i);
-					/*if((c == "#") && i < 2) {
-						return getColor( str );
-					}*/
 					a = str.charCodeAt(i);
 					if( (a >= 48 && a <= 57) || (a == 45 && min==false) ) {
 						if(a==45) min = true;
@@ -73,8 +68,5 @@
 			}
 		}
 		
-		
-		
 	}
-	
 }

@@ -9,15 +9,8 @@
 		{
 			super(w,h,parentCS,style,"body",'','',false);
 			
-			//cssStyleSheet = new CssStyleSheet( defStyle + (style==null ? "" : style.toString()) );
 			if(parentCS) parentCS.addChild( this );
 			
-			/*if(body)
-			{
-				_parentNode = body;
-				body.addChild(this);
-			}*/
-			//init();
 		}
 		//public static var defStyle:String="body{}div{display:block;}br{display:block;}p{display:block;}h1{display:block;font-size:2em;}h2{display:block;font-size:1.5em;}table{display:table;}tr{display:table-row;}td{display:table-column;}span{display:inline;}a{display:inline;}b{display:inline;font-weight:bold;}";
 		

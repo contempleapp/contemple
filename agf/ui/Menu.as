@@ -50,7 +50,6 @@
 				if( items ) {
 					var L =  items.length;
 					if( L > 0 ) {
-						//var w:int = w;
 						var pps:int=0;
 						var ppw:int=0;
 						for(var i:int=0; i<L; i++) {
@@ -104,7 +103,6 @@
 				{
 					c = new Popup( getButtonIcons(n[i]), 0, 0, this, styleSheet, '', itemClass );
 					c.clipSpacing = csp;
-					//c.autoHideLabel = fluid;
 					
 					currPP = Popup(c);
 					currPP.blockBackground = false;
@@ -122,7 +120,6 @@
 				{
 					c = new Button( getButtonIcons(n[i]), 0, 0, this, styleSheet, '', itemClass );
 					c.autoSwapState = "active";
-					//c.autoHideLabel = fluid;
 					
 					c.clipSpacing = csp;
 					if(n[i].@cmd != undefined) c.options.cmd = StrVal.getval(n[i].@cmd);
@@ -277,7 +274,6 @@
 				}
 				it  = Button(e.currentTarget);
 				if(it.state != "active") it.swapState("active");
-				
 			}
 		}
 		private var activeRootItem:Button;
@@ -341,6 +337,5 @@
 				}
 			}
 		}
-				
 	}
 }

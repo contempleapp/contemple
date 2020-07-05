@@ -10,7 +10,7 @@
 			// var args:Array = argv2Array(argv);
 			// var showIndex:int = args.indexOf( "show" );
 			//if( cmdComplete != null) cmdComplete();
-			complete( cmdComplete, cmdCompleteArgs);
+			complete( cmdComplete, cmdCompleteArgs );
 		}
 		
 		public static function process ( cmd:String, cmdComplete:Function=null, cmdCompleteArgs:Array=null ) :void
@@ -48,7 +48,6 @@
 						{
 							// Found Class object
 							// Console.log("Run command: " + cl + ' "' + tool + ' ' + text + '"');
-							
 							cl.command( text, cmdComplete, cmdCompleteArgs );
 						}
 						else
@@ -60,34 +59,5 @@
 			}
 		}
 		
-		/*
-		public static function getClass ( path:String ) :Object {
-			
-			var c:Object;
-			try {
-				c = getDefinitionByName(path);
-			}catch(e:Error) {
-				c = null;
-			}
-			if(c == null) 
-			{
-				if( Application.instance ) 
-				{
-					var paths:Array = Application.instance.toolPaths;
-					for(var i:int=0; i<paths.length; i++) {
-						try {
-							c = getDefinitionByName(paths[i] + "." + path);
-							break;
-						}catch(e:Error) {
-							c = null;
-						}
-					}
-				}
-			}
-			return c;
-		}
-		*/
-		
 	}
-	
 }
