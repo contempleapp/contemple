@@ -9,5 +9,7 @@ In Animate, open the **contemple.fla** or **contemple-android.fla** and choose F
 
 Then click on **Publish** to compile the application. If you publish the desktop verison on a Windows machine, a folder (contemple.app) with the contemple.exe file is generated. Publishing the desktop version on macOS creates a .app executable file. (contemple.app). Publishing the mobile version can target either Android or iOS from a Mac or Windows machine.
 
+## Documentation and Tutorials
 
+[contemple.app/docs](https://www.contemple.app/docs)
 
