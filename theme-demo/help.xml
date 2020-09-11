@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ct>
-	<item name="GeneralOptions.browser-title">
+	<item name="GeneralOptions.browser_title">
 		<lang name="en" value="Browser Title on the Home Page"/>
 		<lang name="de" value="Browser Titel auf der Start Seite"/>
 	</item>
-	<item name="ContactOptions.browser-title">
+	<item name="ContactOptions.browser_title">
 		<lang name="en" value="Browser Title on the Contact Page"/>
 		<lang name="de" value="Browser Titel auf der Kontakt Seite"/>
 	</item>
@@ -60,23 +60,23 @@
 		<lang name="en" value="Menu"/>
 		<lang name="de" value="Menü"/>
 	</item>
-	<item name="font-dark-color">
+	<item name="font_dark_color">
 		<lang name="en" value="Dark Font Color"/>
 		<lang name="de" value="Dunkle Schrift Farbe"/>
 	</item>
-	<item name="font-light-color">
+	<item name="font_light_color">
 		<lang name="en" value="Light Font Color"/>
 		<lang name="de" value="Helle Scrift Farbe"/>
 	</item>
-	<item name="menu-background-color">
+	<item name="menu_background_color">
 		<lang name="en" value="Menu Background Color"/>
 		<lang name="de" value="Menü Hintergrund Farbe"/>
 	</item>
-	<item name="menu-font-color">
+	<item name="menu_font_color">
 		<lang name="en" value="Menu Font Color"/>
 		<lang name="de" value="Menü Schrift Farbe"/>
 	</item>
-	<item name="menu-font-size">
+	<item name="menu_font_size">
 		<lang name="en" value="Menu Font Size"/>
 		<lang name="de" value="Menü Schrift Größe"/>
 	</item>
@@ -100,43 +100,43 @@
 		<lang name="en" value="Logo Overlay"/>
 		<lang name="de" value="Logo Overlay"/>
 	</item>
-	<item name="browser-title">
+	<item name="browser_title">
 		<lang name="en" value="Browser Title"/>
 		<lang name="de" value="Browser Titel"/>
 	</item>
-	<item name="logo-image">
+	<item name="logo_image">
 		<lang name="en" value="Logo Image"/>
 		<lang name="de" value="Logo Bild"/>
 	</item>
-	<item name="logo-overlay">
+	<item name="logo_overlay">
 		<lang name="en" value="Logo Overlay"/>
 		<lang name="de" value="Logo Overlay"/>
 	</item>
-	<item name="logo-top">
+	<item name="logo_top">
 		<lang name="en" value="Logo Top Position (in Percent)"/>
 		<lang name="de" value="Logo Position Oben (in Prozent)"/>
 	</item>
-	<item name="logo-zoom">
+	<item name="logo_zoom">
 		<lang name="en" value="Logo Zoom"/>
 		<lang name="de" value="Logo Zoom"/>
 	</item>
-	<item name="logo-opacity">
+	<item name="logo_opacity">
 		<lang name="en" value="Logo Alpha Transparency"/>
 		<lang name="de" value="Logo Alpha Transparenz"/>
 	</item>
-	<item name="background-color">
+	<item name="background_color">
 		<lang name="en" value="Background Color"/>
 		<lang name="de" value="Hintergrund Farbe"/>
 	</item>
-	<item name="background-image">
+	<item name="background_image">
 		<lang name="en" value="Background Image"/>
 		<lang name="de" value="Hintergrund Bild"/>
 	</item>
-	<item name="font-color">
+	<item name="font_color">
 		<lang name="en" value="Font Color"/>
 		<lang name="de" value="Schrift Farbe"/>
 	</item>
-	<item name="test-num">
+	<item name="test_num">
 		<lang name="en" value="Test Number"/>
 		<lang name="de" value="Test Zahl"/>
 	</item>

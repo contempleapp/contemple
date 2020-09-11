@@ -24,14 +24,14 @@
 	* The theme/template is also copied into to directory/tmpl directory.
 	*
 	* Contemple can build the website automatically after file changes from external text editors.
-	* Monitor Files have to be enabled under Developer / Preferences.
+	* Monitor Files have to be enabled in the Contemple Preferences.
 	* Contemple will watch all template files for file changes if enabled.
 	*
 	* Notes for theme developement:
 	*
 	* - After changes inside the template files wich affects the User Interface in Contemple (e.g. add/remove template areas/properties, or changes of property types/arguments)
 	* Contemple may have to be restarted to behave correctly.
-	* To restart Contemple, select a Language from the main menu or choose Restart from the Developer Preferences (Developer / Preferences / Restart )
+	* To restart Contemple, select a Language from the main menu or choose Restart from the Preferences ( Preferences / Restart )
 	*
 	**
 	*
@@ -120,10 +120,6 @@
 			//CTOptions.installSharedObjectId = "app.contemple.1.0.6";
 			//CTOptions.uploadViewShowFileInfo = false;
 			//CTOptions.reverseAreasPopup = true;
-			
-			//CTOptions.animateBackground = true;
-			//CTOptions.animateBackgroundMin = 0;
-			//CTOptions.animateBackgroundMax = 0.3;
 			
 			//CTOptions.localUploadFolder = "min";
 			//CTOptions.uploadMethod = "php";

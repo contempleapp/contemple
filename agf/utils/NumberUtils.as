@@ -2,6 +2,12 @@
 {	
 	public class NumberUtils
 	{
+		public static function clamp (v:Number, min:Number, max:Number) :Number {
+			if( v < min ) v = min;
+			else if( v > max ) v = max;
+			return v;
+		}
+		
 		public static function getUnit (str:String) :String
 		{	
 			var rv:String="";

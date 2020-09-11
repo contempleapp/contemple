@@ -271,7 +271,6 @@
 				}else{
 					// TODO: search contLR for labels to support raw-string-icons and hover active etc
 					var st:Object = {};
-					
 					var cs:Array;
 					var arr:Array = [];
 					

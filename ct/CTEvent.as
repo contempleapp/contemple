@@ -1,22 +1,18 @@
-﻿package agf.events
+﻿package ct
 {
 	import flash.events.Event;
 	
-	import agf.ui.Popup;
-	import agf.ui.PopupItem;
-	
-	public class PopupEvent extends Event
+	public class CTEvent extends Event
 	{
-		public static const SELECT:String="select";
+		public static const RELOAD:String="reload";
+		public static const CANCEL:String="cancel";
 		
-		public function PopupEvent(pp:Popup, selitem:PopupItem, type:String, bubbles:Boolean=false, cancelable:Boolean=false)
+		public function CTEvent (_obj:Object, type:String, bubbles:Boolean=false, cancelable:Boolean=false)
 		{
 			super(type,bubbles,cancelable);
-			currentPopup = pp;
-			selectedItem = selitem;
+			obj = _obj;
 		}
 		
-		public var currentPopup:Popup;
-		public var selectedItem:PopupItem;
+		public var obj:Object;
 	}
 }

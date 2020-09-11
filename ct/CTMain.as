@@ -79,7 +79,7 @@
 			var sh:SharedObject = SharedObject.getLocal( CTOptions.installSharedObjectId );
 			
 			if( sh ) {
-				if( sh.data && sh.data.installOptions != undefined )
+				if( sh.data )
 				{
 					
 					if( sh.data.preferences ) {
@@ -90,33 +90,55 @@
 						if( prefs.monitorFiles != undefined ) CTOptions.monitorFiles = prefs.monitorFiles;
 						if( prefs.nativePreview != undefined ) CTOptions.nativePreview = prefs.nativePreview;
 						if( prefs.softKeyboard != undefined ) CTOptions.softKeyboard = prefs.softKeyboard;
+						if( prefs.previewInEditor != undefined ) CTOptions.previewInEditor = prefs.previewInEditor;
+						if( prefs.previewAlign != undefined ) {
+							CTOptions.previewAtBottom = prefs.previewAlign;
+						}else{
+							if( CTOptions.isMobile ) {
+								// bottom preview by default on mobile
+								CTOptions.previewAtBottom = true;	
+							}
+						}
 					}
 					
-					try {
-						var x:XML = new XML(sh.data.installOptions );
-					}catch(e:Error) {
-						Console.log("Error Load Install Options: " + e);
+					if( CTOptions.previewAtBottom ) {
+						TemplateTools.editor_w = HtmlEditor.tmpEditorW = 1;
+						TemplateTools.editor_h = HtmlEditor.tmpEditorH = 0.6;
+					}else{
+						TemplateTools.editor_w = HtmlEditor.tmpEditorW = 0.6;
+						TemplateTools.editor_h = HtmlEditor.tmpEditorH = 1;
 					}
 					
-					if ( x ) {
-						overrideInstallOptions( x.templates );
+					if( !CTOptions.previewInEditor ) {
+						HtmlEditor.showPreview( false );
+					}
+					if ( sh.data.installOptions != undefined ) {
+						try {
+							var x:XML = new XML(sh.data.installOptions );
+						}catch(e:Error) {
+							Console.log("Error Load Install Options: " + e);
+						}
 						
-						if( sh.data.lastProjectDir != undefined )
-						{
-							if( sh.data.installTemplates != undefined ) {
-								var L:int = sh.data.installTemplates.length;
-								var xn:XMLList;
-								
-								for(var i:int=0; i<L; i++) {
-									if( sh.data.installTemplates[i].prjDir == sh.data.lastProjectDir ) {
+						if ( x ) {
+							overrideInstallOptions( x.templates );
+							
+							if( sh.data.lastProjectDir != undefined )
+							{
+								if( sh.data.installTemplates != undefined ) {
+									var L:int = sh.data.installTemplates.length;
+									var xn:XMLList;
 									
-										xn = x.templates.template.(@name==sh.data.installTemplates[i].name);
+									for(var i:int=0; i<L; i++) {
+										if( sh.data.installTemplates[i].prjDir == sh.data.lastProjectDir ) {
 										
-										if( xn ) {
-											overrideInstallOptions( xn );
-											if( CTOptions.debugOutput || CTOptions.verboseMode ) Console.log( "Override Options On Startup : " + CTOptions.installSharedObjectId + ", Dir: " + sh.data.lastProjectDir );
+											xn = x.templates.template.(@name==sh.data.installTemplates[i].name);
+											
+											if( xn ) {
+												overrideInstallOptions( xn );
+												if( CTOptions.debugOutput || CTOptions.verboseMode ) Console.log( "Override Options On Startup : " + CTOptions.installSharedObjectId + ", Dir: " + sh.data.lastProjectDir );
+											}
+											break;
 										}
-										break;
 									}
 								}
 							}
@@ -323,7 +345,6 @@
 					tmpHostList.push( host  );
 					if( fold == -1 && scri == -1 ) tmpHostList.push( host + CTOptions.hubFolder + "/" + CTOptions.hubScriptFilename );
 					if( scri == -1 ) tmpHostList.push( host + CTOptions.hubScriptFilename );
-					// tmpHostList.reverse(); // prefer https...
 				}
 				else if( host.substring( 0, 8 ) == "https://" )
 				{
@@ -371,7 +392,6 @@
 			if( reset ) {
 				
 				// Reset critical project settings
-				//CTOptions.uploadScript = "";
 				CTOptions.projectName = "";
 				CTOptions.appName = "Contemple";
 				CTOptions.version = CTOptions.contempleVersion; // "1.0.12";
@@ -403,7 +423,6 @@
 				if( x.@uploadScript != undefined)           CTOptions.uploadScript = x.@uploadScript.toString();
 				if( x.@hubScriptFilename != undefined)      CTOptions.hubScriptFilename = x.@hubScriptFilename.toString();
 				if( x.@overrideInstallDB != undefined)      CTOptions.overrideInstallDB = x.@overrideInstallDB.toString();
-				//if( x.@debugOutput != undefined)            CTOptions.debugOutput = CssUtils.stringToBool( x.@debugOutput.toString() );
 				if( x.@appName != undefined)                CTOptions.appName = x.@appName.toString();
 				if( x.@localSharedObjectId != undefined)    CTOptions.localSharedObjectId = x.@localSharedObjectId.toString();
 				if( x.@homeAreaName != undefined)           CTOptions.homeAreaName = x.@homeAreaName.toString();
@@ -629,7 +648,7 @@
 						allowCancel: true,
 						autoWidth:false,
 						autoHeight:false,
-						height: 220,
+						height: int(220 * CssUtils.numericScale),
 						cancelLabel: Language.getKeyword("SelectTemplate-Cancel")
 						}, 'select-template-window') );
 						
@@ -718,15 +737,10 @@
 				if ( cnt != "" )
 				{
 					Console.log( "Content Version " + publishHistoryID + ":\n" + cnt );
-				
 					var f:File = File.applicationStorageDirectory.resolvePath( CTOptions.tmpDir + CTOptions.urlSeparator + "content.xml" );
-					
 					CTTools.writeTextFile( f.url, cnt );
-					
 					CTTools.loadDefaultContent( f.url, onContentSync );
-					
 				}
-				
 			}else{
 				Console.log("Error: Can Not Load Content Version " + publishHistoryID );
 			}
@@ -737,7 +751,6 @@
 			// Save and Restart the app
 			CTTools.onFirstSync();
 		}
-		
 		
 		public function installContentHistory ( id:int ) :void
 		{
@@ -786,9 +799,8 @@
 					ids = "";
 				}
 				
-				if( ids != "" ) {
-				
-					
+				if( ids != "" )
+				{
 					publishHistorySprite = new CssSprite( 0, 0, null, styleSheet, 'body', '', '', false );
 					
 					var selwin:Window = Window( window.ContentWindow( "PublishHistoryWindow", Language.getKeyword( "Select a Content Version"), publishHistorySprite, {
@@ -802,7 +814,7 @@
 					allowCancel: true,
 					autoWidth:false,
 					autoHeight:false,
-					height: 220,
+					height: int(220 * CssUtils.numericScale),
 					cancelLabel: Language.getKeyword("SelectPublishHistory-Cancel")
 					}, 'select-publish-history-window') );
 					
@@ -912,8 +924,8 @@
 			}
 			
 			//var sc:String = '<?xml version="1.0" encoding="utf-8"?><agf><menu><item iconleft="'+Options.iconDir+'/sidebar-left.png" cmd="TemplateTools show-areas"/><item iconleft="'+Options.iconDir+'/sidebar-right.png" cmd="TemplateTools show-preview"/></menu></agf>';
-			var sc:String = '<?xml version="1.0" encoding="utf-8"?><agf><menu><item iconleft="'+Options.iconDir+'/glasses.png" cmd="TemplateTools show-preview"/></menu></agf>';
-			secMenu.parseMenu( new XML(sc), "secmenu");
+			//var sc:String = '<?xml version="1.0" encoding="utf-8"?><agf><menu><item iconleft="'+Options.iconDir+'/glasses.png" cmd="TemplateTools show-preview"/></menu></agf>';
+			//secMenu.parseMenu( new XML(sc), "secmenu");
 			
 			var tmpd:File = File.applicationStorageDirectory.resolvePath ( CTOptions.tmpDir );
 			tmpd.createDirectory();
@@ -939,6 +951,7 @@
 						try 
 						{
 							CTTools.copyFile( CTOptions.overrideInstallDB, sh.data.lastProjectDir + CTOptions.urlSeparator + nm, overrideComplete );
+							
 							return;
 						}catch(e:Error) {
 							Console.log("Database Override Error: " + e);
@@ -953,16 +966,7 @@
 			}else{
 				if( CTOptions.isMobile )
 				{
-					if( CTOptions.mobileProjectFolderName == "ask" )
-					{
-						/*if( sh && sh.data && sh.data.installTemplates )
-						{
-							for( var i:int=0; i<sh.data.installTemplates.length; i++) {
-								
-							}
-						}*/
-					}
-					else
+					if( CTOptions.mobileProjectFolderName != "ask" )
 					{
 						var fi:File = CTOptions.mobileParentFolder.resolvePath( CTOptions.mobileProjectFolderName );
 						if( fi.exists && fi.isDirectory) {

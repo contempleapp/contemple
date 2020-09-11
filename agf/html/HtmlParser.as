@@ -161,7 +161,7 @@
 		
 		
 		// transform #BR#, #AT#, #QUOTE# and #SQUOTE# in Strings
-		public static function toInputText ( code:String ) :String
+		public static function toInputText ( code:String='', transformNewline:Boolean = true ) :String
 		{
 			var rv:String = "";
 			var L:int = code.length;
@@ -187,16 +187,17 @@
 							tmp = code.substring( i, j+1 ).toLowerCase();
 							
 							if( tmp == "#br#" ) {
-								rv += "\n";
-								i=j;
-								writeChar = false;
-							}else if( tmp == "#at#" ) {
-								rv += "@";
-								i=j;
-								writeChar = false;
-								
-							// TODO FIX " and ' errors in InputTextBox textEnter..
-							
+								if( transformNewline ) {
+									rv += "\n";
+									i=j;
+									writeChar = false;
+								}
+						    }else if( tmp == "#at#" ) {
+								if( transformNewline ) {
+									rv += "@";
+									i=j;
+									writeChar = false;
+								}
 							}else if( tmp == "#quote#" ) {
 								rv += '"';
 								i=j;
@@ -212,22 +213,21 @@
 							}else if( tmp == "#gt#" ) {
 								rv += '<';
 								i=j;
-								writeChar = false;*/
-							}
+								writeChar = false;
+							*/}
 							break;
 						}
 					}
 				}
 				
 				if( writeChar ) {
-					
 					rv += String.fromCharCode( cc );
 				}
 			}
 			return rv;
 		}
 		
-		public static function toDBText ( code:String, transformNewline:Boolean=false, transformQuotes:Boolean=false ) :String
+		public static function toDBText ( code:String='', transformNewline:Boolean=false, transformQuotes:Boolean=false ) :String
 		{
 			//47:/, 42:*, 34:", 39:', 91:[, 93:], 35:#, 38: &, 44:,, 46:., 58::, 59:;, 64:@, 123:{, 125:}, 60:<, 62:>,  8222: „, 8220: “,
 			var xml_str:String = "";
@@ -311,7 +311,6 @@
 							}
 						}else{
 							if( allowedDBTags["_"+nam] != true ) {
-								
 								if( cc2 != 62 ) {
 									for( j=en+2; j<L; j++ ) {
 										cc2 = code.charCodeAt( j );
@@ -325,7 +324,6 @@
 									i = j;
 									writeChar = false;
 								}
-								
 							}
 						}
 						
@@ -365,7 +363,6 @@
 									}
 									i = j;
 									writeChar = false;
-									//processNodeArgument( namlc, ag );
 									break;
 								}
 								else if( cc2 == 47 ) // '/'
@@ -386,7 +383,6 @@
 										xml_str += "[" + nam + astr+"/]";
 										i = j+1;
 										writeChar = false;
-									//	processNodeArgument( namlc, ag );
 										break;
 									}
 								}
@@ -482,9 +478,10 @@
 		
 	
 		
-		public static function fromDBText ( code:String /*, compact:Boolean=true, ignoreProcInstr:Boolean=false*/ ) :String
+		public static function fromDBText ( code:String='' ) :String
 		{
 			//47:/, 42:*, 34:", 91:[, 93:], 35:#, 44:,, 46:., 58::, 59:;, 64:@, 123:{, 125:}, 60:<, 62:>,
+			if(!code) return '';
 			
 			var xml_str:String = "";
 			var cc:int;
@@ -514,7 +511,7 @@
 				cc = code.charCodeAt(i);
 				writeChar = true;
 				
-				if ( cc == /*60*/ 91 ) // <
+				if ( cc == 91 ) // <
 				{
 					if(L < i+2) break; // end of file error
 					
@@ -524,7 +521,7 @@
 						// search instruction end char >
 						for(j=i+2; j < L; j++) {
 							cc = code.charCodeAt(j);
-							if( cc == /*62*/93 ) {
+							if( cc == 93 ) {
 								break;
 							}
 						}
@@ -541,7 +538,7 @@
 						// search next whitspace || >
 						for(j=i; j<L; j++) {
 							cc2 = code.charCodeAt( j );
-							if( cc2 <= 32 || cc2 == /*62*/ 93) {
+							if( cc2 <= 32 || cc2 == 93) {
 								en = j;
 								break;
 							}
@@ -552,10 +549,10 @@
 						// skip nodes..
 						if( nam.charCodeAt(0) == 47 ) {
 							if( allowedDBTags["_"+nam.substring(1)] != true ) {
-								if( cc2 != /*62*/ 93 ) {
+								if( cc2 != 93 ) {
 									for( j=en+2; j<L; j++ ) {
 										cc2 = code.charCodeAt( j );
-										if( cc2 == /*62*/ 93 ) { // >
+										if( cc2 == 93 ) { // >
 											i = j;
 											writeChar = false;
 											break;
@@ -569,10 +566,10 @@
 						}else{
 							if( allowedDBTags["_"+nam] != true ) {
 								
-								if( cc2 != /*62*/ 93 ) {
+								if( cc2 != 93 ) {
 									for( j=en+2; j<L; j++ ) {
 										cc2 = code.charCodeAt( j );
-										if( cc2 == /*62*/ 93 ) { // >
+										if( cc2 == 93 ) { // >
 											i = j;
 											writeChar = false;
 											break;
@@ -586,7 +583,7 @@
 							}
 						}
 						
-						if( cc2 != /*62*/ 93 && writeChar )
+						if( cc2 != 93 && writeChar )
 						{
 							en2 = en;
 							aname = "";
@@ -602,7 +599,7 @@
 							{
 								cc2 = code.charCodeAt( j );
 								
-								if( cc2 == /*62*/ 93 ) // > node end
+								if( cc2 == 93 ) // > node end
 								{
 									if(!qval && ast != -1 && aname) {
 										aen = j;
@@ -618,12 +615,11 @@
 									}
 									i = j;
 									writeChar = false;
-									//processNodeArgument( namlc, ag );
 									break;
 								}
 								else if( cc2 == 47 ) // '/'
 								{
-									if( code.charCodeAt(j+1) == /*62*/ 93 ) { // >
+									if( code.charCodeAt(j+1) == 93 ) { // >
 										// XML Strict Single Node
 										if(!qval && ast != -1 && aname) {
 											aen = j;
@@ -635,7 +631,6 @@
 										xml_str += "<" + nam + astr+"/>";
 										i = j+1;
 										writeChar = false;
-									//	processNodeArgument( namlc, ag );
 										break;
 									}
 								}

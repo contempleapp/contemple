@@ -559,9 +559,6 @@
 				
 				var newFileHash:String = CTTools.hashBytes( b );
 				
-				//if( CTOptions.verboseMode || CTOptions.debugOutput ) {
-				//	Console.log( filename + " Local "+ CTOptions.hashCompareAlgorithm +": " + newFileHash + " Equal: " + (c == newFileHash) );
-				//}
 				if( c != newFileHash ) {
 					pushFile( filedir, filename, webdir );
 				}
@@ -680,7 +677,7 @@
 			
 			var o:Object = upFiles[currFile]; // name, dir, webdir
 			
-			if( CTOptions.uploadMethod == CTOptions.UPLOAD_METHOD_PHP || CTOptions.uploadMethod == CTOptions.UPLOAD_METHOD_ASP )
+			if( CTOptions.uploadMethod == CTOptions.UPLOAD_METHOD_PHP )
 			{
 				var vars:URLVariables = new URLVariables();
 				vars['path'] = o.webdir;

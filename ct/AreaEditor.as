@@ -16,6 +16,7 @@
 	import agf.io.ResourceMgr;
 	import agf.Main;
 	import agf.Options;
+	import agf.animation.Animation;
 	import flash.text.TextFieldAutoSize;
 	import flash.text.TextFieldType;
 	import flash.utils.setTimeout;
@@ -28,6 +29,8 @@
 	import flash.net.FileReference;
 	import flash.net.SharedObject; 
 	import flash.utils.ByteArray;
+	import fl.transitions.easing.Regular;
+	import fl.transitions.easing.Strong;
 	
 	public class AreaEditor extends AreaProcessor
 	{
@@ -43,30 +46,41 @@
 				stage.removeEventListener( MouseEvent.MOUSE_MOVE, btnMove );
 				stage.removeEventListener( MouseEvent.MOUSE_UP, btnUp );
 			}
+			if( areapp && contains(areapp)) removeChild( areapp );
+			if( areaView && contains(areaView)) removeChild( areaView );
+			if( sizeButton && contains(sizeButton)) removeChild( sizeButton );
+			if( nameCtrl && contains(nameCtrl)) removeChild( nameCtrl );
 			Main(Application.instance).view.removeEventListener( AppEvent.VIEW_CHANGE, removePanel );
 		}
 		
 		public static var currPF:ProjectFile=null;
 		public static var currItemName:String="";		
 		public static var minW:Number=32;
-
-		public var areapp:Popup;
-		public var plusButton:Popup;
+		private static var menuStore:Object={};
+		private static var areapp:Popup;
+		internal static var areaView:AreaView;
+		
+		public static function get _areaView () :AreaView {
+			return areaView;
+		}
 		public var lastAreaName:String="";
 		public var sizeButton:Button;
 		protected var nameCtrl:NameCtrl;
+		
 		private static var dpth:int=0;
 		private static var viewSize:Number = 190;
 		private static var newInsertSortID:int=-1;
 		private static var props:Object;
+		private static var _args:Object;
+		private static var _tmpl:Object;
 		private static var articlePageWritten:Boolean=false;
 		private static var articleAreasInvalid:Boolean=false;
-		private var clickY:Number=0; 
+		private var clickY:Number=0;
 		private var _h:int=0;
 		private var tmplSplitPaths:String;
 		private var insertFileStore:Array;
 		private var tmpValues:Object;
-		private var menuStore:Object={};
+		
 		private var viewSizeStartX:Number=0;
 		private var areasVisible:Boolean = true;
 		private static var tmpViewSize:Number=0;
@@ -75,6 +89,17 @@
 		private var dragNewId:int=0;
 		private var dragNewName:String="";
 		private var dragNewButton:Button;
+		
+		private var folderBackBtn:Button;
+		private var folderLabel:Label;
+		
+		private var tabs:ItemBar;
+		private var tabsPP:Popup;
+		
+		private static var areaTreeDirty:Boolean = true;
+		public static function invalidateAreaTree () :void {
+			areaTreeDirty = true;
+		}
 		
 		protected function btnUp (event:MouseEvent) :void {
 			stage.removeEventListener( MouseEvent.MOUSE_MOVE, btnMove );
@@ -117,140 +142,131 @@
 		
 		public override function createAed () :void
 		{
-			if( plusButton && contains(plusButton)) removeChild( plusButton );
 			if( areapp && contains(areapp)) removeChild( areapp );
 			if( areaView && contains(areaView)) removeChild( areaView );
 			if( sizeButton && contains(sizeButton)) removeChild( sizeButton );
 			if( nameCtrl && contains(nameCtrl)) removeChild( nameCtrl );
 			
-			if (CTTools.activeTemplate)
+			if( areaTreeDirty )
 			{
-				currentTypes = "undefined";
-				
-				var i:int;
-			
-				if (CTTools.procFiles && CTTools.activeTemplate.indexFile && CTTools.projectDir )
+				if (CTTools.activeTemplate)
 				{
-					areaView = new AreaView( 0,0,this,styleSheet,'areaview','','area-view',false);
-					if( viewSize == 0 ) areaView.visible = false;
+					currentTypes = "undefined";
 					
-					areaView.editor = this;
-					
-					sizeButton = new Button ([],0,0,this,styleSheet,'','area-sizebutton',false);
-					sizeButton.addEventListener( MouseEvent.MOUSE_DOWN, viewSizeDown );
-					
-					plusButton = new Popup( [ new IconFromFile(Options.iconDir + "/plus.png", Options.iconSize, Options.iconSize), Language.getKeyword("New Item In")],0,0,this,this.styleSheet,'','areaeditor-plusbutton', false);
-					plusButton.visible = viewSize == 0;
-					
-					plusButton.alignH = plusButton.textAlign = "right";
-					plusButton.x = cssRight - plusButton.cssSizeX;
-					plusButton.addEventListener( Event.SELECT, plusClick );
-					
-					var pth:String;
-					var pfid:int ; 
-					var pf:ProjectFile;
-					menuStore={};
-					var f:int;
-					var areas:Vector.<Area>;
-					var all:String = CTTools.activeTemplate.files;
-					
-					if( CTTools.pages && CTTools.pages.length > 0 ) {
-						for(f=0;f<CTTools.pages.length; f++) {
-							all += ","+CTTools.pages[f].filename;
-						}
-					}					
-					
-					var tFiles:Array = all.split(",");
-					tFiles.splice(0, 0, CTTools.activeTemplate.indexFile);
-					
-					var L:int;
-					var nam:String;
-					
-					areapp = new Popup([new IconArrowDown( Application.instance.mainMenu.iconColor ), "none" ], 0, 0, this, styleSheet, '', 'areaeditor-areapopup', false);
-					areapp.visible = viewSize == 0;
-					
-					for(f = 0; f<tFiles.length; f++)
-					{						
-						pth = CTTools.projectDir + CTOptions.urlSeparator + CTTools.activeTemplate.relativePath + CTOptions.urlSeparator + tFiles[f];					
-						pfid = CTTools.projFileBy( pth, "path" );
-						pf = CTTools.procFiles[ pfid ] as ProjectFile;
+					var i:int;
+				
+					if (CTTools.procFiles && CTTools.activeTemplate.indexFile && CTTools.projectDir )
+					{
+						menuStore = {};
 						
-						if(pf && pf.templateAreas )
-						{
-							areas = pf.templateAreas;
+						areaView = new AreaView( 0,0,this,styleSheet,'areaview','','area-view',false);
+						areaView.editor = this;
+						
+						var pth:String;
+						var pfid:int ; 
+						var pf:ProjectFile;
+						
+						var f:int;
+						var areas:Vector.<Area>;
+						var all:String = CTTools.activeTemplate.files;
+						
+						if( CTTools.pages && CTTools.pages.length > 0 ) {
+							for(f=0;f<CTTools.pages.length; f++) {
+								all += ","+CTTools.pages[f].filename;
+							}
+						}					
+						
+						var tFiles:Array = all.split(",");
+						tFiles.splice(0, 0, CTTools.activeTemplate.indexFile);
+						
+						var L:int;
+						var nam:String;
+						
+						areapp = new Popup([new IconArrowDown( Application.instance.mainMenu.iconColor, 1, Options.iconSize, Options.iconSize ), "none" ], 0, 0, this, styleSheet, '', 'areaeditor-areapopup', false);
+						areapp.visible = false;
+						removeChild( areapp );
+						
+						for(f = 0; f<tFiles.length; f++)
+						{						
+							pth = CTTools.projectDir + CTOptions.urlSeparator + CTTools.activeTemplate.relativePath + CTOptions.urlSeparator + tFiles[f];					
+							pfid = CTTools.projFileBy( pth, "path" );
+							pf = CTTools.procFiles[ pfid ] as ProjectFile;
 							
-							if( areas && areas.length > 0 ) {
-								L = areas.length;
-								if( !currentArea ) {
-									for(i=0; i<L; i++) {
-										if(areas[i].name == CTTools.currArea ) {
-											currentArea = areas[i];
-											break;
-										}
-									}
-									if( !currentArea ) {
-										currentArea = areas[0];
+							if(pf && pf.templateAreas )
+							{
+								areas = pf.templateAreas;
+								if( areas && areas.length > 0 ) {
+									L = areas.length;
+									for (i = 0; i < L; i++) {
+										storeArea( areas[i] );
 									}
 								}
-								if( currentArea ) {
-									areapp.label = currentArea.name;
-								}
-								for (i = 0; i < L; i++) {
-									storeArea( areas[i] );
+							}
+						} // for f
+						
+						L = CTTools.subTemplates.length;
+						var st:Template;
+						
+						for(i=0; i<L; i++) {
+							st = CTTools.subTemplates[i];
+							if(st.areasByName) {
+								for(nam in st.areasByName) {
+									if ( st.areasByName[nam].name != "" && st.stPageAreas[nam] == undefined ) {
+										storeArea( st.areasByName[nam] );
+									}
 								}
 							}
 						}
-					} // for f
-					
-					L = CTTools.subTemplates.length;
-					var st:Template;
-					
-					for(i=0; i<L; i++) {
-						st = CTTools.subTemplates[i];
-						if(st.areasByName) {
-							for(nam in st.areasByName) {
-								if ( st.areasByName[nam].name != "" && st.stPageAreas[nam] == undefined ) {
-									storeArea( st.areasByName[nam] );
-								}
-							}
-						}
+						
+						sortAreas( areapp.rootNode );
+						
+						if( CTOptions.reverseAreasPopup )
+							areapp.rootNode.children.reverse();
+						
+						dpth = 0;
+						cloneAreas( areapp.rootNode, areaView.rootNode );
+						areaView.rootNode.format(false);
+						
+						areaView.rootNode.addEventListener( "animationFrame", areaAnimFrame);
+						areaView.rootNode.addEventListener( "animationComplete", areaAnimComplete);
 					}
-					
-					sortAreas( areapp.rootNode );
-					
-					if( CTOptions.reverseAreasPopup )
-						areapp.rootNode.children.reverse();
-					
-					dpth = 0;
-					cloneAreas( areapp.rootNode, areaView.rootNode );
-					areaView.rootNode.format(false);
-					
-					// Select first Area...
-					var currArea:String = CTTools.activeTemplate.homeAreaName;
-					
-					if( CTOptions.rememberArea ) {
-						var sh:SharedObject = SharedObject.getLocal( CTOptions.localSharedObjectId );
-						if( sh && sh.data && sh.data.lastArea != undefined ) {
-							currArea = String(sh.data.lastArea);
-							sh.close();
-						}
-					}
-					
-					var s:Array = areapp.rootNode.search( currArea );
-					if( s && s.length > 0 ) {
-						var curr:PopupItem = s[0];
-						currentArea = curr.options.area;
-						CTTools.currArea = curr.label;
-						AreaEditor.currItemName = curr.label;
-						areapp.label =  curr.label;
-					}
-					
-					areapp.addEventListener( PopupEvent.SELECT, areappChange );
-					areapp.x = cssLeft;
-					
-					showAreaItems();
-					setCurrPF();
 				}
+				
+				areaTreeDirty = false;
+			}
+			else
+			{
+				// use cached Area Tree..
+				areaView.editor = this;
+				addChild( areaView );
+			}
+			
+			sizeButton = new Button ([],0,0,this,styleSheet,'','area-sizebutton',false);
+			sizeButton.addEventListener( MouseEvent.MOUSE_DOWN, viewSizeDown );
+			
+			// Select first Area...
+			var currArea:String = CTTools.activeTemplate.homeAreaName;
+			
+			if( CTOptions.rememberArea ) {
+				var sh:SharedObject = SharedObject.getLocal( CTOptions.localSharedObjectId );
+				if( sh && sh.data && sh.data.lastArea != undefined ) {
+					currArea = String(sh.data.lastArea);
+					sh.close();
+				}
+			}
+			
+			var s:Array = areapp.rootNode.search( currArea );
+			if( s && s.length > 0 ) {
+				var curr:PopupItem = s[0];
+				currentArea = curr.options.area;
+				CTTools.currArea = curr.label;
+				AreaEditor.currItemName = curr.label;
+				areapp.label =  curr.label;
+			}
+			
+			showAreaItems();
+			if( CTOptions.previewInEditor && CTTools.procFiles ) {
+				setCurrPF();
 			}
 		}
 		
@@ -273,6 +289,7 @@
 						tr = treeNode.addFolder(  [ new IconFromFile(Options.iconDir + "/folder.png", Options.iconSize, Options.iconSize), node.label ], true );
 						tr.btn.nodeClass = "tree-folder-"+dpth;
 						tr.btn.addEventListener( MouseEvent.CLICK, areaSectionClick);
+						
 						tr.btn.init();
 						dpth++;
 					}
@@ -292,6 +309,7 @@
 							}else{
 								bt = new Button( [ tmp.label ], 0, 0, tr.itemList, styleSheet, '', 'tree-item-'+dpth, false );
 							}
+							bt.options.itemTree = tr;
 							bt.addEventListener(MouseEvent.CLICK, areaClick);
 							bt.autoSwapState = "";
 							tr.addItem( bt, false );
@@ -305,12 +323,14 @@
 					}else{
 						bt = new Button( [ node.label ], 0, 0, treeNode.itemList, styleSheet, '', 'tree-item-'+dpth, false );
 					}
+					bt.options.itemTree = tr;
 					bt.addEventListener(MouseEvent.CLICK, areaClick);
 					bt.autoSwapState = "";
 					treeNode.addItem( bt, false );
 				}
 			}
 		}
+		private static var treeStack:Array=null;
 		
 		internal function setCurrArea ( tr:ItemTree, dontOpen:Boolean=false ) :void
 		{
@@ -323,17 +343,18 @@
 				if( arr[i] is ItemTree ) {
 					setCurrArea( ItemTree(arr[i]), dontOpen );
 				}
-				else if( arr[i]  is  Button )
+				else if( arr[i] is Button )
 				{
 					bt = Button(arr[i]);
 					
-					if( bt.label == lastAreaName ) {
+					if( bt.label == lastAreaName )
+					{
 						bt.swapState("active");
 						bt.labelSprite.swapState("active");
 						
 						if( ! dontOpen ) {
 							// open parents
-							it = ItemTree( bt.parent.parent );
+							it = ItemTree( bt.options.itemTree );
 							if( it ) {
 								while( it != null ) {
 									it.open(null);
@@ -349,7 +370,18 @@
 			}
 		}
 		
+		private function areaAnimFrame (e:Event) :void {
+			if( areaView ) {
+				areaView.scrollpane1.contentHeightChange();
+			}
+		}
+		private function areaAnimComplete (e:Event) :void {
+			if( areaView ) {
+				areaView.scrollpane1.contentHeightChange();
+			}
+		}
 		private function areaSectionClick (e:MouseEvent) :void {
+			e.stopImmediatePropagation();
 			if( areaView ) {
 				setCurrArea( areaView.itemList1, true );
 				areaView.scrollpane1.contentHeightChange();
@@ -357,7 +389,15 @@
 		}
 		
 		private function areaClick (e:MouseEvent) :void {
-			if( !clickScrolling ) {
+			e.stopImmediatePropagation();
+			e.preventDefault();
+			
+			if( clickScrolling )
+			{
+				clickScrolling = false;
+			}
+			else
+			{
 				var bt:Button = Button(e.currentTarget);
 				var lb:String = bt.label;
 				var s:Array = areapp.rootNode.search( lb );
@@ -368,9 +408,7 @@
 					currentArea = curr.options.area;
 					CTTools.currArea = curr.label;
 					areapp.label =  curr.label;
-					
-					setCurrPF();
-					
+						
 					if( CTOptions.rememberArea ) {
 						var sh:SharedObject = SharedObject.getLocal( CTOptions.localSharedObjectId );
 						if( sh && sh.data) {
@@ -382,8 +420,8 @@
 					
 					showAreaItems();
 					
-					if( areaView ) {
-						setCurrArea( areaView.itemList1 );
+					if( CTOptions.previewInEditor && CTTools.procFiles ) {
+						setCurrPF();
 					}
 				}
 			}
@@ -445,7 +483,7 @@
 									nd = nd.children[itid];
 								}else{
 									// Create item
-									nd = nd.addItem([secs[j], new IconArrowRight(Application.instance.mainMenu.iconColor)], styleSheet);
+									nd = nd.addItem([secs[j], new IconArrowRight(Application.instance.mainMenu.iconColor, 1, Options.iconSize, Options.iconSize)], styleSheet);
 								}
 							}
 						}
@@ -468,45 +506,28 @@
 		}
 		
 		private function viewSizeDown (e:MouseEvent) :void {
+			if( e ) {
+				e.stopImmediatePropagation();
+				e.preventDefault();
+			}
 			if( stage ) {
 				stage.addEventListener( MouseEvent.MOUSE_UP, viewSizeUp );
 				addEventListener( Event.ENTER_FRAME, viewSizeFrame );
 				viewSizeStartX = mouseX;
 			}
-			if( e ) {
-				e.preventDefault();
-				e.stopImmediatePropagation();
-			}
 		}
 		
 		private function viewSizeUp (e:MouseEvent) :void {
+			if( e ) {
+				e.stopImmediatePropagation();
+				e.preventDefault();
+			}
 			if( stage ) {
 				stage.removeEventListener( MouseEvent.MOUSE_UP, viewSizeUp );
 				removeEventListener( Event.ENTER_FRAME, viewSizeFrame );
 			}
 			if( areaView ) {
 				setCurrArea( areaView.itemList1 );
-			}
-			if( e ) {
-				e.preventDefault();
-				e.stopImmediatePropagation();
-			}
-		}
-		
-		public function toggleAreaView () :void {
-			if( viewSize > 0 ) {
-				tmpViewSize = viewSize;
-				viewSize = 0;
-				areaView.visible = false;
-				plusButton.visible = areapp.visible = true;
-				setHeight( getHeight() );
-				setWidth( getWidth() );
-			}else{
-				viewSize = tmpViewSize;
-				areaView.visible = true;
-				plusButton.visible = areapp.visible = false;
-				setHeight( getHeight() );
-				setWidth( getWidth() );
 			}
 		}
 		
@@ -519,7 +540,12 @@
 				viewSize = mouseX;
 			}
 			
-			setWidth( getWidth() );
+			//setWidth( getWidth() );
+			try {
+				Application.instance.view.panel.src.newSize(null);
+			}catch(e:Error) {
+				Console.log("Error: " + e);
+			}
 		}
 		
 		private function sortAreas ( nd:PopupItem ) :void {
@@ -549,15 +575,9 @@
 			return -1;
 		}
 		
-		public override function setWidth ( w:int ) :void {
-			if(plusButton && areapp) if( w < plusButton.cssSizeX + areapp.cssSizeX + 7) w = plusButton.cssSizeX + areapp.cssSizeX + 8;
-			
+		public override function setWidth ( w:int ) :void
+		{			
 			super.setWidth(w);
-			
-			if( plusButton ) {
-				plusButton.x = w - (plusButton.cssSizeX + cssBoxRight);
-				if( plusButton.x < 0 ) plusButton.x = 0;
-			}
 			
 			var avw:Number = Math.floor(  viewSize );
 			
@@ -565,9 +585,7 @@
 				areaView.x = 0;
 				areaView.setWidth( avw );
 			}
-			if( areapp ) {
-				areapp.x = cssLeft + viewSize;
-			}
+			
 			w = Math.floor( w - viewSize );
 			
 			var sbw:int = 0;
@@ -577,11 +595,35 @@
 				nameCtrl.setWidth(  w - (nameCtrl.cssBoxX + cssBoxX) ); 
 				nameCtrl.x = cssLeft + avw;
 			}
-			
+			 var i:int;
 			if( itemList) {
+				InputTextBox.heightDirty = false;
+					
 				if(itemList.items) {
-					for( var i:int=0; i < itemList.items.length; i++) {
-						itemList.items[i].setWidth( w - (itemList.items[i].cssBoxX + cssBoxX + sbw ) );
+					for(i=0; i < itemList.items.length; i++) {
+						if( itemList.items[i].visible ) {
+							itemList.items[i].setWidth( w - (itemList.items[i].cssBoxX + cssBoxX + sbw ) );
+						}
+					}
+					
+					if( InputTextBox.heightDirty )
+					{
+						var yp:int = 0;
+						for( i=0; i < itemList.items.length; i++) {
+							//itemList.items[i].setWidth( w - (itemList.items[i].cssBoxX + cssBoxX + sbw) );
+							if( itemList.items[i].visible ) {
+								if( ! (itemList.items[i] is PropertyCtrl) ) {
+									
+									itemList.items[i].y = int(yp);
+									yp += itemList.items[i].cssSizeY + itemList.margin;
+								}else{
+									
+									
+									itemList.items[i].y = int(yp);
+									yp += PropertyCtrl(itemList.items[i]).textBox.cssSizeY +  PropertyCtrl(itemList.items[i]).textBox.y + PropertyCtrl(itemList.items[i]).cssBoxY + itemList.margin;
+								}
+							}
+						}
 					}
 				}
 				itemList.setWidth(0);
@@ -593,18 +635,45 @@
 				var pw:Number = 0;
 				if( areaView && areaView.visible ) {
 					px = areaView.x + areaView.cssSizeX;
-					if( HtmlEditor.isPreviewOpen ) pw = HtmlEditor.previewX - (px);
+					if( HtmlEditor.isPreviewOpen && !CTOptions.previewAtBottom ) pw = HtmlEditor.previewX - (px);
 					else pw = getWidth() - (px);
 					multiSelectMenu.y = -cssTop;
 				}else{
-					if( areapp && areapp.visible ) px = areapp.x + areapp.cssSizeX;
-					if( plusButton && plusButton.visible ) pw = plusButton.x - (px);
-					else pw = getWidth() - (px);
+					pw = getWidth() ;
 					multiSelectMenu.y = areapp.y;
 				}
 				multiSelectMenu.x = px;
 				multiSelectMenu.setWidth( pw - multiSelectMenu.cssBoxX );
 			}
+			
+			if ( folderBackBtn && folderLabel ) {
+				folderBackBtn.x = avw;
+				folderLabel.x = avw + int(( pw - (folderLabel.textField.textWidth+cssLeft*2+sbw) ) * .5);
+				if( folderLabel.x < folderBackBtn.x + folderBackBtn.cssSizeX + 4 ) {
+					folderLabel.x = int(folderBackBtn.x + folderBackBtn.cssSizeX + 4);
+				}
+			}
+			
+			if ( tabs && tabs.items && tabs.items.length > 0) {
+				tabs.x = cssLeft + avw;
+				for(i=0; i < tabs.items.length; i++ ) {
+					tabs.items[i].setWidth( 0 );
+					tabs.items[i].init();
+				}
+				tabs.setWidth(0);
+				tabs.format(false);
+				tabs.init();
+					
+				if( tabs.getWidth() > w ) {
+					var ow:int = Math.floor( (w-(tabs.cssBoxX + cssBoxX)) / tabs.items.length );
+					for(i=0; i < tabs.items.length; i++ ) {
+						tabs.items[i].setWidth( ow-tabs.items[i].cssBoxX );
+					}
+					tabs.format(false);
+					tabs.init();
+				}
+			}
+			
 			if( sizeButton ) {
 				sizeButton.x = avw >= 0 ? Math.floor( avw  ) : 0;
 			}
@@ -618,6 +687,7 @@
 		{
 			super.setHeight(h); 	
 			_h = h;
+			
 			var th:int = getHeight();
 			var ch:int = 2;
 			
@@ -632,6 +702,10 @@
 			
 			if(scrollpane)
 			{
+				if ( folderBackBtn && folderLabel ) {
+					folderBackBtn.y = scrollpane.y - folderBackBtn.cssSizeY;
+					folderLabel.y = scrollpane.y - folderLabel.cssSizeY;
+				}
 				if( multiSelectMenu ) 
 				{
 					// not in displayForm possible..
@@ -640,26 +714,29 @@
 				}
 				else
 				{
-					var s:Number = (areapp && areapp.visible) || (plusButton && plusButton.visible) ? Math.max(areapp.cssSizeY, plusButton.cssSizeY) : 0;
-					
-					if( nameCtrl ) {
-						nameCtrl.y = s + cssTop;
-						s += nameCtrl.cssSizeY + nameCtrl.cssMarginBottom;
+					var s:Number = 0;
+					if( nameCtrl && nameCtrl.visible ) {
+						nameCtrl.y = cssTop;
+						s = cssTop + nameCtrl.cssSizeY + nameCtrl.cssMarginBottom;
+						
+						if( tabs ) {
+							tabs.y = cssTop + nameCtrl.getHeight() + tabs.cssMarginTop;
+							s += tabs.cssSizeY + tabs.cssMarginY;
+						}
+					}else{
+						s = cssTop;
 					}
-					
 					scrollpane.setHeight( th - (ch + cssBoxY + s) );
 					scrollpane.contentHeightChange();
-					var pbH:Number = s + cssTop;
-					scrollpane.y = pbH;
+					scrollpane.y = s;
 				}
 			}
 		}
 		
 		private function inputHeightChange (e:Event):void {
-			if( itemList ) {
-				itemList.format();
-			}
+			if( itemList ) itemList.format();
 			if ( scrollpane ) scrollpane.contentHeightChange();
+			setWidth( getWidth() );
 		}
 		
 		private function vectorClear (e:InputEvent):void {
@@ -737,10 +814,20 @@
 		{
 			updateItem = null;
 			
+			Console.log( "Aed.ShowAreaItems");
+			
 			// Area changed...
 			if( multiSelectMenu != null ) {
 				removeMultiSelMenu();
 			}
+			
+			if( folderLabel && scrollpane && contains( folderLabel ) ) removeChild( folderLabel );
+			if( folderBackBtn && contains(folderBackBtn) ) removeChild( folderBackBtn );
+			if( tabs && contains(tabs) ) removeChild( tabs );
+			if( tabsPP && contains(tabsPP) ) removeChild( tabsPP );
+			
+			folderLabel = null;
+			folderBackBtn = null;
 			
 			if( nameCtrl && contains(nameCtrl)) removeChild( nameCtrl );
 			nameCtrl = null;
@@ -752,7 +839,7 @@
 				if( contains( scrollpane) ) removeChild( scrollpane );
 			}
 			
-			if(!plusButton || !currentArea) return; // nothing to show
+			if(!currentArea) return; // nothing to show
 			
 			var i:int;
 			var L:int;
@@ -773,13 +860,8 @@
 				
 				if( currentArea.types.join(",") != currentTypes )
 				{
-					if( areaView ) {
-						areaView.clearItems();
-					}
+					areaView.clearItems();
 					
-					if( plusButton.visible ) 
-						plusButton.rootNode.removeItems();
-				
 					if( currentArea.type == "all" || !currentArea.types || currentArea.types.length == 0 )
 					{
 						// Show all subtemplates
@@ -789,16 +871,9 @@
 							if( T.hidden ) continue;
 							
 							nam = T.name;
-							
 							ico = CTTools.parseFilePath( T.listicon );
+							areaView.addItem( nam, ico );
 							
-							if( plusButton.visible ) {
-								ppi = plusButton.rootNode.addItem( [ Language.getKeyword(nam), new IconFromFile(ico,Options.iconSize,Options.iconSize) ], styleSheet );
-								ppi.options.templateID = nam;
-							}
-							if( areaView ) {
-								areaView.addItem( nam, ico );
-							}
 						}
 						currentTypes = "all";
 					}
@@ -819,16 +894,8 @@
 								// Test multiple area types
 								if( !hash[id] ) { 
 									hash[id] = true;
-									
 									ico = CTTools.parseFilePath( T.listicon );
-									
-									if( plusButton.visible ) {
-										ppi = plusButton.rootNode.addItem( [ Language.getKeyword(nam), new IconFromFile(ico,Options.iconSize,Options.iconSize) ], styleSheet );
-										ppi.options.templateID = nam;
-									}
-									if( areaView ) {
-										areaView.addItem( nam, ico);
-									}
+									areaView.addItem( nam, ico);
 								}
 							}
 							else
@@ -843,14 +910,7 @@
 											if( !hash[ id ] ) { 
 												hash[ id ] = true;
 												ico = CTTools.parseFilePath( T.listicon );
-												
-												if( plusButton.visible ) {
-													ppi = plusButton.rootNode.addItem( [ Language.getKeyword(nam), new IconFromFile(ico,Options.iconSize,Options.iconSize) ], styleSheet );
-													ppi.options.templateID = nam;
-												}
-												if( areaView ) {
-													areaView.addItem( nam, ico );
-												}
+												areaView.addItem( nam, ico );
 											}
 											break;
 										}
@@ -919,7 +979,7 @@
 								icos = [new IconMenu(ico_col, Options.iconSize, Options.iconSize), labelText];
 							}
 							
-							if ( T.articlepage != "" )
+							/*if ( T.articlepage != "" )
 							{
 								if( r.inputname == undefined ) {
 									r.inputname = r.name;
@@ -949,13 +1009,13 @@
 										icos.push( article_areas );
 									}
 								}
-							}else{
-								if( T.numAreas > 0 ) {
+							}else{*/
+								if( T.articlepage == "" && T.numAreas > 0 ) {
 									area_ico = new IconFromFile( Options.iconDir + CTOptions.urlSeparator + "anmeldung-abgerundet.png", Options.iconSize, Options.iconSize);
 									area_ico.addEventListener( MouseEvent.MOUSE_DOWN, gotoAreaHandler );
 									icos.push( area_ico );
 								}
-							}
+							//}
 							
 							pg = new Button(icos, 0, 0, itemList, styleSheet, '', 'page-item-btn', false);
 							
@@ -968,7 +1028,7 @@
 					}
 					
 					if(!created) {
-						pg = new Button([ "" + Language.getKeyword(r.subtemplate) + ": " + r.name, new IconMenu(ico_col) ], 0, 0, itemList, styleSheet, '', 'page-item-btn', false);
+						pg = new Button([ "" + Language.getKeyword(r.subtemplate) + ": " + r.name, new IconMenu(ico_col, Options.iconSize, Options.iconSize) ], 0, 0, itemList, styleSheet, '', 'page-item-btn', false);
 					}
 					
 					if( areaItems[i].visible == false ) {
@@ -982,13 +1042,16 @@
 				}
 				
 				lastAreaName = currentArea.name;
+				
 				itemList.format();
 
 				setHeight( _h );
 				setWidth( w );
 				
 				if( areaView ) {
+					setTimeout( function () {
 					setCurrArea( areaView.itemList1 );
+					}, 0);
 				}
 			}
 		}
@@ -1024,8 +1087,6 @@
 				CTTools.currArea = curr.label;
 				areapp.label =  curr.label;
 				
-				setCurrPF();
-				
 				if( CTOptions.rememberArea ) {
 					var sh:SharedObject = SharedObject.getLocal( CTOptions.localSharedObjectId );
 					if( sh && sh.data) {
@@ -1034,12 +1095,11 @@
 						sh.close();
 					}
 				}
-				
 				showAreaItems();
 				
-				if( areaView ) {
-					setCurrArea( areaView.itemList1 );
-				}	
+				if( CTOptions.previewInEditor && CTTools.procFiles ) {
+					setCurrPF();
+				}
 			}
 		}
 		
@@ -1047,9 +1107,7 @@
 		{
 			currentArea = area;
 			CTTools.currArea = area.name;
-			if( areapp ) {
-				areapp.label = area.name;
-			}
+			
 			if( CTOptions.rememberArea ) {
 				var sh:SharedObject = SharedObject.getLocal( CTOptions.localSharedObjectId );
 				if( sh && sh.data) {
@@ -1058,14 +1116,55 @@
 					sh.close();
 				}
 			}
+			
+			showAreaItems();
+				
 			if( CTOptions.previewInEditor && CTTools.procFiles ) {
 				setCurrPF();
 			}
-			
-			showAreaItems();
 		}
 		
-		public override function displayInsertForm ( tmpl:Template, isUpdateForm:Boolean=false, subform:Boolean=false, inlineArea:String="", _areaItems:Array=null ) :void 
+		private var currTab:String=""; // Subtemplate Tab
+		private var currCat:String=""; // category for property folding
+		private var prevCat:Array=null;
+		private var rtScroll:Number = 0;
+		
+		private static var anim:Animation = new Animation();
+		private static var anim2:Animation = new Animation();
+		private static var currentCat:Array;
+		private static var currCatId:int = 0;
+		
+		private function backButtonHandler (e:Event):void
+		{
+			if( currentTemplate )
+			{
+				if( prevCat )
+				{
+					var cc:Object = prevCat.pop();
+					currCat = cc.name;
+					if(prevCat.length == 0) prevCat = null;
+					var scr:Number = scrollpane.slider.value;
+					
+					displayInsertForm( currentTemplate, updateItem != null, _subform, _inlineArea, areaItems, currCat, scr, 0 );
+					
+					if( cc.scroll > 0 && scrollpane ) {
+						scrollpane.applyScrollValue(cc.scroll);
+					}
+				}
+				else
+				{
+					displayInsertForm( currentTemplate, updateItem != null, _subform, _inlineArea, areaItems, "", 0, 0 );
+					
+					if( rtScroll > 0 && scrollpane ) {
+						scrollpane.applyScrollValue(rtScroll);
+					}
+				}
+				setWidth( cssSizeX-cssBoxX );
+			}
+		}
+		
+		public override function displayInsertForm ( tmpl:Template, isUpdateForm:Boolean = false, subform:Boolean = false, inlineArea:String = "", _areaItems:Array = null, 
+													 cat:String="", ltscroll:Number=0, gotoDirection:int=2, forceLevel:Boolean = false ) :void 
 		{
 			if(!tmpl || !tmpl.indexFile) return;
 			
@@ -1087,21 +1186,34 @@
 			var files:Array = CTTools.procFiles;
 			var L:int = files.length;
 			
+			
 			if ( L > 0 )
 			{
 				var pfid:int;
 				var pth:String;
 				var pf:ProjectFile;
+				var i:int;
 				var j:int;
 				var jL:int;
 				var ict:CssSprite;
+				var btn:Button;
 				
-				if( nameCtrl && contains( nameCtrl ) ) removeChild(nameCtrl);
+				if( (!forceLevel || (subform && !isUpdateForm)) && nameCtrl && contains( nameCtrl ) ) {
+					removeChild(nameCtrl);
+				}
 				
-				if( scrollpane && itemList && scrollpane.content.contains( itemList ) ) scrollpane.content.removeChild( itemList );
+				if( tabs && contains(tabs)) removeChild( tabs );
+				if( tabsPP && contains(tabsPP)) removeChild( tabsPP );
+				
+				if( folderLabel && scrollpane && contains( folderLabel )) removeChild( folderLabel );
+				if( folderBackBtn  && contains(folderBackBtn)) removeChild( folderBackBtn );
+				folderLabel = null;
+				folderBackBtn = null;
+				
+				if( scrollpane && itemList && scrollpane.content.contains( itemList )) scrollpane.content.removeChild( itemList );
 				if( scrollpane && contains( scrollpane) ) removeChild( scrollpane );
 				
-				var w:Number =  getWidth();
+				var w:Number = getWidth();
 				scrollpane = new ScrollContainer(w, 0, this, styleSheet, '', '',false);
 				scrollpane.content.addEventListener( MouseEvent.MOUSE_DOWN, btnDown );
 				
@@ -1114,84 +1226,211 @@
 				var propVal:String;
 				var namlc:String;
 				
-				ict = new NameCtrl( "Name", "name", "name", "", null, null, w, 0, this, styleSheet,'', 'area-insert-prop', false);
-				var nm:NameCtrl = NameCtrl( ict );
-				var ppi:PopupItem; 
+				if ( nameCtrl ) {
+					ict = nameCtrl;
+					if ( !contains(nameCtrl) ) addChild( nameCtrl );
+				}else{
+					ict = new NameCtrl( "Name", "name", "name", "", null, null, w, 0, this, styleSheet, '', 'area-insert-prop', false);
+				}
 				
-				if ( isUpdateForm && tmpl.articlepage != "" && updateItem )
-				{
-					var r:Object = CTTools.pageItemTable[ updateItem.name ];
+				var nm:NameCtrl = NameCtrl( ict );
+				var ppi:PopupItem;
+				
+				addChild( anim );
+				addChild( anim2 );
+				
+				scrollpane.content.alpha = 0;
+				
+				setTimeout( function () {
 					
-					if ( r )
+					if( gotoDirection == 1 )
 					{
-						if( r.inputname == undefined ) {
-							r.inputname = r.name;
-						}
-						var filename:String = CTTools.webFileName( tmpl.articlename, r );
-						
-						pf = CTTools.findArticleProjectFile( CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderTemplate + CTOptions.urlSeparator + filename, "path");
-						
-						if ( pf && pf.templateAreas && pf.templateAreas.length > 0 )
-						{
-							jL = pf.templateAreas.length;
-							
-							nm.areaPopup.rootNode.removeItems();
-							
-							for (j = 0; j < jL; j++ )
-							{
-								if ( CTTools.activeTemplate.areasByName[pf.templateAreas[j].name] == undefined) {
-									ppi = nm.areaPopup.rootNode.addItem( [pf.templateAreas[j].name], styleSheet );
-									ppi.options.area = pf.templateAreas[j];
-								}
-							}
-							
-							nm.areaPopup.addEventListener( PopupEvent.SELECT, gotoAreaPP );
-						}
+						scrollpane.content.x = CssSprite(parent).cssSizeX;
+						anim.run( scrollpane.content, { x:0 }, 345, Strong.easeOut );
+						anim2.run( scrollpane.content, { alpha: 1 }, 900, Strong.easeOut );
 					}
+					else if( gotoDirection == 2 )
+					{
+						anim.run( scrollpane.content, { alpha: 1 }, 600, Strong.easeOut );
+					}
+					else if( gotoDirection == 3 )
+					{
+						// up
+						scrollpane.content.y = -CssSprite(parent).cssSizeX;
+						anim.run( scrollpane.content, { y:0 }, 345, Strong.easeOut );
+						anim2.run( scrollpane.content, { alpha: 1 }, 900, Strong.easeOut );
+					}
+					else if( gotoDirection == 4 )
+					{
+						// down
+						scrollpane.content.y = CssSprite(parent).cssSizeX;
+						anim.run( scrollpane.content, { y:0 }, 345, Strong.easeOut );
+						anim2.run( scrollpane.content, { alpha: 1 }, 900, Strong.easeOut );
+					}
+					else if( gotoDirection == 5 )
+					{
+						// pop
+						j = w - 20;
+						scrollpane.content.x = (j-int(j*0.75))/2;
+						scrollpane.content.y = 25;
+						scrollpane.content.scaleX = 0.75;
+						scrollpane.content.scaleY = 0.75;
+						
+						anim.run( scrollpane.content, { x:0, y:0, scaleX:1, scaleY:1 }, 300, Strong.easeOut );
+						anim2.run( scrollpane.content, { alpha: 1 }, 700, Strong.easeOut );
+					}
+					else
+					{
+						// go back
+						scrollpane.content.x = -CssSprite(parent).cssSizeX;
+						anim.run( scrollpane.content, { x: 0 }, 345, Strong.easeOut );
+						anim2.run( scrollpane.content, { alpha: 1 }, 900, Strong.easeOut );
+					}
+					
+				}, 0);
+				
+				var lbl:Label;
+				var backbtn:Button;
+				
+				if( cat != "" )
+				{
+					if(currCat != "" && currCat != cat) {
+						if(!prevCat) prevCat = [ { name:currCat, scroll:ltscroll }];
+						else prevCat.push( {name:currCat, scroll:ltscroll} );
+					}
+					currCat = cat;
+					
+					lbl = new Label( w, 0, this, styleSheet, '', 'property-folder-title' , true);
+					
+					folderLabel = lbl;
+					
+					lbl.label = Language.getKeyword( cat );
+					
+					lbl.textField.autoSize = TextFieldAutoSize.LEFT;
+					lbl.textField.wordWrap = false;
+					lbl.init();
+					lbl.y = int(cssTop + lbl.cssMarginTop);
+					
+					backbtn = new Button( [new IconFromFile( Options.iconDir + CTOptions.urlSeparator + "navi-left-btn.png", Options.iconSize, Options.iconSize), 
+					Language.getKeyword(prevCat && prevCat.length > 0 ? prevCat[prevCat.length-1].name : "")], 0, 0, this, styleSheet, '', 'back-button', false );
+					
+					backbtn.addEventListener( MouseEvent.CLICK, backButtonHandler);
+					backbtn.margin = 0;
+					backbtn.clipSpacing = 0;
+					backbtn.init();
+					
+					backbtn.y = int(cssTop + backbtn.cssMarginTop);
+					backbtn.x = int(cssLeft + backbtn.cssMarginLeft);
+					
+					folderBackBtn = backbtn;
+					
+					currCatId = currentCat.push ( [] ) - 1;
+				}
+				else
+				{
+					prevCat = null;
+					currCat = "";
+					currentCat = [[]];
+					currCatId = 0;
 				}
 				
 				if( !isUpdateForm ) {
-					nm.showSaveButton(false);
+					nm.showSaveAndCloseButton(false);
+					nm.showSaveButton(true);
 					nm.showDeleteButton(false);
 					nm.showNextButton(false);
 					nm.showPrevButton(false);
+					
+					if( subform ) {
+						ict.removeEventListener( "save", updatePageItem);
+						ict.removeEventListener( "close", cancelPageItem);
+					}
+					
+					ict.addEventListener( "saveInline", insertPageItem);
+					ict.addEventListener( "close", cancelPageItem);
+					ict.setWidth( w );
+					
+					if( !nameCtrl ) nameCtrl = NameCtrl(ict);
+					nameCtrl.label.label = Language.getKeyword("Create New Area Item") + " " + Language.getKeyword( tmpl.name ) + ":";
+											
+					setHeight( _h );
+					setWidth( w );
+					
+					return;
 				}else{
 					if ( areaItems ) {
 						if ( areaItems.length <= 1 ) {
 							nm.showNextButton(false);
 							nm.showPrevButton(false);
+						}else if( updateItem  ) {
+							if( areaItems[0] && areaItems[0].name == updateItem.name ) {
+								nm.showPrevButton( false );
+							}else{
+								nm.showPrevButton( true );
+							}
+							
+							if( areaItems[areaItems.length-1].name == updateItem.name ) {
+								nm.showNextButton(false);
+							}else{
+								nm.showNextButton(true);
+							}
 						}
 					}
 				}
 				
-				_formNodes.push( new ItemForm( _subform ? inlineArea : currentArea.name, updateItem, _areaItems ) );
-				
-				ict.addEventListener( PropertyCtrl.ENTER, ictChange );
-				ict.addEventListener( "save", (isUpdateForm ? updatePageItem : insertPageItem));
-				ict.addEventListener( "saveInline", inlineSaveClick );
-				ict.addEventListener( "delete", deletePageItem );
-				ict.addEventListener( "close", cancelPageItem);
-				ict.addEventListener( "next", nextPageItem);
-				ict.addEventListener( "prev", prevPageItem);
-				
+				if( !forceLevel || _formNodes.length == 0 )
+				{
+					_formNodes.push( new ItemForm( _subform ? inlineArea : currentArea.name, updateItem, _areaItems, currCat) );
+				}
 				nameCtrl = NameCtrl(ict);
 				
-				ict.setWidth( w );
-				
-				if( !isUpdateForm ) {
-					nm.visibleStatus = true;
-				}else{
-					if( updateItem && updateItem.visible != undefined ) {
-						nm.visibleStatus = updateItem.visible == true || updateItem.visible == "true" ? true : false;
-					}else{
+				if( !forceLevel ) {
+					ict.addEventListener( PropertyCtrl.ENTER, ictChange );
+					
+					ict.addEventListener( "save", updatePageItem);
+					ict.addEventListener( "saveInline", inlineSaveClick );
+					ict.addEventListener( "delete", deletePageItem );
+					ict.addEventListener( "close", cancelPageItem );
+					ict.addEventListener( "next", nextPageItem );
+					ict.addEventListener( "prev", prevPageItem );
+					
+					ict.setWidth( w );
+					
+					if( !isUpdateForm ) {
 						nm.visibleStatus = true;
+					}else{
+						if( updateItem && updateItem.visible != undefined ) {
+							nm.visibleStatus = updateItem.visible == true || updateItem.visible == "true" ? true : false;
+						}else{
+							nm.visibleStatus = true;
+						}
+						
+							
+						if( currentTemplate.articlepage != "" )					 
+						{
+							// create article page with db fields
+							var props:Object = { inputname: updateItem.name };
+							props["itemtemplate"] = currentTemplate.name;
+							props["name"] = updateItem.name;
+							
+							var filename:String = CTTools.webFileName( currentTemplate.articlename, props );
+							var pf1:ProjectFile = CTTools.findArticleProjectFile( filename, "filename" );
+							
+							if( pf1 ) {
+								currPF = pf1;
+							}
+						}
 					}
 				}
 				
 				var propStore:Object = {};
 				tmplSplitPaths = "";
 				
-				for(var i:int = 0; i<L; i++)
+				tabs = new ItemBar( w, 0, this, styleSheet, '', 'tabs', false );
+				var hasTabs:Boolean  =  false;
+				var itVisible:Boolean = false;
+				
+				for(i = 0; i<L; i++)
 				{
 					pf = CTTools.procFiles[ i ] as ProjectFile;
 					
@@ -1215,94 +1454,175 @@
 								propVal = "";
 								propType = pf.templateProperties[j].defType.toLowerCase();
 								
-								if ( isUpdateForm ) {
-									if ( updateItem && CTTools.pageItemTable[ updateItem['name'] ] && typeof(CTTools.pageItemTable[ updateItem['name'] ][propName]) != "undefined" )
-									{
-										propVal = CTTools.pageItemTable[ updateItem['name'] ][propName];
+								if( propType == "tab" )
+								{
+									hasTabs = true;
+									btn = new Button( [ Language.getKeyword(propName)],0,0, tabs, styleSheet, '', 'areaeditor-tab', false);
+									btn.options.folder = propName;
+									btn.options.isTab = true;
+									btn.autoSwapState = "";
+									
+									btn.addEventListener( MouseEvent.CLICK, folderClick );
+									
+									tabs.addItem(btn, true);
+									
+									if ( cat == "" ) {
+										// Display first Tab
+										cat = propName;
+										btn.swapState( "active" );
+									}else{
+										
+										if ( cat == propName ) {
+											btn.swapState( "active" );
+										}
 									}
 								}
 								else
 								{
-									propVal = pf.templateProperties[j].defValue;
-									
-								}
-								
-								// filter "name" and "visible" property
-								namlc = propName.toLowerCase();
-								
-								if( namlc == "visible" ) { 
-									continue;
-								}
-								if( namlc == "name")
-								{
-									nameCtrl.label.label = (isUpdateForm ? "" : (Language.getKeyword("Create New Area Item") + " ") ) + Language.getKeyword( tmpl.name ) + ":";
-									
-									if( isUpdateForm && updateItem && updateItem[ "name" ] ) {
-										nameCtrl.textBox.value = updateItem[ "name" ];
-									}else{
-										if( propVal != "" ) {
-											nameCtrl.textBox.value = propVal;
+									if ( cat != "" )
+									{
+										if( pf.templateProperties[j].sections && pf.templateProperties[j].sections.join(".") == cat ) {
+											// display section.. 
+											itVisible = true;
+										}else{
+											itVisible = false;
 										}
 									}
-									continue;	
-								}
-								
-								if (isUpdateForm && updateItem && updateItem[ propName ])
-								{
-									propVal = updateItem[propName];
-								}
-								
-								ict = new PropertyCtrl( Language.getKeyword(propName.toLowerCase()), propName, propType, propVal, pf.templateProperties[j], pf.templateProperties[j].args, w, 0, itemList, styleSheet,'', 'area-insert-prop', false);
-								ict.options.propObject = pf.templateProperties[j];
-								if( isUpdateForm && updateItem ) {
-									PropertyCtrl(ict).textBox.pageItemName = updateItem.name;
-								}
-								
-								// Remove Reset to Default Value..
-								PropertyCtrl(ict).ctrlOptions.rootNode.children.shift();
-								if( PropertyCtrl(ict).ctrlOptions.rootNode.children.length <= 0 ) {
-									// Remove Help Popup if no help available..
-									PropertyCtrl(ict).label.x = 0;
-									PropertyCtrl(ict).ctrlOptions.visible = false;
-								}
-								
-								ict.addEventListener( PropertyCtrl.ENTER, ictChange );
-								
-								//if( propType == "text" || propType == "richtext" || propType == "vector" || propType=="vectorlink" || propType == "code" || propType == "image" || propType == "plugin" || propType == "area" )
-								//{
-									PropertyCtrl(ict).textBox.addEventListener("heightChange", inputHeightChange);
-									
-									if( propType == "vector" || propType == "vectorlink" ) {
-										PropertyCtrl(ict).textBox.addEventListener("lengthChange", vectorLengthChange);								
-										PropertyCtrl(ict).textBox.addEventListener("add", vectorAdd);
-										PropertyCtrl(ict).textBox.addEventListener("clear", vectorClear);
+									else
+									{
+										itVisible = true;
+										if( pf.templateProperties[j].sections && pf.templateProperties[j].sections.length > 0) {
+											if( pf.templateProperties[j].sections[0] != "" && pf.templateProperties[j].sections[0].toLowerCase() != "root") {
+												itVisible = false;
+											}
+										}
 									}
-								// }
-								
-								if( propType == "intern" || propType == "hidden") { 
-									ict.setHeight(1);
-									ict.alpha = 0;
+									
+									if( propType == "folder" )
+									{
+										btn = new Button( [ Language.getKeyword(propName), new IconFromFile( Options.iconDir + CTOptions.urlSeparator + "navi-right.png", Options.iconSize, Options.iconSize)], w,0, itemList, styleSheet, '', 'areaeditor-folder', false);
+										btn.options.folder = propName;
+										btn.addEventListener( MouseEvent.CLICK, folderClick );
+										itemList.addItem(btn, true);
+										
+										btn.visible = itVisible;
+									}
+									else
+									{
+										if ( isUpdateForm ) {
+											if ( updateItem && CTTools.pageItemTable[ updateItem['name'] ] && typeof(CTTools.pageItemTable[ updateItem['name'] ][propName]) != "undefined" )
+											{
+												propVal = CTTools.pageItemTable[ updateItem['name'] ][propName];
+											}
+										}
+										else
+										{
+											propVal = pf.templateProperties[j].defValue;
+										}
+										
+										// filter "name" and "visible" property
+										namlc = propName.toLowerCase();
+										
+										if( namlc == "visible" ) { 
+											continue;
+										}
+										if( namlc == "name")
+										{
+											nameCtrl.label.label = (isUpdateForm ? "" : (Language.getKeyword("Create New Area Item") + " ") ) + Language.getKeyword( tmpl.name ) + ":";
+											
+											if( isUpdateForm && updateItem && updateItem[ "name" ] ) {
+												nameCtrl.textBox.value = updateItem[ "name" ];
+											}else{
+												if( propVal != "" ) {
+													nameCtrl.textBox.value = propVal;
+												}
+											}
+											continue;	
+										}
+										
+										if (isUpdateForm && updateItem && updateItem[ propName ]) {
+											propVal = updateItem[propName];
+										}
+										
+										ict = new PropertyCtrl( Language.getKeyword(propName.toLowerCase()), propName, propType, propVal, pf.templateProperties[j], pf.templateProperties[j].args, w, 0, itemList, styleSheet,'', 'area-insert-prop', false);
+										ict.options.propObject = pf.templateProperties[j];
+										if( isUpdateForm && updateItem ) {
+											PropertyCtrl(ict).textBox.pageItemName = updateItem.name;
+										}
+										
+										ict.addEventListener( PropertyCtrl.ENTER, ictChange );
+										PropertyCtrl(ict).textBox.addEventListener("heightChange", inputHeightChange);
+										
+										if( propType == "vector" || propType == "vectorlink" ) {
+											PropertyCtrl(ict).textBox.addEventListener("lengthChange", vectorLengthChange);								
+											PropertyCtrl(ict).textBox.addEventListener("add", vectorAdd);
+											PropertyCtrl(ict).textBox.addEventListener("clear", vectorClear);
+										}
+										ict.visible = itVisible;
+										
+										if( propType == "intern" || propType == "hidden") { 
+											ict.setHeight(0);
+											ict.alpha = 0;
+										}
+										
+										itemList.addItem(ict, true);
+									}
 								}
-								
-								itemList.addItem(ict, true);
 							}
 						}
 					}
 				}
 				
-				itemList.format();
+				if ( hasTabs )
+				{
+					// Use Tabs OR Folders
+					if( folderLabel && scrollpane && contains( folderLabel ) ) removeChild( folderLabel );
+					if( folderBackBtn  && contains(folderBackBtn) ) removeChild( folderBackBtn );
+					folderLabel = null;
+					folderBackBtn = null;
+					tabs.format( false );
+					tabs.init();
+				}
 				
+				itemList.format();
 				setHeight( _h );
 				setWidth( w );
 				
-				setTimeout( function () { setWidth( getWidth() ); }, 180 );
-				
-				storeCurrentItemValues();
+				setTimeout( function () { setWidth( getWidth() ); }, 230 );
 				
 				try {
-					Application.instance.view.panel.src["displayFiles"]();
+					Application.instance.view.panel.src["newSize"](null);
 				}catch(e:Error) {
 					
+				}
+				if( !forceLevel ) {
+					storeCurrentItemValues();
+				
+					setTimeout(function(){
+						try {
+							Application.instance.view.panel.src["displayFiles"]();
+						}catch(e:Error) {
+							
+						}
+					},550);
+				}
+			}
+		}
+		
+		private function folderClick (e:Event):void
+		{
+			if( clickScrolling )
+			{
+				clickScrolling = false;
+			}
+			else
+			{
+				if( currentTemplate )
+				{
+					var scr:Number = scrollpane.slider.value;
+					if ( !prevCat ) rtScroll = scr;			
+					displayInsertForm ( currentTemplate, updateItem != null, _subform, _inlineArea, areaItems, e.currentTarget.options.folder, scr, e.currentTarget.options.isTab ? 3 : 1, true );
+					setWidth( cssSizeX-cssBoxX );
 				}
 			}
 		}
@@ -1351,12 +1671,11 @@
 			
 			if( areaView && areaView.visible ) {
 				px = areaView.x + areaView.cssSizeX;
-				if( HtmlEditor.isPreviewOpen ) pw = HtmlEditor.previewX - (px);
+				if( HtmlEditor.isPreviewOpen && !CTOptions.previewAtBottom ) pw = HtmlEditor.previewX - (px);
 				else pw = getWidth() - (px);
 				multiSelectMenu.y = -cssTop;
 			}else{
 				if( areapp && areapp.visible ) px = areapp.x + areapp.cssSizeX;
-				if( plusButton && plusButton.visible ) pw = plusButton.x - (px);
 				else pw = getWidth() - (px);
 				multiSelectMenu.y = areapp.y;
 			}
@@ -1493,11 +1812,12 @@
 					sh.close();
 				}
 			}
+			
+			showAreaItems();
 			if( CTOptions.previewInEditor && CTTools.procFiles )
 			{
 				setCurrPF();
 			}
-			showAreaItems();
 		}
 		
 		private function setCurrPF () :void 
@@ -1505,6 +1825,7 @@
 			if( CTTools.activeTemplate )
 			{
 				var L:int, i:int, j:int, L2:int;
+				
 				
 				if( CTTools.activeTemplate.areasByName[ CTTools.currArea ] != undefined ) 
 				{ 
@@ -1519,12 +1840,15 @@
 							if( CTTools.procFiles[i].templateAreas[j].name == CTTools.currArea ) 
 							{
 								currPF = CTTools.procFiles[i];
-								currItemName = CTTools.currArea;
-								try {
-									Application.instance.view.panel.src["displayFiles"]();
-								}catch(e:Error) {
-									
-								}
+								currItemName = CTTools.currArea;								
+								
+								setTimeout(function(){
+									try {
+										Application.instance.view.panel.src["displayFiles"]();
+									}catch(e:Error) {
+										
+									}
+								},0);
 								break;
 							}
 						}
@@ -1572,20 +1896,35 @@
 								
 								for(i = 0; i < L; i++) 
 								{
-									L2 = CTTools.procFiles[i].templateAreas.length;
-									for(j = 0; j < L2; j++) 
-									{
-										if( CTTools.procFiles[i].templateAreas[j].name == _currArea ) 
-										{
-											currPF = CTTools.procFiles[i];
-											currItemName = _currItem;
-											
+									if( CTTools.procFiles[i].hasInlineAreas && typeof(CTTools.procFiles[i].inlineAreas[name]) != "undefined" ) {
+										currPF = CTTools.procFiles[i];
+										currItemName = _currItem;
+												
+										setTimeout(function(){
 											try {
 												Application.instance.view.panel.src["displayFiles"]();
 											}catch(e:Error) {
 												
 											}
-											break;
+										},0);
+									}else{
+										L2 = CTTools.procFiles[i].templateAreas.length;
+										for(j = 0; j < L2; j++) 
+										{
+											if( CTTools.procFiles[i].templateAreas[j].name == _currArea ) 
+											{
+												currPF = CTTools.procFiles[i];
+												currItemName = _currItem;
+												
+												setTimeout(function(){
+													try {
+														Application.instance.view.panel.src["displayFiles"]();
+													}catch(e:Error) {
+														
+													}
+												},0);
+												break;
+											}
 										}
 									}
 									if ( currPF != null ) break;
@@ -1609,11 +1948,13 @@
 												currPF = CTTools.articleProcFiles[i];
 												currItemName = CTTools.currArea;
 												
-												try {
-													Application.instance.view.panel.src["displayFiles"]();
-												}catch(e:Error) {
-													
-												}
+												setTimeout(function(){
+													try {
+														Application.instance.view.panel.src["displayFiles"]();
+													}catch(e:Error) {
+														
+													}
+												},0);
 												break;
 											}
 										}
@@ -1621,6 +1962,8 @@
 									}
 								}
 							}
+							
+							
 						}
 					}
 				}
@@ -1644,52 +1987,53 @@
 		
 		private function cancelPageItem (e:Event) :void {
 			// reset ram-db values
-			var initValues:Object = null;
-			
-			if( _formNodes ) initValues = _formNodes[_formNodes.length-1].initValues;
-			
-			var updateItem:Object;
-			
-			if( _subform && _formNodes) {
-				updateItem = _formNodes[_formNodes.length-1].updateItem;
-			}else{
-				updateItem = this.updateItem;
-			}
-			
-			if( _isUpdateForm && initValues )
-			{
-				if( CTTools.pageItemTable[ updateItem.name ] != undefined ) {
-					for ( var nam:String in initValues )
-					{
-						if( CTTools.pageItemTable[ updateItem.name ] && updateItem.name && initValues[nam].name &&  initValues[nam].value  )
-						{
-							CTTools.pageItemTable[ updateItem.name ][ initValues[nam].name ] = initValues[nam].value;
-						}
-					}
+			if( this.updateItem ) {
+				var initValues:Object = null;
+				
+				if( _formNodes ) initValues = _formNodes[_formNodes.length-1].initValues;
+				
+				var updateItem:Object;
+				
+				if( _subform && _formNodes) {
+					updateItem = _formNodes[_formNodes.length-1].updateItem;
+				}else{
+					updateItem = this.updateItem;
 				}
-			}
-			if( _formNodes )
-			{
-				_formNodes.pop();
-							
-				if( _formNodes.length > 0 )
+				
+				if( _isUpdateForm && initValues )
 				{
-					var itf:ItemForm = ItemForm( _formNodes[_formNodes.length-1] );
-					var T2:Template = CTTools.findTemplate( itf.updateItem.subtemplate, "name" );
-					
-					if( T2 ) {
-						_formNodes.pop();
-						this.updateItem = itf.updateItem;
-						if( _formNodes.length == 0 ) {
-							displayInsertForm( T2, true, false);
-						}else{
-							displayInsertForm( T2, true, true, itf.area, itf.areaItems);
+					if( CTTools.pageItemTable[ updateItem.name ] != undefined ) {
+						for ( var nam:String in initValues )
+						{
+							if( CTTools.pageItemTable[ updateItem.name ] && updateItem.name && initValues[nam].name && initValues[nam].value  )
+							{
+								CTTools.pageItemTable[ updateItem.name ][ initValues[nam].name ] = initValues[nam].value;
+							}
 						}
-						return;
+					}
+				}
+				if( _formNodes )
+				{
+					_formNodes.pop();
+								
+					if( _formNodes.length > 0 )
+					{
+						var itf:ItemForm = ItemForm( _formNodes[_formNodes.length-1] );
+						var T2:Template = CTTools.findTemplate( itf.updateItem.subtemplate, "name" );
+						
+						if( T2 ) {
+							_formNodes.pop();
+							this.updateItem = itf.updateItem;
+							if( _formNodes.length == 0 ) {
+								displayInsertForm( T2, true, false, "", null, itf.cat );
+							}else{
+								displayInsertForm( T2, true, true, itf.area, itf.areaItems, itf.cat);
+							}
+							return;
+						}
 					}
 				}
 			}
-			
 			showAreaItems();
 		}
 		
@@ -1762,7 +2106,9 @@
 			invalidateCurrArea( true );
 			
 			if( CTOptions.autoSave ) CTTools.save();
-			if( currentTemplate && currentTemplate.numAreas > 0 ) {
+			if( currentTemplate && currentTemplate.numAreas > 0 )
+			{
+				invalidateAreaTree();
 				createAed();
 				return;
 			}
@@ -1788,9 +2134,9 @@
 						_formNodes.pop();
 						this.updateItem = itf.updateItem;
 						if( _formNodes.length == 0 ) {
-							displayInsertForm( T2, true, false);
+							displayInsertForm( T2, true, false, "", null, itf ? itf.cat:"");
 						}else{
-							displayInsertForm( T2, true, true, itf.area, itf.areaItems);
+							displayInsertForm( T2, true, true, itf.area, itf.areaItems, itf.cat);
 						}
 						return;
 					}
@@ -1895,8 +2241,16 @@
 								if( pc.textBox._supertype == "text" || pc.textBox._supertype == "richtext"  || pc.textBox._supertype == "line"  )
 								{
 									
-									pms[ ":_"+ fields[i] ] = HtmlParser.toDBText( pc.textBox.value, false, true );
+									pms[ ":_"+ fields[i] ] = HtmlParser.toDBText( pc.textBox.value, true, true );
 									// Write to intern data
+									CTTools.pageItemTable[ updateItem.name ][ fields[i] ] = pms[":_"+fields[i]];
+									
+								}else if( pc.textBox._supertype == "area" ) {
+									
+									//CTTools.invalidateArea( pc.textBox.areaName );
+									pc.textBox.value = CTTools.getAreaText (pc.textBox.areaName, pc.textBox.areaOffset, pc.textBox.areaLimit/*, pc.textBox.areaSubTemplateFilter*/ )
+									//
+									pms[ ":_"+ fields[i] ] = pc ? pc.textBox.value : ""
 									CTTools.pageItemTable[ updateItem.name ][ fields[i] ] = pms[":_"+fields[i]];
 									
 								}
@@ -1915,11 +2269,30 @@
 					if( currentTemplate.articlepage != "" )					 
 					{
 						// create article page with db fields
-						props = { inputname: pms[":_name"] };
+						props = { name: pms[":_name"], inputname: pms[":_name"] };
+						_args = {};
+						_tmpl = {};
 						
 						for( i = 0; i < L; i++)
 						{
-							props[ fields[i] ] = pms[ ":_"+ fields[i] ];// || "";
+							pc = PropertyCtrl( itemList.getChildByName( fields[i] ) );
+							
+							if( pc )
+							{
+								//props[ fields[i] ] =  pms[ ":_" + fields[i] ];// pc ? pc.textBox.value : "";// pms[ ":_" + fields[i] ];// || "";
+								/*if( pc.textBox._supertype == "text" || pc.textBox._supertype == "richtext"  || pc.textBox._supertype == "line"  )
+								{
+									props[ fields[i] ] = pc ? Template.transformRichText( pms[":_" + fields[i]], pc._args, currentTemplate) : "";
+								}
+								else
+								{*/
+									props[ fields[i] ] = pms[":_" + fields[i]];
+								//}
+								if( pc.textBox._supertype == "text" || pc.textBox._supertype == "richtext"  || pc.textBox._supertype == "line"  ) {
+									_args[fields[i]] = pc._args;
+									_tmpl[fields[i]] = currentTemplate;
+								}
+							}
 						}
 						
 						props["itemtemplate"] = currentTemplate.name;
@@ -1944,7 +2317,7 @@
 						articlePageWritten = false;
 						articleAreasInvalid = false;
 						
-						if ( !PageEditor.createPage( fi.name, true, "", "article", currentTemplate.name + ":" + currentTemplate.articlepage, props["inputname"], fi.path, "now", onArticlePage, props) )
+						if ( !PageEditor.createPage( fi.name, true, "", "article", currentTemplate.name + ":" + currentTemplate.articlepage, props["inputname"], fi.path, "now", onArticlePage, props, _args, _tmpl) )
 						{
 							Console.log( "Error: Create " + fi.name + " Page");
 						}
@@ -1985,6 +2358,7 @@
 			var T2:Template;
 			var itf:ItemForm;
 			
+			
 			if( CTOptions.autoSave ) CTTools.save();
 			
 			if ( !saveInline )
@@ -1992,6 +2366,7 @@
 				if ( currentTemplate.articlepage != "" ) {
 					if ( currentTemplate.articlepage != "" ) {
 						if(articlePageWritten) {
+							
 							showAreaItems();
 							return;
 						}else{
@@ -2000,6 +2375,7 @@
 					}
 				}else{
 					if( currentTemplate && currentTemplate.numAreas > 0 ) {
+						invalidateAreaTree();
 						createAed();
 					}
 				}
@@ -2014,9 +2390,9 @@
 						_formNodes.pop();
 						this.updateItem = itf.updateItem;
 						if( _formNodes.length == 0 ) {
-							displayInsertForm( T2, true, false);
+							displayInsertForm( T2, true, false, "", null, itf ? itf.cat:"" );
 						}else{
-							displayInsertForm( T2, true, true, itf.area, itf.areaItems);
+							displayInsertForm( T2, true, true, itf.area, itf.areaItems, itf.cat);
 						}
 					}
 				}else{
@@ -2048,11 +2424,11 @@
 						
 						if( _formNodes.length == 0 )
 						{
-							displayInsertForm( T2, true, false);
+							displayInsertForm( T2, true, false, "", null, itf ? itf.cat:"" );
 						}
 						else
 						{
-							displayInsertForm( T2, true, true, itf.area, itf.areaItems);
+							displayInsertForm( T2, true, true, itf.area, itf.areaItems, itf.cat);
 						}
 						
 						inlineSaveClick(null);
@@ -2069,31 +2445,44 @@
 						if( T2 )
 						{
 							this.updateItem = itf.updateItem;
-							displayInsertForm( T2, true, true, itf.area, itf.areaItems);
+							displayInsertForm( T2, true, true, itf.area, itf.areaItems, itf.cat);
 						}
 						
 						subRequestForm = null;
 					}
 				}
 			}
-			
-			Application.instance.hideLoading();
-			
-			// try reload preview:
-			try {
-				Application.instance.view.panel.src["reloadClick"]();
-			}catch(e:Error) {
+			if( newInsertSortID >= 0 ) {
+				newInsertSortID = -1;
+				
+				dragSaveClickHandler(null);
+				pageItemDragging = false;
+				
+				//showUpdateForm();
+			}else{
+				Application.instance.hideLoading();
+				
+				// try reload preview:
+				setTimeout( function () {
+					try {
+						Application.instance.view.panel.src["reloadClick"]();
+					}catch(e:Error) {
+						
+					}
+				}, 0);
 				
 			}
 		}
 		
-		private function insertPageItem ( e:Event ) :void {
+		private function insertPageItem ( e:Event ) :void
+		{
 			// Try select page item with name first
+			
 			var pms:Object = {};
 			pms[":nam"] = nameCtrl.textBox.value;
 			var rv:Boolean = CTTools.db.selectQuery( onPageItemInsertSelect, "uid,name", "pageitem", "name=:nam", "", "", "", pms);
 			if(!rv) {
-				Console.log("SQL-ERROR Select Page Item");
+				Console.log("SQL-ERROR Select Insert Page Item");
 				onPageItemInsertSelect(null);
 			}
 			
@@ -2122,7 +2511,7 @@
 					if( newInsertSortID >= 0 ) {
 						_areaItems = newInsertSortID;
 					}else{
-						_areaItems = itemList.numItems;
+						_areaItems = areaItems.length;// itemList.numItems;
 					}
 					
 					var pms:Object={};
@@ -2164,6 +2553,7 @@
 					var fieldVal:String = ":_name";
 					var fields:Array = currentTemplate.fields.split(",");
 					var pms:Object = {};
+					
 					pms[":_name"] = nameCtrl.textBox.value;
 					
 					L = fields.length;
@@ -2175,7 +2565,9 @@
 							pms[ ":_"+ fields[i] ] = "now";
 							fieldVal += ",:_crdate";
 						}
-						else if( fields[i] != "name") {
+						else if( fields[i] != "name")
+						{
+							
 							pc = PropertyCtrl( itemList.getChildByName( fields[i] ) );
 							if(pc) {
 								
@@ -2212,12 +2604,21 @@
 					if( currentTemplate.articlepage != "" )					 
 					{
 						// create article page with db fields
-						props = { inputname: pms[":_name"] };
+						props = { name: pms[":_name"], inputname: pms[":_name"] };
+						_args = {};
+						_tmpl = {};
+						//props['__tmpl'] = currentTemplate;
 						
-						for( i = 0; i < L; i++)
-						{
+						for( i = 0; i < L; i++) {
 							pc = PropertyCtrl( itemList.getChildByName( fields[i] ) );
-							props[ fields[i] ] = pc ? pc.textBox.value : "";
+							//props['__args'] = pc._args;
+							
+							props[ fields[i] ] =  pms[":_"+fields[i]];
+							
+							if( pc.textBox._supertype == "text" || pc.textBox._supertype == "richtext"  || pc.textBox._supertype == "line"  ) {
+								_args[fields[i]] = pc._args;
+								_tmpl[fields[i]] = currentTemplate;
+							}
 						}
 						
 						props["itemtemplate"] = currentTemplate.name;
@@ -2226,24 +2627,18 @@
 						var filename:String = "";
 						var fi:FileInfo;
 						
-						if( currentTemplate.articlename != "" )
-						{
+						if( currentTemplate.articlename != "" ) {
 							filename = CTTools.webFileName( currentTemplate.articlename, props );
-						}
-						else
-						{
+						}else{
 							fi = FileUtils.fileInfo( currentTemplate.articlepage );
-							
 							filename = pms[":_name"] + "." + fi.extension;
 						}
 						
 						fi = FileUtils.fileInfo( filename );
-						
 						articlePageWritten = false;
 						articleAreasInvalid = false;
 						
-						if ( !PageEditor.createPage( fi.name, true, "", "article", currentTemplate.name + ":" + currentTemplate.articlepage, props["inputname"], fi.path, "now", onArticlePage, props) )
-						{
+						if ( !PageEditor.createPage( fi.name, true, "", "article", currentTemplate.name + ":" + currentTemplate.articlepage, props["inputname"], fi.path, "now", onArticlePage, props, _args, _tmpl) ) {
 							Console.log( "Error: Create " + fi.name + " Page");
 						}
 					}
@@ -2269,16 +2664,17 @@
 				var pf:ProjectFile = CTTools.findArticleProjectFile( s, "path" );
 				
 				if ( pf ) {
-					pf.allDirty();
+					pf.settingDirty();
 					CTTools.saveArticleFile( pf, PageEditor._ltPage.webdir );
 				}
 				
+				currPF = pf;
 				articlePageWritten = true;
-								
-				if ( articleAreasInvalid )
+				
+				/*if ( articleAreasInvalid )
 				{
 					showAreaItems();
-				}
+				}*/
 			}
 		}
 		
@@ -2288,107 +2684,42 @@
 				Application.instance.hideLoading();
 				var T2:Template;
 				var itf:ItemForm;
-				if( newInsertSortID >= 0 ) {
-					newInsertSortID = -1;
-					showAreaItems();
-					dragSaveClickHandler(null);
-					pageItemDragging = false;
-				}else{
-					
-					invalidateCurrArea( true );
-					
-					if ( CTOptions.autoSave ) CTTools.save();
-					
-					// rebuild area tree for new areas..
-						
-					if ( currentTemplate.articlepage != "" ) {
-						if(articlePageWritten) {
-							showAreaItems();
-							return;
-						}else{
-							articleAreasInvalid = true;
-						}
+		
+				invalidateCurrArea( true );
+				
+				if ( CTOptions.autoSave ) CTTools.save();
+				
+				if ( currentTemplate.articlepage != "" ) {
+					if(articlePageWritten) {
+						showUpdateForm();
+						return;
 					}else{
-						if( currentTemplate && currentTemplate.numAreas > 0 ) {
-							createAed();
-						}
-					}
-					Application.instance.hideLoading();
-					
-					if(!saveInline)
-					{
-						// close insert form..
-						_formNodes.pop();
-						
-						if( _formNodes.length > 0 )
-						{
-							itf = ItemForm( _formNodes[_formNodes.length-1] );
-							T2 = CTTools.findTemplate( itf.updateItem.subtemplate, "name" );
-							
-							if( T2 ) {
-								_formNodes.pop();
-								this.updateItem = itf.updateItem;
-								if( _formNodes.length == 0 ) {
-									displayInsertForm( T2, true, false);
-								}else{
-									displayInsertForm( T2, true, true, itf.area, itf.areaItems);
-								}
-							}
-						}else{
-							
-							if( _formNodes )
-							{
-								_formNodes.pop();
-											
-								if( _formNodes.length > 0 )
-								{
-									itf = ItemForm( _formNodes[_formNodes.length-1] );
-									T2 = CTTools.findTemplate( itf.updateItem.subtemplate, "name" );
-									
-									if( T2 ) {
-										_formNodes.pop();
-										this.updateItem = itf.updateItem;
-										if( _formNodes.length == 0 ) {
-											displayInsertForm( T2, true, false);
-										}else{
-											displayInsertForm( T2, true, true, itf.area, itf.areaItems);
-										}
-										return;
-									}
-								}
-							}
-							showAreaItems();
-							
-						}
-						
-					}else{
-						storeCurrentItemValues();
-						saveInline = false;
-					}
-					
-					try {
-						Application.instance.view.panel.src["reloadClick"]();
-					}catch(e:Error) {
-						
+						articleAreasInvalid = true;
 					}
 				}
+				showUpdateForm();
+				Application.instance.hideLoading();
 			}else{
 				Console.log( "ERROR In Insert Page Item Extension");
 				Application.instance.hideLoading();
-				showAreaItems();
+				showUpdateForm();
 			}
 		}
 		
-		private function onFilesInserted (res:DBResult) :void {
-			Application.instance.hideLoading();
-			showAreaItems();
+		private function showUpdateForm () :void {
+			if( nameCtrl && currentTemplate && newPageItemTmp ) {
+				nameCtrl.removeEventListener("saveInline", insertPageItem );
+				nameCtrl.showSaveAndCloseButton(true);
+				nameCtrl.showSaveButton(true);
+				nameCtrl.showDeleteButton(true);
+				updateItem = newPageItemTmp;
+				displayInsertForm( currentTemplate, true, _subform, _inlineArea, areaItems, currCat, 0, 5, false );
+			}
 		}
 		
 		protected function storeFileVector (pc_textBox:InputTextBox) :void {
-			if( pc_textBox.vectorTextFields )
-			{
+			if( pc_textBox.vectorTextFields ) {
 				var L:int = pc_textBox.vectorTextFields.length;
-				
 				for(var i:int =0 ; i<L; i++) {
 					storeFile( pc_textBox.vectorTextFields[i], i );
 				}
@@ -2397,10 +2728,8 @@
 		}
 		
 		// on store file from http://
-		private function onHttpFile ( e:Event, res:Resource ) :void
-		{
-			if( res && res.loaded == 1 )
-			{
+		private function onHttpFile ( e:Event, res:Resource ) :void {
+			if( res && res.loaded == 1 ) {
 				var f1:String = CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderMinified + CTOptions.urlSeparator + res.udfData.newname;
 				var f2:String = CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderRaw + CTOptions.urlSeparator + res.udfData.newname;
 				
@@ -2578,7 +2907,9 @@
 						}
 					}
 					var tmp:Object = updateItem;
-					displayInsertForm( currentTemplate, updateItem != null );
+					
+					displayInsertForm( currentTemplate, updateItem != null, _subform, _inlineArea, areaItems, currCat );
+					
 					updateItem = tmp;
 					// Enter back the values
 					for( i=0; i<itemList.numChildren; i++) {

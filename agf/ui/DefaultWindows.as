@@ -118,7 +118,7 @@
 			win.options.wintype = "string";
 
 			YesNoControls( win, options );
-			MsgTextField( win, options, msg, "string_tf", true, true );
+			MsgTextField( win, options, msg, "string_tf", true, false );
 			
 			if( options && options.icon != undefined && options.icon != "" ) {
 				var uid:int = ResourceMgr.getInstance().loadResource( options.icon, onIcon, false );

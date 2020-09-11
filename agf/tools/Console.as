@@ -93,7 +93,7 @@
                 }
                 
                 if( styles.fontSize ) {
-                    size = CssUtils.parse(styles.fontSize);
+                    size = parseInt( styles.fontSize ); //CssUtils.parse(styles.fontSize);
                 }else{
                     size = DEFAULT_TEXT_SIZE;
                 }

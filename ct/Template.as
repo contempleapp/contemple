@@ -14,7 +14,7 @@
 	import agf.utils.NumberUtils;
 	import agf.utils.StringUtils;
 	import ct.ctrl.InputTextBox;
-	
+	import agf.ui.ColorPicker;
 	import flash.filesystem.File;
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
@@ -37,7 +37,7 @@
 		public var files:String="";                  // Template text files (only html, js css with template objects etc..)
 		public var pagetemplates:String="";       // Template text files (only html)
 		public var homeAreaName:String="";        // Name of area to display first
-		public var imgdir:String="";              // Images Directory for MediaEdotor Images Add File
+	//	public var imgdir:String="";              // Images Directory for MediaEdotor Images Add File
 		public var articlepage:String="";         // page-template, optional page for the item
 		public var articlename:String="";         // articlepage-name
 		public var staticfiles:String="";        // Any additional files in the /raw and /min folders
@@ -47,6 +47,8 @@
 		public var dbcmds:String="";             // name of the command-xml file for root templates only
 		public var tables:String="";             // DB Table name
 		public var fields:String="";             // DB Field names, comma separated
+		
+		public var section:String="";			// TODO: Subtemple section for subtemplate organisation: section = "folder.folder";
 		
 		public var defaultcontent:String="";  // XML File with default content wich can be installed as an option with the Theme. To generate the XML File, Run the following Command in Contemple: 'TemplateTools export-all' and copy the XML from the Console (MainMenu / Developer / Process Command )
 		
@@ -323,6 +325,8 @@
 			pf.splits = false;
 			pf.hasRandoms = false;
 			pf.splitPath = "";
+			pf.hasInlineAreas = false;
+			pf.inlineAreas = {};
 			
 			var tmpl_struct:Array = [""];
 			var areas:Vector.<Area> = new Vector.<Area>();
@@ -341,15 +345,15 @@
 				propertiesByName = template.propertiesByName;
 				filesByName = template.filesByName;
 			}
-			var properties:Array = [];
+			
 			var tmpl:String = pf.getTemplate();
+			tmpl = preproc(tmpl, pageItemName, pageName);
+			var L:int = tmpl.length;
 			
-			tmpl = preproc(tmpl, pageItemName, pageName); 
-			
+			var properties:Array = [];
 			var isArea:Boolean;
 			var nam:String;
 			var sid:int=0;
-			var L:int = tmpl.length;
 			var L2:int;
 			var namL:int;
 			var j:int;
@@ -818,8 +822,9 @@
 										if( nam.indexOf(".") >= 0 ) {
 											sections = nam.split(".");
 											namL = sections.length;
-											nam = sections[sections.length-1];
-											sections.splice( sections.length-1, 1);
+										//	nam = sections[sections.length-1];
+										//	sections.splice( sections.length-1, 1);
+											nam = sections.pop();
 											if( sections.length > 0 && !isNaN(Number(sections[sections.length-1])) ) {
 												prio = parseInt( sections[sections.length-1] );
 												sections.splice( sections.length-1, 1 );
@@ -1305,42 +1310,42 @@
 													if( t2tres ) {
 														// file already loaded
 														// try bitmap property
-														
-														try {
-															
-															bmp = Bitmap(t2tres.obj);
-															
-															if( bmp )
-															{
-																if( tpy.substring(0,4) == "calc" )
+														if(t2tres.loaded == 1 )
+														{
+															try {
+																
+																bmp = Bitmap(t2tres.obj);
+																
+																if( bmp )
 																{
-																	StringMath.constants.c_width = bmp.width;
-																	StringMath.constants.c_height = bmp.height;
+																	if( tpy.substring(0,4) == "calc" )
+																	{
+																		StringMath.constants.c_width = bmp.width;
+																		StringMath.constants.c_height = bmp.height;
+																		
+																		t2tstr = "" + StringMath.evaluate( tpy.substring(4) );
+																	}
+																	else
+																	{
+																		t2tstr = String( bmp.bitmapData[ tpy ] );
+																	}
+																}else{
 																	
-																	t2tstr = "" + StringMath.evaluate( tpy.substring(4) );
-																}
-																else
-																{
-																	t2tstr = String( bmp.bitmapData[ tpy ] );
-																}
-															}else{
-																if(t2tres.loaded == 1 )
-																{
 																	// image load error
 																	rm.clearResourceCache( t2tpth );
 																}
-															}
-															
-														}catch(e:Error) {
-															if( CTOptions.debugOutput ) Console.log( e.toString() );
-															// try file property
-															try {
-																t2tstr = String( (new File(t2tpth))[ tpy ] );
+																
 															}catch(e:Error) {
 																if( CTOptions.debugOutput ) Console.log( e.toString() );
+																// try file property
+																try {
+																	t2tstr = String( (new File(t2tpth))[ tpy ] );
+																}catch(e:Error) {
+																	if( CTOptions.debugOutput ) Console.log( e.toString() );
+																}
+																
 															}
-															
-														}
+														} // else requires re-parse later..
 													}else{
 														// TODO: requires re-parse later..
 														
@@ -1351,12 +1356,11 @@
 											
 											else if ( defType == "plugin" )
 											{
-												// string properties: length, toUpperCase..
+												// plugin properties: defined in the plugin...
 												try {
 													if ( pageItemName != "" ) 
 													{
 														if( args && args.length > 1 ) {
-															
 															t2tstr = Main( Application.instance ).findPluginClass( args[0], args[1] ).getMember( pageItemName, tpy );
 														}
 													}
@@ -1676,6 +1680,10 @@
 												tmpl_struct[sid] += vecProcVal;
 											}
 										}
+									}else if( tpe == "area" ) {
+										pf.hasInlineAreas = true;
+										pf.inlineAreas[nam] = true;//propertiesByName[nam];
+										
 									}
 									
 									if( sections && sections.length > 0 )
@@ -1688,13 +1696,14 @@
 									}
 									
 									// Add T-Property value to the current struct
-									if( template && template.dbProps && ( (!t2tstr && template.dbProps[nam] != undefined) || (t2tstr && template.dbProps[ t2tstr ] != undefined)) ) {
+									if( template && (template.dbProps && ( (!t2tstr && template.dbProps[nam] != undefined) || (t2tstr && template.dbProps[ t2tstr ] != undefined))) ) {
 										//
 										// Replace Key with DB setting
 										//
 										// Parse sql-friendly richtext (#div:class:textnode# #B:BOLD-TEXT# #A:url:label# #I:ITALIC-TEXT#...)
 										// Parse Vector wraps
 										//
+										
 										if( t2tstr && template.dbProps[ t2tstr ] != undefined )
 										{
 											procVal = typeof template.dbProps[t2tstr] == "object" ? template.dbProps[t2tstr].value : template.dbProps[t2tstr];
@@ -1703,10 +1712,15 @@
 										{
 											procVal = typeof template.dbProps[nam] == "object" ? template.dbProps[nam].value : template.dbProps[nam];
 										}
-										
+									
+											
 										if( tpe == "file" )
 										{
 											filesByName[ nam ] = procVal;
+										}
+										else if ( tpe == "color"  )
+										{
+											ColorPicker.testColor( CssUtils.stringToColor(procVal) );
 										}
 										else if ( tpe == "number" || tpe == "integer" || tpe == "screennumber" || tpe == "screeninteger" )
 										{
@@ -1718,42 +1732,32 @@
 										}
 										else if( tpe == "text" || tpe == "richtext" )
 										{
-											hasBr = procVal.toLowerCase().indexOf("#br#") >= 0;
 											
-											procVal = TemplateTools.obj2Text( procVal, '#', template.dbProps, true, false );
-											procVal = HtmlParser.fromDBText( procVal );
+											procVal = TemplateTools.obj2Text( TemplateTools.replaceNewlines(procVal), '#', template.dbProps, true, false );
+											procVal = HtmlParser.fromDBText( HtmlParser.toInputText( procVal ) );
 											
-											if( args && args.length > 1 ) 
+											wrapSplit = args ? args[1].split("|") : CTOptions.defaultNewlineWrap;
+											
+											if( wrapSplit.length > 1 )
 											{
-												// Split <BR/> and apply line wraps
+												defWrapPre =  TemplateTools.obj2Text( wrapSplit[0], '#', template.dbProps, true, false );
+												defWrapPost = TemplateTools.obj2Text( wrapSplit[1], '#', template.dbProps, true, false );
 												
-												wrapSplit = args[1].split("|");
-												
-												if( wrapSplit.length > 1 )
-												{
-													defWrapPre =  TemplateTools.obj2Text( wrapSplit[0], '#', template.dbProps, true, false );
-													defWrapPost = TemplateTools.obj2Text( wrapSplit[1], '#', template.dbProps, true, false );
-													
-													if( hasBr ) {
-														brSplit = procVal.split("<br/>");
-													}else{
-														brSplit = procVal.split("\n");
-													}
-													vecL = brSplit.length;
-													if( vecL > 0 ) {
-														vecValue = "";
-														for( vi = 0; vi < vecL; vi++) {
-															
-															if( brSplit[vi] == "" || StringUtils.isWhite( brSplit[vi] )  ) {
-																vecValue += defWrapPre +"&nbsp;" + defWrapPost;
-															}else{
-																vecValue += defWrapPre + brSplit[vi] + defWrapPost;
-															}
-															
+												brSplit = procVal.split("\n");
+												vecL = brSplit.length;
+												if( vecL > 0 ) {
+													vecValue = "";
+													for( vi = 0; vi < vecL; vi++) {
+														
+														if( brSplit[vi] == "" || StringUtils.isWhite( brSplit[vi] )  ) {
+															vecValue += defWrapPre +"&nbsp;" + defWrapPost;
+														}else{
+															vecValue += defWrapPre + brSplit[vi] + defWrapPost;
 														}
-														procVal = vecValue;
-													}	
-												}
+														
+													}
+													procVal = vecValue;
+												}	
 											}
 										}
 										else if( tpe == "vector" )
@@ -1815,13 +1819,10 @@
 																vecArgs.push(args[viStart+4]);
 															}
 															if(args.length > viStart+5) {
-																
-																
 																vecWrap = args[viStart+5].split("|");
 																if( vecWrap.length > 1 ) {
 																	vecWrapPre = TemplateTools.obj2Text( vecWrap[0], "#", template.dbProps, true, false );
 																	vecWrapPost = TemplateTools.obj2Text( vecWrap[1], "#", template.dbProps, true, false );
-																	
 																}else{
 																	if( vecWrap.length > 0 ) {
 																		vecWrapPre = TemplateTools.obj2Text( vecWrap[0], "#", template.dbProps, true, false );
@@ -1839,7 +1840,6 @@
 															vecWrapPre = TemplateTools.obj2Text( defWrapPre, "#", template.dbProps, true, false );
 															vecWrapPost = TemplateTools.obj2Text( defWrapPost, "#", template.dbProps, true, false );
 														}
-														
 														vecProcVal += vecWrapPre + vecValue + vecWrapPost;
 													}
 												
@@ -1859,12 +1859,11 @@
 														if( vecValues.length > vi ) 
 															vecValue = vecValues[vi];
 														
-														vecValue = TemplateTools.obj2Text( vecValue, '#', /*richTextProps*/template.dbProps, true, false );
+														vecValue = TemplateTools.obj2Text( vecValue, '#', template.dbProps, true, false );
 														
 														template.dbProps["vectorvalue"] = vecValue;
 														
 														if( vecType == "typed" ) {
-															
 															tps = vecValue.split(":");
 															if( tps ) {
 																if( tps.length > 1) {
@@ -1875,7 +1874,6 @@
 															}
 														}
 														if(args.length > viStart+1) {
-															
 															vecWrap = args[viStart+1].split("|");
 															if( vecWrap.length > 1 ) {
 																vecWrapPre = TemplateTools.obj2Text( vecWrap[0], "#", template.dbProps, true, false );
@@ -1909,7 +1907,6 @@
 										// Replace Key with Template setting
 										if( tpe == "text" || tpe == "richtext" || tpe == "line" ) {
 											tmpl_struct[sid] += HtmlParser.fromDBText( TemplateTools.obj2Text( propertiesByName[nam].defValue.replace(re, "<br/>"), '#',null,true,false) );
-											
 										}else{
 											tmpl_struct[sid] += defValue.replace(re, "<br/>");
 										}
@@ -1939,8 +1936,6 @@
 		
 		public static function transformRichText ( procVal:String, args:Array, template:Template ) :String
 		{
-			var hasBr:Boolean = procVal.toLowerCase().indexOf("#br#") >= 0;
-			
 			var wrapSplit:Array;
 			var defWrapPre:String;
 			var defWrapPost:String;
@@ -1950,25 +1945,22 @@
 			var i:int;
 			var vi:int;
 			
-			procVal = TemplateTools.obj2Text( procVal, '#', template.dbProps, true, false );
-			procVal = HtmlParser.fromDBText( procVal );
+			procVal = TemplateTools.obj2Text( TemplateTools.replaceNewlines(procVal) , '#', template.dbProps, true, false );
+			procVal = HtmlParser.fromDBText(HtmlParser.toInputText( procVal ) );
 			
 			if( args && args.length > 1 ) 
 			{
 				// Split <BR/> and apply line wraps
 				
-				wrapSplit = args[1].split("|");
+				wrapSplit = args ? args[1].split("|") : CTOptions.defaultNewlineWrap;
 				
 				if( wrapSplit.length > 1 )
 				{
 					defWrapPre =  TemplateTools.obj2Text( wrapSplit[0], '#', template.dbProps, true, false );
 					defWrapPost = TemplateTools.obj2Text( wrapSplit[1], '#', template.dbProps, true, false );
 					
-					if( hasBr ) {
-						brSplit = procVal.split("<br/>");
-					}else{
-						brSplit = procVal.split("\n");
-					}
+					brSplit = procVal.split("\n");
+					
 					vecL = brSplit.length;
 					if( vecL > 0 ) {
 						vecValue = "";

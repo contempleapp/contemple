@@ -1,7 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <agf>
+    
 <menu mode="fluid" clipspacing="8">
-    <item iconleft="IconDots" mode="static">
+    <item iconleft="ico:/app-menu.png" mode="static">
         <item name="File" iconleft="ico:/folder.png">
             <item name="New" iconleft="ico:/new.png" cmd="Application view StartScreen" />
             <item name="#separator"/>
@@ -13,10 +14,10 @@
             <item name="English"  iconleft="ico:/great-britain.png" cmd="SetValue String agf.ui.Language.language en;Application restart"/>
             <item name="German"  iconleft="ico:/germany.png" cmd="SetValue String agf.ui.Language.language de;Application restart"/>
         </item>
-        <item name="Password" iconleft="ico:/access.png">
+        <!-- <item name="Password" iconleft="ico:/access.png">
             <item name="Reset Password" iconleft="ico:/papiermuell.png" cmd="CTTools reset-password"/>
             <item name="Change Password" iconleft="ico:/key.png" cmd="CTTools new-password"/>
-        </item>
+        </item> -->
         <item name="Developer" iconleft="ico:/falcon.png">
             <item name="Console"  iconleft="ico:/console.png" cmd="Console show console"/>
             <item name="#separator"/>
@@ -34,14 +35,14 @@
                     <item name="Clear Project References" cmd="CTTools clear-project-reference"/>
                 </item>
             </item>
-            <item name="App Settings" iconleft="ico:/services.png" cmd="Application view Settings"/>
             <item name="Help" iconleft="ico:/info.png" cmd="CTTools show-url https://contemple.app/docs/reference.html"/>
         </item>
         <item name="Pages" iconleft="ico:/book-stack.png" cmd="Application view PageView"/>
-        <item name="Preview in Browser"  iconleft="ico:/website.png" cmd="CTTools browser-preview"/>
-        <item name="#separator"/>
-        <item name="Publish History" iconleft="ico:/tm.png" cmd="TemplateTools publish-history"/>
-        <item name="Look For Updates" iconleft="ico:/netzwerk-laufwerk.png" cmd="CTTools update"/>
+        <item name="Open in Browser"  iconleft="ico:/website.png" cmd="CTTools browser-preview"/>
+        <!-- <item name="#separator"/> -->
+        <!-- <item name="Publish History" iconleft="ico:/tm.png" cmd="TemplateTools publish-history"/>
+        <item name="Look For Updates" iconleft="ico:/netzwerk-laufwerk.png" cmd="CTTools update"/> -->
+        <item name="App Settings" iconleft="ico:/services.png" cmd="Application view Settings"/>
         <item name="#separator"/>
         <item name="Quit CT"  iconleft="ico:/sun.png" cmd="Application quit"/>
     </item>

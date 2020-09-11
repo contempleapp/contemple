@@ -43,8 +43,6 @@
 		protected var pageItemDragSX:int;
 		protected var pageItemDragSY:int;
 		protected var pageItemDragItem:Ctrl;
-		protected var pageItemDragTime:int = 750;
-		protected var pageItemDownTime:int = 0;
 		protected var pageItemCurr:int = 0;
 		protected var newPageItemTmp:Object={};
 		
@@ -64,7 +62,6 @@
 		
 		protected var dragDisplay:CssSprite;
 		
-		protected var areaView:AreaView;
 		protected var delTables:Array;
 		
 		protected function invalidateCurrArea ( testST:Boolean=false ) :void
@@ -104,6 +101,7 @@
 						}
 					}
 				}
+				
 			}
 			
 		}
@@ -116,14 +114,20 @@
 				
 				invalidateCurrArea( true );
 				
-				try {
-					Application.instance.view.panel.src["reloadClick"]();
-				}catch(e:Error) {
-					
-				}
-				Application.instance.hideLoading();
 				if( CTOptions.autoSave ) CTTools.save();
+				
 				showAreaItems();
+				
+				Application.instance.hideLoading();
+				
+				setTimeout( function () {
+					try {
+						Application.instance.view.panel.src["reloadClick"]();
+					}catch(e:Error) {
+						
+					}
+				},0);
+				
 				return;
 			}
 			var pms:Object={};
@@ -140,11 +144,18 @@
 			updateNextPageItemSorting();
 		}
 		
-		protected function showDragSaveButtons () :void {
+		protected function showDragSaveButtons () :void
+		{
 			storeOrderByName = {};
-			for(var i:int=0; i<itemList.items.length; i++) {
-				if( itemList.items[i].options && itemList.items[i].options .result ) {
-					storeOrderByName[Ctrl(itemList.getItemAt(i)).options.result.name] = Ctrl(itemList.getItemAt(i)).options.result.sortid;
+			var L:int = itemList.items.length;
+			var options:Object;
+			
+			for(var i:int=0; i<L; i++)
+			{
+				options = itemList.items[i].options;
+				
+				if( options != null && options.result != null ) {
+					storeOrderByName[ options.result.name] = options.result.sortid;
 				}
 			}
 			dragOrdering = true;
@@ -152,9 +163,15 @@
 		}
 		protected function dragCancelClickHandler (e:MouseEvent) :void {
 			// restore list order
-			if( itemList && storeOrderByName ) {
-				for(var i:int=0; i<itemList.items.length; i++) {
-					Ctrl(itemList.getItemAt(i)).options.result.sortid = storeOrderByName[Ctrl(itemList.getItemAt(i)).options.result.name];
+			if( itemList != null && storeOrderByName != null )
+			{
+				var L:int = itemList.items.length;
+				var options:Object;
+				
+				for(var i:int=0; i<L; i++)
+				{
+					options = itemList.items[i].options;
+					options.result.sortid = storeOrderByName[options.result.name];
 				}
 			}
 			storeOrderByName = null;
@@ -226,7 +243,7 @@
 				if( bt.contRight && bt.mouseX > bt.contRight.x ) {
 					// drag button start
 					if( selection && selection.length > 1 ) {
-						startDragItems( areaClickItem );
+						startDragItems( );
 					}else{
 						startDragItem( areaClickItem );
 					}
@@ -265,26 +282,27 @@
 			var sd:Slider;
 			if( scrollpane ) sd = scrollpane.slider;
 			
-			if( TemplateEditor.clickScrolling ) {
+			if( TemplateEditor.clickScrolling )
+			{
 				if(sd) sd.value -= dy;
 				if( scrollpane ) scrollpane.scrollbarChange(null);
 				areaClickY = mouseY;
-			}else{
-				if( !longClick && getTimer() - areaClickTime > CTOptions.longClickTime ) {
-					showMultiSelectMenu();
-					var bt:Button = Button( areaClickItem );
-					
-					if( bt.contRight && bt.mouseX > bt.contRight.x ) {
-						startDragItem( areaClickItem );
-					}else{
+			}
+			else
+			{
+				if( !longClick )
+				{
+					 if( getTimer() - areaClickTime > CTOptions.longClickTime ) {
+						showMultiSelectMenu();
+						var bt:Button = Button( areaClickItem );
 						bt.swapState("active");
 					}
-				}
-				
-				if( (sd && sd.visible) && !longClick && Math.abs(dy) > CTOptions.mobileWheelMove ) {
-					// start click scrolling..
-					TemplateEditor.startClickScrolling();
-					sbClickValue = scrollpane ? scrollpane.slider.value : 0;
+					
+					if( (sd && sd.visible) && Math.abs(dy) > CTOptions.mobileWheelMove ) {
+						// start click scrolling..
+						TemplateEditor.startClickScrolling();
+						sbClickValue = scrollpane ? scrollpane.slider.value : 0;
+					}
 				}
 			}
 		}
@@ -307,10 +325,13 @@
 				}else{
 					// normal click..
 					// todo hit test clickItem?
+					
+					Console.log( "Item Up: " + areaClickItem.options.result.subtemplate );
+					
 					var T:Template = CTTools.findTemplate( areaClickItem.options.result.subtemplate, "name" );
 					if( T ) {
 						updateItem = areaClickItem.options.result;
-						displayInsertForm( T, true, _subform, _inlineArea );
+						displayInsertForm( T, true, _subform, _inlineArea, null, '', 0, ( _subform ? 5 : 2) );
 					}else Console.log("ERROR: Can Not Find Template '" + areaClickItem.options.result.subtemplate + "' For Page Item: " +  areaClickItem.options.result.name);
 				}
 			}
@@ -359,13 +380,69 @@
 				}
 			}			
 		}
+		private var multiDrag:Boolean = false;
+		private var multiDragItems:Array;
 		
-		protected function startDragItems ( item:Ctrl ) :void {
-			// TODO:
-			Console.log("Not Implemented..");
+		protected function startDragItems ( ) :void
+		{
+			multiDrag = true;
+			
+			var ds:Ctrl = Ctrl( itemList.getChildByName( selection[0] ) );
+			
+			if( ds )
+			{
+				pageItemDragItem = ds;
+				pageItemDragSX = pageItemDragItem.mouseX;
+				pageItemDragSY = pageItemDragItem.mouseY;
+				pageItemDragging = true;
+				var ib:ItemList = itemList;
+				
+				if( !dragDisplay ) {
+					dragDisplay = new CssSprite( getWidth(), 0, scrollpane ? scrollpane.content : this, styleSheet, '', '','drag-display', false);
+				}
+				if( !dragOrdering ) showDragSaveButtons();
+				
+				pageItemNewIndex = -1;
+				
+				multiDragItems = [];
+				var poi:int=0;
+				var tmp:int;
+				var i:int;
+				
+				// sort selection
+				if( areaItems ) {
+					var tmpsel:Array = [];
+					for( i=0; i<areaItems.length; i++) {
+						if( selection.indexOf( areaItems[i].name ) >= 0 ) {
+							tmpsel.push( areaItems[i].name );
+						}
+					}
+					selection = tmpsel;
+				}
+				
+				for( i=0; i<selection.length; i++ ) {
+					ds = Ctrl( itemList.getChildByName( selection[i] ) );
+					if( ds ) {
+						if( multiDragItems.length == 0 ) poi = itemList.removeItem( ds, true);
+						else{
+							tmp = itemList.removeItem( ds, true);
+							if( tmp < poi ) poi = tmp;
+						}
+						multiDragItems.push( ds );
+					}
+				}
+				pageItemOldIndex = poi;
+				
+				Main(Application.instance).topContent.addChild( pageItemDragItem );
+				
+				stage.addEventListener( Event.ENTER_FRAME, dragItemMove );
+				stage.addEventListener( MouseEvent.MOUSE_UP, dragItemUp );
+			}
 		}
 		
-		protected function startDragItem ( item:Ctrl ) :void {
+		protected function startDragItem ( item:Ctrl ) :void
+		{
+			multiDrag = false;
 			pageItemDragItem = Ctrl(Sprite(item));
 			pageItemDragSX = pageItemDragItem.mouseX;
 			pageItemDragSY = pageItemDragItem.mouseY;
@@ -399,7 +476,7 @@
 					}
 				}
 				if( !(this is InputTextBox) ) {
-					pageItemDragItem.x = (areaView && areaView.visible  ? areaView.cssSizeX : 0) + cssLeft;
+					pageItemDragItem.x = (AreaEditor.areaView && AreaEditor.areaView.visible  ? AreaEditor.areaView.cssSizeX : 0) + cssLeft;
 				}else{
 					pageItemDragItem.x = this.parent.parent.parent.parent.x;
 				}
@@ -439,12 +516,22 @@
 			pageItemDragging = false;
 			tc = Sprite( Main(Application.instance).topContent );
 			if( tc.contains(pageItemDragItem) ) tc.removeChild(pageItemDragItem);
-			itemList.addItemAt( pageItemDragItem, pageItemNewIndex );
+			var i:int;
+			
+			if( multiDrag ) {
+				if( multiDragItems ) {
+					for( i=0; i<multiDragItems.length; i++) {
+						itemList.addItemAt( Ctrl(multiDragItems[i]), pageItemNewIndex + i );
+					}
+				}
+			}else{
+				itemList.addItemAt( pageItemDragItem, pageItemNewIndex );
+			}
 			
 			if( pageItemOldIndex != pageItemNewIndex)
 			{
 				// set order id on all items from 0 - item-length
-				for( var i:int=0; i<itemList.items.length; i++ ) {
+				for( i=0; i<itemList.items.length; i++ ) {
 					Ctrl(itemList.getItemAt(i)).options.result.sortid = i;
 				}
 			}
@@ -511,8 +598,8 @@
 					}
 					
 					var tbls:Array = [];
-					for(var id:String in tbStore) {
-						
+					for (var id:String in tbStore)
+					{	
 						tbStore[id].where = tbStore[id].where.substring( 0, tbStore[id].where.length-1 );
 						tbls.push( tbStore[id] );
 					}
@@ -561,15 +648,18 @@
 				createAed();
 			}
 			
-			try {
-				Application.instance.view.panel.src["reloadClick"]();
-			}catch(e:Error) {
-				
-			}
 			
 			Application.instance.hideLoading();
 			
 			showAreaItems();
+			
+			setTimeout( function() {
+				try {
+					Application.instance.view.panel.src["reloadClick"]();
+				}catch(e:Error) {
+					
+				}
+			}, 0);
 		}
 		
 		public function createAed () :void {}
@@ -633,7 +723,7 @@
 								if( _subform ) {
 									_formNodes.pop();
 								}
-								displayInsertForm( T, true, _subform, _inlineArea, areaItems );
+								displayInsertForm( T, true, _subform, _inlineArea, areaItems, "", 0, 2 );
 							}else Console.log("ERROR: Can Not Find Template '" + areaItems[i + 1].subtemplate + "' For Page Item: " +  areaItems[i + 1].name);
 							
 							break;
@@ -656,11 +746,11 @@
 			if ( updateItem ) {
 				var L:int = areaItems.length;
 				
-				for( var i:int=L-1; i>=0; i--)
+				for( var i:int = L-1; i >= 0; i--)
 				{
 					if( areaItems[i] && areaItems[i].name == updateItem.name )
 					{
-						if( i>0 && areaItems[i-1] )
+						if( i > 0 && areaItems[i-1] )
 						{
 							var T:Template = CTTools.findTemplate( areaItems[i-1].subtemplate, "name" );
 							if( T ) {
@@ -668,7 +758,7 @@
 								if( _subform ) {
 									_formNodes.pop();
 								}
-								displayInsertForm( T, true, _subform, _inlineArea, areaItems );
+								displayInsertForm( T, true, _subform, _inlineArea, areaItems, "", 0, 2 );
 							}else Console.log("ERROR: Can Not Find Template '" + areaItems[i-1].subtemplate + "' For Page Item: " +  areaItems[i-1].name);
 							
 							break;
@@ -680,6 +770,7 @@
 		}
 		
 		public function showAreaItems () :void {}
-		public function displayInsertForm ( tmpl:Template, isUpdateForm:Boolean=false, subform:Boolean=false, inlineArea:String="", _areaItems:Array=null ) :void {}
+		public function displayInsertForm ( tmpl:Template, isUpdateForm:Boolean = false, subform:Boolean = false, inlineArea:String = "", _areaItems:Array = null,
+										cat:String="", ltscroll:Number=0, gotoDirection:int=1, forceLevel:Boolean = false) :void {}
 	}
 }

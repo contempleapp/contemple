@@ -82,14 +82,11 @@
 		
 		private function deleteFileHandler (e:MouseEvent) :void
 		{
-			trace("Delete: " + _path);
-			
 			var file:File = new File( _path );
 			
 			if( file.exists && ! file.isDirectory )
 			{
 				var fi:FileInfo = FileUtils.fileInfo( _path );
-				trace("Delete File: filepath: " + fi.path + ", filename: " + fi.filename + ", directory: " + fi.directory + ", extension: " + fi.extension);
 				
 				// Search file in tmpl.procFiles and tmpl.articleProcFiles
 				// Search file in tmpl(s).staticfiles and staticfolders

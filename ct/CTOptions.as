@@ -16,8 +16,8 @@
 		public static var appLogo:String = "ico/logo.png";	// Contemple start logo
 		
 		public static var appName: String = "ContempleCMS"; // Can be set to theme version name runtime
-		public static var version: String = "1.0.12"; // Can be set to theme version during runtime
-		public static const contempleVersion:String = "1.0.12";
+		public static var version: String = "1.0.17"; // Can be set to theme version during runtime
+		public static const contempleVersion:String = "1.0.17";
 		
 		public static var defaultServerStartUrl:String = "https://www.contemple.app/demo/cthub/";
 		
@@ -27,7 +27,7 @@
 		public static var verboseMode: Boolean = false; // In verbose mode, console is visible while installing and uploading
 		
 		public static var monitorFiles:Boolean = false;
-		public static var softKeyboard:Boolean = true;  // Resize app when softkeyboard appears on screen. may cause bugs on some android verions
+		public static var softKeyboard:Boolean = false;  // Resize app when softkeyboard appears on screen. may cause bugs on some android verions
 		public static var textEditorUndos:int = 32; 
 		
 		public static var appConfigDir:String = "res"; // embeded config files inside applicationDirectory
@@ -46,6 +46,7 @@
 		public static var longClickTime:int = 750; // mobile style list-scroll and long-click
 		
 		public static var JSONArgs:Boolean = true;
+		public static var resolveWebFiles:Boolean = true;
 		
 		public static var insertAreaLocation:Boolean = true;
 		public static var insertAreaPre:String = '<a class="loc-area" id="';
@@ -54,6 +55,8 @@
 		public static var insertItemLocation:Boolean = true;
 		public static var insertItemPre:String = '<a class="loc-item" id="';
 		public static var insertItemPost:String = '"></a>';
+		
+		public static var defaultNewlineWrap:Array = ['','<br/>']; // Default Wrap Argumnet for Text and Richtecht
 		
 		public static var previewInEditor:Boolean = true;
 		public static var previewAtBottom:Boolean = false;  // (TODO: not implemented) web preview bottom or right
@@ -72,6 +75,7 @@
 		
 		public static var homeAreaName:String = "Home";
 		public static var rememberArea:Boolean = true;
+		public static var downloadOverviewWidth:int = 222;
 		
 		// New-Page settings
 		public static var pageTemplateEnabled:Boolean = true;
@@ -113,7 +117,7 @@
 		public static var uploadSendFileList:Boolean = true; // if false, the server sends a list of all files and folders in the website directory (not recommended)
 		public static var hashCompareAlgorithm:String = "md5"; // md5, sha224, sha256
 		public static var localUploadFolder:String = "min"; // 'min' or 'raw'
-		public static var uploadMethod:String = "php"; // ftp, php, asp etc
+		public static var uploadMethod:String = "php"; // TODO: ftp, php, asp etc
 		public static var uploadScript:String = ""; // https://your-site.com/cthub/cthub.php // Online script that takes file uploads, manage passwords, sync etc.
         public static var uploadViewShowFileInfo:Boolean = true;
 		
@@ -124,8 +128,8 @@
 		public static var syncTemplate:Boolean = false;  // TODO sync template files or zip file..
 		
 		public static const UPLOAD_METHOD_PHP:String = "php";
-		public static const UPLOAD_METHOD_ASP:String = "asp";
-		public static const UPLOAD_METHOD_FTP:String = "ftp";
+		//public static const UPLOAD_METHOD_ASP:String = "asp";
+		//public static const UPLOAD_METHOD_FTP:String = "ftp";
 		
 		public static var localSharedObjectId:String = "app.contemple.1.0.6";
 		public static var installSharedObjectId:String = "app.contemple.1.0.6";

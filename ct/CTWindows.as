@@ -13,7 +13,7 @@
 		{
 			if(options == null || typeof options.width != "number" ) {
 				// auto width
-				if( HtmlEditor.isPreviewOpen ) {
+				if( HtmlEditor.isPreviewOpen && ! CTOptions.previewAtBottom ) {
 					var pvx:int = HtmlEditor.previewX;
 					if( options == null ) options = {};
 					options.width = pvx - 20;

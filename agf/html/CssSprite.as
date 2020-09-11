@@ -98,37 +98,37 @@
 		
 		private var styl:Array;
 		
-		public function get cssLeft ()   :Number { return _cssLeft; }
-		public function get cssRight ()  :Number { return _cssRight; }
-		public function get cssTop ()    :Number { return _cssTop; }
-		public function get cssBottom () :Number { return _cssBottom; }
+		public function get cssLeft ()   :Number { return _cssLeft; }
+		public function get cssRight ()  :Number { return _cssRight; }
+		public function get cssTop ()    :Number { return _cssTop; }
+		public function get cssBottom () :Number { return _cssBottom; }
 		
-		public function get cssSizeX () :Number{ return _cssSizeX; }
-		public function get cssSizeY () :Number{ return _cssSizeY; }
+		public function get cssSizeX () :Number { return _cssSizeX; }
+		public function get cssSizeY () :Number { return _cssSizeY; }
 		
-		public function get cssBorderLeft ()   :Number{ return _cssBorderLeft; }
-		public function get cssBorderRight ()  :Number{ return _cssBorderRight; }
-		public function get cssBorderTop ()    :Number{ return _cssBorderTop; }
-		public function get cssBorderBottom () :Number{ return _cssBorderBottom; }
+		public function get cssBorderLeft ()   :Number { return _cssBorderLeft; }
+		public function get cssBorderRight ()  :Number { return _cssBorderRight; }
+		public function get cssBorderTop ()    :Number { return _cssBorderTop; }
+		public function get cssBorderBottom () :Number { return _cssBorderBottom; }
 		
-		public function get cssPaddingLeft ()   :Number{ return _cssPaddingLeft; }
-		public function get cssPaddingRight ()  :Number{ return _cssPaddingRight; }
-		public function get cssPaddingTop ()    :Number{ return _cssPaddingTop; }
-		public function get cssPaddingBottom () :Number{ return _cssPaddingBottom; }
+		public function get cssPaddingLeft ()   :Number { return _cssPaddingLeft; }
+		public function get cssPaddingRight ()  :Number { return _cssPaddingRight; }
+		public function get cssPaddingTop ()    :Number { return _cssPaddingTop; }
+		public function get cssPaddingBottom () :Number { return _cssPaddingBottom; }
 		
-		public function get cssMarginLeft ()   :Number{ return _cssMarginLeft; }
-		public function get cssMarginRight ()  :Number{ return _cssMarginRight; }
-		public function get cssMarginTop ()    :Number{ return _cssMarginTop; }
-		public function get cssMarginBottom () :Number{ return _cssMarginBottom; }
+		public function get cssMarginLeft ()   :Number { return _cssMarginLeft; }
+		public function get cssMarginRight ()  :Number { return _cssMarginRight; }
+		public function get cssMarginTop ()    :Number { return _cssMarginTop; }
+		public function get cssMarginBottom () :Number { return _cssMarginBottom; }
 		
 		
-		public function get cssColor () :Number{ return _cssColor; }
-		public function get cssBackgroundColor () :Number{ return _cssBackgroundColor; }
+		public function get cssColor () :Number{ return _cssColor; }
+		public function get cssBackgroundColor () :Number{ return _cssBackgroundColor; }
 		
-		public function get cssBorderTopLeftRadius ()   :Number{ return _cssBorderTopLeftRadius; }
-		public function get cssBorderTopRightRadius ()  :Number{ return _cssBorderTopRightRadius; }
-		public function get cssBorderBottomLeftRadius ()    :Number{ return _cssBorderBottomLeftRadius; }
-		public function get cssBorderBottomRightRadius () :Number{ return _cssBorderBottomRightRadius; }
+		public function get cssBorderTopLeftRadius ()   :Number{ return _cssBorderTopLeftRadius; }
+		public function get cssBorderTopRightRadius ()  :Number{ return _cssBorderTopRightRadius; }
+		public function get cssBorderBottomLeftRadius ()    :Number{ return _cssBorderBottomLeftRadius; }
+		public function get cssBorderBottomRightRadius () :Number{ return _cssBorderBottomRightRadius; }
 		
 		public function get styleSheet () :CssStyleSheet { return cssStyleSheet;	}
 		
@@ -348,7 +348,6 @@
 		}
 		private function upHandler (e:MouseEvent) :void {
 			mouseIsDown = false;
-			//if(_state == "normal") return;
 			if(stage) stage.removeEventListener(MouseEvent.MOUSE_UP, upHandler);
 			if(parent && autoSwapState == "all" || autoSwapState == "active") {
 				swapState( hitTestPoint( parent.mouseX, parent.mouseY, true ) ? "hover" : "normal" );

@@ -40,8 +40,6 @@
 		}
 		
 		private var scrollpane:ScrollContainer;
-	
-		// TODO add Fies to current folder, longclick with Delete 
 		private var addFileBtn:Button;
 		
 		private var itemList:ItemList;
@@ -64,12 +62,12 @@
 		public override function setWidth( w:int) :void {
 			super.setWidth(w);
 			var sbw:int = 0;
-			if( scrollpane && scrollpane.slider.visible ) sbw = 8;
-			if( addFileBtn ) addFileBtn.x = w - (cssBoxX + addFileBtn.cssSizeX);
+			if( scrollpane && scrollpane.slider.visible ) sbw = scrollpane.slider.cssSizeX + 4;
+			if( addFileBtn ) addFileBtn.x = w - (addFileBtn.cssSizeX + addFileBtn.cssMarginRight);
 			if( itemList) {
 				if(itemList.items) {
 					for( var i:int=0; i < itemList.items.length; i++) {
-						itemList.items[i].setWidth( w - (itemList.items[i].cssBoxX + cssBoxX + cssLeft + sbw) );
+						itemList.items[i].setWidth( w - (itemList.items[i].cssBoxX + cssBoxX + sbw) );
 					}
 				}
 				itemList.setWidth(0);
@@ -122,7 +120,7 @@
 			}
 			
 			var w:Number = getWidth();
-			var h:Number = getHeight() - cssTop;
+			var h:Number = getHeight();
 			
 			pathLabels = new ItemBar(0, 0, this, styleSheet,'', 'media-path', false);
 			pathLabels.x = cssLeft + 4;
@@ -150,7 +148,7 @@
 				pathLabels.addItem( bt, true );
 			}
 			
-			pathLabels.margin = 4;
+			pathLabels.margin = int(4 * CssUtils.numericScale);
 			pathLabels.format(false);
 			pathLabels.init();
 			
@@ -180,7 +178,7 @@
 			
 			var mh:int  = Math.max( cssTop + pathLabels.height + pathLabels.cssMarginBottom, cssTop + addFileBtn.cssSizeY + addFileBtn.cssMarginBottom);
 			
-			scrollpane = new ScrollContainer( w, h, this, styleSheet,'', 'media-scroll-container', false);
+			scrollpane = new ScrollContainer( 0, 0, this, styleSheet,'', 'media-scroll-container', false);
 			scrollpane.setHeight( cssSizeY - (cssBoxX + mh) );
 			scrollpane.setWidth( cssSizeX );
 			scrollpane.y = cssTop + mh;
@@ -201,7 +199,8 @@
 			addChild( anim2 );
 			
 			scrollpane.content.alpha = 0;
-		
+			scrollpane.contentHeightChange();
+			
 			setTimeout( function () {
 				
 				if( gotoDirection == 1 )
@@ -240,34 +239,35 @@
 		private static var anim = new Animation();
 		private static var anim2 = new Animation();
 		
-		private function pathClick (e:MouseEvent) :void {
+		private function pathClick (e:MouseEvent) :void
+		{
 			var btn:Button = Button(e.currentTarget);
 			var lb:String = btn.label;
+			var pth:String = CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderRaw + CTOptions.urlSeparator;
+			var bt:Button;
+			var i:int;
 			
-			if( lb == "Root/" )
-			{
-				showMediaItems("", 0);
-			}
-			else
-			{
-				var pth:String = CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderRaw + CTOptions.urlSeparator;
-				var bt:Button;
-				var i:int;
-				
-				for( i= 0; i<pathLabels.items.length; i++ ) {
-					bt = Button(pathLabels.items[i]);
-					if( bt.label != "Root" ) {
-						pth += bt.label + CTOptions.urlSeparator;
-					}
-					if( bt.label == lb ) {
-						break;
-					}
+			for( i= 0; i<pathLabels.items.length; i++ ) {
+				bt = Button(pathLabels.items[i]);
+				if( bt.label != "Root" ) {
+					pth += bt.label + CTOptions.urlSeparator;
 				}
-				
-				showMediaItems( pth, i >= pathLabels.items.length-1 ? 2 : 0 );
+				if( bt.label == lb ) {
+					break;
+				}
 			}
 			
+			showMediaItems( pth, i >= pathLabels.items.length-1 ? 2 : 0 );
+			
+			setTimeout( function() {
+				try {
+					Application.instance.view.panel.src.newSize(null);
+				}catch(e:Error) {
+					Console.log( "New Size Error " + e);
+				}
+			}, 0);
 		}
+		
 		private function addFileHandler (e:MouseEvent) :void {
 			selectFile();
 		}
@@ -331,20 +331,20 @@
 			
 			if( file.isDirectory ) {
 				// display folder icon
-				ico = new Button([ new IconFromFile("app:/"+Options.iconDir+"/folder.png"), fi.filename ], 0, 0, itemList, styleSheet, '', 'media-item-btn',false);
+				ico = new Button([ new IconFromFile("app:/"+Options.iconDir+"/folder.png", Options.iconSize, Options.iconSize), fi.filename ], 0, 0, itemList, styleSheet, '', 'media-item-btn',false);
 				ico.addEventListener( MouseEvent.CLICK, folderBtnClick );
 				
 			}else{
 				// display file icon
 				var file_ico:Sprite;
 				if( fi.type.substring(0,5) == "image") {
-					file_ico = new IconFromFile("app:/"+Options.iconDir+"/file-image.png");
+					file_ico = new IconFromFile("app:/"+Options.iconDir+"/file-image.png", Options.iconSize, Options.iconSize);
 				}else if( fi.type == "html" || fi.type == "script" ) {
-					file_ico = new IconFromFile("app:/"+Options.iconDir+"/file-code.png");
+					file_ico = new IconFromFile("app:/"+Options.iconDir+"/file-code.png", Options.iconSize, Options.iconSize);
 				}else if( fi.type == "audio" ) {
-					file_ico = new IconFromFile("app:/"+Options.iconDir+"/file-audio.png");
+					file_ico = new IconFromFile("app:/"+Options.iconDir+"/file-audio.png", Options.iconSize, Options.iconSize);
 				}else{
-					file_ico = new IconFromFile("app:/"+Options.iconDir+"/file-text.png");
+					file_ico = new IconFromFile("app:/"+Options.iconDir+"/file-text.png", Options.iconSize, Options.iconSize);
 				}
 				ico = new Button([ file_ico, fi.filename ], 0, 0, itemList, styleSheet, '', 'media-item-btn',false);
 				ico.options.opened = false;

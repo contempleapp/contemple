@@ -21,21 +21,6 @@
 			graphics.drawCircle( w2, h/2, r );
 			graphics.drawCircle( w2, h-r2, r );
 			graphics.endFill();
-			/*
-			var th1:int = Math.round( (h / 2) / 1.6186 );
-			var th2:int = h - th1*2;
-			graphics.clear();
-			graphics.beginFill(col, alpha);
-			graphics.moveTo( 0, th1 );
-			graphics.lineTo( w/2, 0 );
-			graphics.lineTo( w, th1 );
-			graphics.lineTo( w, th1+th2 );
-			graphics.lineTo(w/2, h);
-			graphics.lineTo(0, th1+th2);
-			graphics.lineTo( 0, th1 );
-			graphics.endFill();
-			*/
-			
 		}
 		
 	}

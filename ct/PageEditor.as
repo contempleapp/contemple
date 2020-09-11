@@ -71,23 +71,22 @@
 				var w:int = container.getWidth();
 				var h:int = container.getHeight();
 				
-				cont.setWidth(w - cont.cssBoxX);
-				cont.setHeight(h - cont.cssBoxY);
+				cont.setWidth(w );
+				cont.setHeight(h );
 				
-				body.setWidth(w - body.cssBoxX);
-				body.setHeight(h - body.cssBoxY);
+				body.setWidth(w);
+				body.setHeight(h);
 				
 				var sbw:int = 0;
 				if( scrollpane ) {
 					if( scrollpane.slider.visible ) sbw = 16;
 					if( title ) {
 						title.setWidth( w );
-						
-						scrollpane.setWidth( w - body.cssBoxX );
+						scrollpane.setWidth( w );
 						scrollpane.setHeight( h - scrollpane.y );
-						scrollpane.contentHeightChange();
+					}else{
+						scrollpane.setWidth(w);
 					}
-					scrollpane.setWidth(w);
 				}
 				
 				if( itemList) {
@@ -99,6 +98,8 @@
 					itemList.setWidth(0);
 					itemList.init();
 				}
+				
+				scrollpane.contentHeightChange();
 			}
 		}
 		
@@ -120,7 +121,6 @@
 				cont = new CssSprite( container.getWidth(), container.getHeight(), null, styleSheet, 'body', '', '', true);
 				addChild(cont);
 				cont.init();
-				
 				body = new CssSprite( container.getWidth(), container.getHeight(), cont, container.styleSheet, 'div', '', 'editor page-editor', false);
 			}
 		}
@@ -171,6 +171,8 @@
 			
 			itemList.format();
 			itemList.init();
+			
+			scrollpane.contentHeightChange();
 			
 			body.setChildIndex( plusButton, body.numChildren-2 );
 			body.setChildIndex( title, body.numChildren-1 );
@@ -241,12 +243,6 @@
 			pageTemplate = new PropertyCtrl( "Template", "pageTemplate", "list", templates.length > 0 ? templates[0] : "", null, templates, w, 0, itemList, container.styleSheet,'','',false);
 			pageWebDir = new PropertyCtrl( "Directory", "pageWebDir", "string", "/", null, [], w, 0, itemList, container.styleSheet,'','',false);
 			pageParent = new PropertyCtrl( "Parent", "pageParent", "pagelist", "", null, [], w, 0, itemList, container.styleSheet,'','',false);
-			
-			pageType.ctrlOptions.visible = false;
-			pageTitle.ctrlOptions.visible = false;
-			pageTemplate.ctrlOptions.visible = false;
-			pageWebDir.ctrlOptions.visible = false;
-			pageParent.ctrlOptions.visible = false;
 			
 			itemList.addItem( pageName );
 		
@@ -340,6 +336,8 @@
 		internal static var _date:String="now";
 		internal static var _complete:Function=null;
 		internal static var _props:Object=null;
+		internal static var _args:Object=null;
+		internal static var _tmpl:Object=null;
 		
 		private function saveCompleteFunc ( success:Boolean ) :void {
 			if( success && !pagesCreated ) pagesCreated = true;
@@ -359,13 +357,13 @@
 						pageTemplate.textBox.value,
 						pageParent.textBox.value,
 						pageWebDir.textBox.value,
-						"now", saveCompleteFunc, null );
+						"now", saveCompleteFunc, null, null, null );
 			}
 		}
 		
 		public static function createPage ( name:String, visible:Boolean, title:String, type:String,
 											template:String, parent:String, webdir:String,
-											date:String = "now", completeHandler:Function = null, props:Object = null) :Boolean
+											date:String = "now", completeHandler:Function = null, props:Object = null, args:Object=null, tmpl:Object=null) :Boolean
 		{
 			_name = name;
 			_visible = visible;
@@ -377,6 +375,8 @@
 			_date = date;
 			_complete = completeHandler;
 			_props = props;
+			_args = args;
+			_tmpl = tmpl;
 			_ltPage = null;
 			
 			var pms:Object = {};
@@ -439,7 +439,7 @@
 							CTTools.articlePages[i].filename = ltFilename;
 							_ltPage = CTTools.articlePages[i];
 							
-							CTTools.createPage( CTTools.articlePages[i], _props );
+							CTTools.createPage( CTTools.articlePages[i], _props, _args, _tmpl );
 							break;
 						}
 					}
@@ -460,7 +460,7 @@
 							CTTools.pages[i].webdir = pms[":webdir"];
 							CTTools.pages[i].filename = ltFilename;
 							_ltPage = CTTools.pages[i];
-							CTTools.createPage( CTTools.pages[i], _props );
+							CTTools.createPage( CTTools.pages[i], _props, _args, _tmpl );
 							break;
 						}
 					}
@@ -496,7 +496,7 @@
 								_webdir,
 								ltFilename );
 				_ltPage = pg;
-				CTTools.createPage( pg, _props );				
+				CTTools.createPage( pg, _props, _args, _tmpl );				
 				if( typeof(_complete) == "function" ) _complete( true );
 			}
 			else

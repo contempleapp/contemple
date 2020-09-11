@@ -7,46 +7,46 @@ MenuFolder:Folder;
 ContactOptions:Folder;
 
 #scope:GeneralOptions;
-	Browser-Title:String="Contemple Demo Website | Home";
+	Browser_Title:String="Contemple Demo Website | Home";
 	ColorsLabel:Section("Colors");
-	Background-Color:Color="#123";
-	Font-Color:Color="#CFE";
-	Font-Dark-Color:Color="#000";
-	Font-Light-Color:Color="#DFF";
+	Background_Color:Color="#123";
+	Font_Color:Color="#CFE";
+	Font_Dark-Color:Color="#000";
+	Font_Light-Color:Color="#DFF";
 	BGLabel:Section("Background Image");
-	Background-Image:Image("img","bg-new.#extension#","Image Files","*.JPG;*.PNG;*.SVG;")="img/bg.jpg";
+	Background_Image:Image("img","bg-new.#extension#","Image Files","*.JPG;*.PNG;*.SVG;")="img/bg.jpg";
 
 #scope:MenuFolder;
-	Menu-Background-Color:Color="#ABC";
-	Menu-Font-Color:Color="#123";
-	Menu-Font-Size:ScreenNumber(1,9,0.05)="1.25rem";
+	Menu_Background-Color:Color="#ABC";
+	Menu_Font_Color:Color="#123";
+	Menu_Font_Size:ScreenNumber(1,9,0.05)="1.25rem";
 
 #scope:BackgroundLogo;
 	LogoLabel:Section("Logo");
-	Logo-Image:Image("img","logo-new.#extension#","Image Files","*.JPG;*.PNG;*.SVG;")="img/logo.png";
+	Logo_Image:Image("img","logo-new.#extension#","Image Files","*.JPG;*.PNG;*.SVG;")="img/logo.png";
 	OverlayLabel:Section("Overlay Image");
-	Logo-Overlay:Image("img","logo-overlay-new.#extension#","Image Files","*.JPG;*.PNG;*.SVG;")="img/flares.png";
-	Logo-Opacity:Number(0,1,0.05)=.15;
-	Logo-Zoom:Integer(0,49,1)=22;
-	Logo-Top:Integer(0,99,1)=44;
+	Logo_Overlay:Image("img","logo-overlay-new.#extension#","Image Files","*.JPG;*.PNG;*.SVG;")="img/flares.png";
+	Logo_Opacity:Number(0,1,0.05)=.15;
+	Logo_Zoom:Integer(0,49,1)=22;
+	Logo_Top:Integer(0,99,1)=44;
 	
 #scope:ContactOptions;
-	Browser-Title:String="Contemple Demo Website | Contact";
+	Browser_Title:String="Contemple Demo Website | Contact";
 
 #scope:global;
 	TestNumLabel:Section("Test Number");
-	test-num:ScreenNumber(0,100,1)="47px";
+	test_num:ScreenNumber(0,100,1)="47px";
 
 #def;
 -->
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>{#GeneralOptions.Browser-Title}</title>
+	<title>{#GeneralOptions.Browser_Title}</title>
 	<link rel="stylesheet" href="main.css?{#r:random(2)}">
 </head>
 <body>
-	<div class="logo"><img src="{#Logo-Image}"></div>
+	<div class="logo"><img src="{#Logo_Image}"></div>
 	<div class="flares"></div>
 	<div class="header">
 		<div class="menu">
@@ -54,15 +54,15 @@ ContactOptions:Folder;
 		</div>
 	</div>
 	<div class="demo">
-		<div class="sc">{#static-content:include("raw/sc.html")}</div>
-		<h1>test-num: {#test-num}</h1>
-		<div>Unit: {#test-num@unit}</div>
-		<div>Negativ: {#test-num@negativ}</div>
-		<div>Invert: {#test-num@invert}</div>
-		<div>Calc 100-value*2: {#test-num@calc 100-(value*2)}</div>
-		<div>Sinus: {#test-num@calc sin(value/100)}</div>
-		<div>Cosinus: {#test-num@calc cos(value/100)}</div>
-		<div>Sqare Root: {#test-num@calc sqrt(value)}</div>
+		<div class="sc">{#static_content:include("raw/sc.html")}</div>
+		<h1>test-num: {#test_num}</h1>
+		<div>Unit: {#test_num@unit}</div>
+		<div>Negativ: {#test_num@negativ}</div>
+		<div>Invert: {#test_num@invert}</div>
+		<div>Calc 100-value*2: {#test_num@calc 100-(value*2)}</div>
+		<div>Sinus: {#test_num@calc sin(value/100)}</div>
+		<div>Cosinus: {#test_num@calc cos(value/100)}</div>
+		<div>Sqare Root: {#test_num@calc sqrt(value)}</div>
 	</div>
 	<div class="content">
 		{##Home("ico:/triforce.png"):content}

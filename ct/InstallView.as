@@ -17,7 +17,7 @@
 	
 	public class InstallView extends Sprite
 	{
-		public function InstallView ( label:String="") { //Installing Website Template") {
+		public function InstallView ( label:String="") {
 			container = Application.instance.view.panel;
 			container.addEventListener(Event.RESIZE, newSize);
 			init(label);
@@ -40,12 +40,8 @@
 			if( title ) 
 			{
 				title.label = s;
+				newSize();
 				
-				if( container && body ) {
-					var w:int = container.getWidth() - body.cssBoxX;
-					title.x = (w - title.getWidth())/2 /*+ body.cssLeft*/;
-					if( title.x < body.cssLeft ) title.x = body.cssLeft;
-				}
 				return true;
 			}
 			return false;
@@ -93,10 +89,8 @@
 			title.label = Language.getKeyword( label );
 			
 			progress = new Progress( int(w*.5), 0, body, styleSheet, '', 'install-progress', false);
+			progress.showPercentValue = false;
 			progress.value = 0;
-			
-			//abortBtn = new Button( [Language.getKeyword("Cancel Installing")], 0, 0, body, styleSheet, '', 'install-abort', false);
-			//abortBtn.addEventListener(MouseEvent.CLICK, abortHandler);
 			
 			infoText =  new TextField();
 			infoText.width = w - body.cssBoxX;
@@ -112,37 +106,34 @@
 			infoText.text = append ? infoText.text + v : v;
 		}
 		
-		public function abortHandler(e: Event): void {
-			
-		}
-		
-		public function newSize(e: Event): void
+		public function newSize(e: Event=null): void
 		{
-			var w:int = container.getWidth() - body.cssBoxX;
-			var h:int = container.getHeight() - body.cssBoxY;
+			var w:int = container.getWidth();
+			var h:int = container.getHeight();
 			var w2:int = int(w*.5);
-			var h2:int = int(h*.5);
-			
-			body.setWidth( w );
-			
+			var h2:int = int(h*.7);
+			if( cont ) {
+				cont.setWidth( w );
+				cont.setHeight( h );
+			}
+			if( body ) {
+				body.setWidth( w );
+				body.setHeight( h );
+			}
 			if( progress ) {
 				progress.setWidth( w2 );
 				progress.x = int((w - w2)*.5);
 				progress.y = h2;
-			}
-			
-			if( title ) {
-				title.x = (w - title.getWidth())/2 + body.cssLeft
+				
+				title.x = (w - title.getWidth())/2;
+				title.y = progress.y + int(progress.cssSizeY + title.cssMarginTop);
+				
+			}else if( title ) {
+				title.x = (w - title.getWidth())/2;
 				if( title.x < body.cssLeft ) title.x = body.cssLeft;
 				title.y = int((h2 - body.cssTop)*.5) - 4;
 			}
 			
-			/*if( abortBtn ) {
-				abortBtn.x = progress ? (progress.x + w2)-abortBtn.getWidth() : w - abortBtn.getWidth();
-				if( abortBtn.x < body.cssLeft ) abortBtn.x = body.cssLeft;
-				abortBtn.y = progress ? progress.y + progress.cssSizeY + abortBtn.cssMarginTop : h2;
-			}*/
-		
 			if( infoText ) {
 				infoText.x = body.cssLeft;
 				infoText.width = container.getWidth() - body.cssBoxX;

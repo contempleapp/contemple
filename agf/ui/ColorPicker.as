@@ -131,16 +131,16 @@
 			label.x = cssLeft;
 			
 			colorText = new TextField();
+			var fmt:TextFormat = styleSheet.getTextFormat( stylesArray );
+			fmt.align = "right";
+			colorText.defaultTextFormat = fmt;
 			colorText.selectable = true;
 			colorText.multiline = false;
-			colorText.text = "#1234567890";
+			colorText.text = "#72345678";
 			colorText.height = colorText.textHeight + 4;
-			colorText.text = "";
+			colorText.width = colorText.textWidth + 4;
 			
-			var fmt:TextFormat = styleSheet.getTextFormat( stylesArray );
-			colorText.defaultTextFormat = fmt;
-			
-			var previewWidth:int = 64;
+			var previewWidth:int = int(64 * CssUtils.numericScale);
 			colorPreviewWidth = previewWidth;
 			
 			colorPreview = new Sprite();
@@ -149,10 +149,12 @@
 			
 			ltlw -= int(previewWidth);
 			
-			colorText.width = previewWidth;
+			
+			colorText.text = "";
 			
 			setButton = new Button( [Language.getKeyword( "Set Color" )], 0, 0, this, styleSheet, '', 'color-picker-set-button',false);
 			setButton.addEventListener( MouseEvent.CLICK, setColorHandler );
+			
 			cancelButton = new Button( [Language.getKeyword( "Cancel Color" )], 0, 0, this, styleSheet, '', 'color-picker-cancel-button',false);
 			cancelButton.addEventListener( MouseEvent.CLICK, cancelColorHandler );
 			
@@ -162,9 +164,10 @@
 			var uih:int = muih;
 			
 			h = h - uih;
+			if( h < 32 ) h = 32;
 			
 			var imgw:Number = w - (cssBoxX);
-			var imgh:int = Math.round((h-30)/1.618);
+			var imgh:int = Math.round((h)/1.618);
 			
 			label.y = cssTop;
 			
@@ -184,7 +187,7 @@
 			sb.rotation = -90;
 			
 			sb.x = cssLeft;
-			sb.y = img2.y+img2.height + 24;
+			sb.y = img2.y+img2.height + (24 * CssUtils.numericScale);
 			sb.minValue = 0;
 			sb.maxValue = 200;
 			sb.value = 100;
@@ -193,9 +196,12 @@
 			
 			colorText.y = sb.y + sb.cssSizeX;
 			colorPreview.y = colorText.y + 24;
-			colorText.x = colorPreview.x;
+			colorText.x = w - (colorText.width + cssLeft);
 			
 			setButton.y = colorPreview.y + colorPreviewWidth + setButton.cssMarginTop;
+			if( setButton.y > h + uih ) {
+				setButton.y = (h + uih) - setButton.cssSizeY;
+			}
 			cancelButton.y = setButton.y;
 				
 			var xp:int = (setButton.cssSizeX + cancelButton.cssSizeX + cancelButton.cssMarginRight);
@@ -307,7 +313,7 @@
 			removeCP();
 		}
 		
-		private function removeCP ():void {
+		public function removeCP ():void {
 			if( target && target['onRemoveCP'] ) {
 				target.onRemoveCP();
 			}

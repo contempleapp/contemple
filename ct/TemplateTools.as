@@ -13,7 +13,6 @@
 	import ct.ctrl.*;
 	import flash.events.*;
 	import flash.filesystem.*;
-	//import flash.external.ExtensionContext;
 	import flash.net.*;
 	
 	/**
@@ -28,7 +27,11 @@
 	
 	public class TemplateTools extends BaseTool
 	{
+		
+		// right preview by default
 		public static var editor_w:Number = 0.6; // Resize var in percent
+		public static var editor_h:Number = 1; // Resize var in percent
+		
 		private static var currTLog:int;
 		private static var deco_chars:int = 96;
 		private static var deco_h:String = ".";
@@ -194,7 +197,7 @@
 		}
 		
 		/**
-		* Rewrite a page template areas and properties
+		* Rewrite a page template's areas and properties
 		* example on Blog Page with name "Blog":
 		*
 		* Areas:
@@ -207,7 +210,7 @@
 		* {#page#-BG:Image} -> {#Blog-BG:Image}
 		* {#Folder.10.page#-BG:Image} -> {#Folder.10.Blog-BG:Image}
 		**/
-		public static function rewritePage (txt:String, pageName:String, props:Object=null) :String
+		public static function rewritePage (txt:String, pageName:String, props:Object=null, args:Object=null, tmpl:Object=null) :String
 		{
 			var src:String = "page#";
 			
@@ -226,13 +229,13 @@
 				st = txt.indexOf( src, st );
 			}
 			
-			if ( props ) {
+			if ( props && args && tmpl) {
 				for( var n:String in props ) 
 				{
 					src = "{#" + n + "}";
 					st = txt.indexOf( src );
 					while ( st >= 0 ) {
-						txt = txt.substring(0,st) + props[n] + txt.substring( st+3+n.length );
+						txt = txt.substring(0,st) + ( (typeof(args[n]) == "undefined" && typeof(tmpl[n]) == "undefined") ? props[n] : Template.transformRichText(props[n], args[n], tmpl[n]) ) + txt.substring( st+3+n.length );
 						st = txt.indexOf( src, st );
 					}
 				}
@@ -281,7 +284,7 @@
 				vars.name = url;
 				vars.pwd = pwd;
 				
-				// dowload zip file..
+				// download zip file..
 				res.load( CTOptions.uploadScript, true, onHubZipFile, vars, true );
 			}
 		}
@@ -524,7 +527,7 @@
 						
 						if( f.isDirectory )
 						{
-							if( f.name == /*"st"*/ CTOptions.subtemplateFolder ) {
+							if( f.name == CTOptions.subtemplateFolder ) {
 								// update subtemplates 
 								updateSTFolder( f );
 							}else{
@@ -909,7 +912,7 @@
 									{
 										if( arr[i][fields[j]] != undefined )
 										{
-											if( fields[j] != "name" && fields[j] != "visible"  ) {
+											if( fields[j] != "name" && fields[j] != "visible" && fields[j] != "crdate"  ) {
 												xm += " " + fields[j] + '="'+ HtmlParser.toDBText( arr[i][fields[j]], true, true ) +'"';
 											}
 										}
@@ -945,7 +948,8 @@
 			return xm;
 		}
 		
-		public static function createTemplate ( name:String, type:String, index:String, files:String, folders:String, tables:String, fields:String, sortproperties:String, label:String, icon:String ) :Boolean {
+		public static function createTemplate ( name:String, type:String, index:String, files:String="", folders:String="", tables:String="", fields:String="", sortproperties:String="priority", 
+												label:String="", icon:String="", articlepage:String="", articlename:String="", parselistlabel:Boolean=false ) :Boolean {
 			newSTName = name;
 			newSTType = type;
 			newSTIndex = index;
@@ -956,12 +960,25 @@
 			newSTSortproperties = sortproperties;
 			newSTLabel = label;
 			newSTIcon = icon;
+			newSTArticlename = articlename;
+			newSTArticlepage = articlepage;
+			newSTParselistlabel = parselistlabel;
 			
 			if( type == "root" ) {
-				// Ask for new project folder
+				// Ask for new template folder
 				getNewTmplFolder( createRootTemplate );
 			}else{
-				// Create folder with 'name' in current project tmpl folder
+				// Create folder with 'name' in current project/tmpl/st folder
+				var tmpl:File = new File( CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderTemplate );
+				var st :File = tmpl.resolvePath( CTOptions.subtemplateFolder );
+				st.createDirectory();
+				
+				createSubTemplate( st, newSTName, newSTType, newSTIndex, "", newSTFiles, newSTFolders, newSTLabel, newSTIcon, newSTFields, newSTTables, newSTSortproperties, newSTArticlepage, newSTArticlename, newSTParselistlabel );
+				
+				setTimeout( function () {
+					Application.instance.cmd( "CTTools subtemplate template:/st/" + newSTName );
+				}, 0 );
+				
 			}
 			return true;
 		}
@@ -979,23 +996,72 @@
 			if(newSTCompleteHandler != null) newSTCompleteHandler();
 		}
 		
+		
+		private static function createSubTemplate ( stFolder:File, name:String, type:String, index_name:String, index_str:String, files:String, folders:String, listlabel:String, listicon:String, fields:String, table:String, sort:String="priority", 
+													articlepage:String="", articlename:String="", parselistlabel:Boolean=false) :void
+		{
+			var st_folder:File = stFolder.resolvePath(name);
+			st_folder.createDirectory();
+			
+			var dp:int =  fields.indexOf(":");
+			
+			if(dp >= 0 )
+			{
+				var sp:Array = fields.split(",");
+				var f:String = "";
+				
+				for( var i:int=0; i<sp.length; i++ ) {
+					dp = sp[i].indexOf(":");
+					if( dp >= 0 ) {
+						f += sp[i].substring(dp + 1) + ",";
+					}else{
+						f += sp[i] + ",";
+					}
+				}
+				fields = f.substring( 0, f.length -1);
+			}
+			var ti:File = st_folder.resolvePath(CTOptions.templateIndexFile);
+			var tistr:String = '<template \r\n        name="' + name+'" \r\n        type="'+type+'" \r\n        index="'+index_name+'" \r\n        files="' + 
+								files+'" \r\n        folders="'+folders+'"  \r\n        fields="'+fields+'"  \r\n        tables="'+ table + 
+			'" \r\n        help="help.xml" \r\n        initquery="" \r\n        defaultquery="" \r\n        sortareas="priority" \r\n        sortproperties="priority" \r\n        templatefolders="" \r\n        listlabel="' + 
+								listlabel+'" \r\n        listicon="'+listicon+'"  \r\n        articlepage="'+articlepage+'"  \r\n        articlename="'+articlename+'" \r\n        parselistlabel="'+parselistlabel+'">\r\n    </template>';
+			
+			CTTools.writeTextFile( ti.url, '<?xml version="1.0" encoding="utf-8"?>\r\n<ct>\r\n    '+tistr+'\r\n</ct>' );
+			
+			var help:File = st_folder.resolvePath("help.xml");
+			CTTools.writeTextFile( help.url, '<?xml version="1.0" encoding="utf-8" ?>\r\n<ct>\r\n\r\n<item name="'+name+'">\r\n        <lang name="en" value="'+name+'"/>\r\n        <lang name="de" value="'+name+'"/>\r\n    </item>\r\n</ct>' );
+			
+			var indexfile:File = st_folder.resolvePath(index_name);
+			CTTools.writeTextFile( indexfile.url, index_str );
+		}
+		
 		private static function createRootTemplate () :void
 		{
 			var tmpl:File = new File( newSTTemplateFolder );
-			var st :File = tmpl.resolvePath("st");
+			var st :File = tmpl.resolvePath( CTOptions.subtemplateFolder );
 			st.createDirectory();
 			
-			var ti:File = tmpl.resolvePath("ti.xml");
-			var tistr:String = '<template name="' + newSTName+'" type="'+newSTType+'" index="'+newSTIndex+'" files="'+newSTFiles+'" folders="'+newSTFolders+'" help="help.xml" dbcmds="cmd.xml" sortareas="priority" sortproperties="'+newSTSortproperties+'" templatefolders="st/icons" listlabel="'+newSTLabel+'" listicon="'+newSTIcon+'"></template>';
+			var text_html:String = "<!-- \r\n#def:\r\nname:Name;\r\nvalue:RichText('cssclass1,cssclass2','<p>|</p>');\r\n#def;\r\n-->\r\n<p>{#value}</p>\r\n";
+			var img_html:String = '<!-- \r\n#def:\r\nname:Name;\r\nstyle:List("original","fullsize","left","center","right");\r\npicture:Image("img","image-#year#-#month#-#date#-#hour#-#minutes#-#inputname#.#extension#");\r\n#def;\r\n-->\r\n<img class="{#style}" src="{#picture}">\r\n';
+			var menu_html:String = "<!-- \r\n#def:\r\nname:Name;\r\nvalue:RichText('cssclass1,cssclass2','<p>|</p>');\r\n#def;\r\n-->\r\n<p>{#value}</p>\r\n";
+			
+			
+			createSubTemplate( st, "app.contemple.text", "content", "text.html", text_html, "", "", "Text: #value#", "ico:/pencil.png", "name,style,value", "app_contemple_text" ); 
+			createSubTemplate( st, "app.contemple.image", "content", "image.html", img_html, "", "", "Image: #value#", "ico:/iamge.png", "name,style,picture", "app_contemple_image" );
+			createSubTemplate( st, "app.contemple.menu", "menu", "link.html", menu_html, "", "", "Link: #label#", "ico:/menu.png", "name,label,link", "app_contemple_menu" );
+			
+			
+			var ti:File = tmpl.resolvePath(CTOptions.templateIndexFile);
+			var tistr:String = '<template \r\n        name="' + newSTName+'" \r\n        type="'+newSTType+'" \r\n        index="'+newSTIndex+'" \r\n        files="'+newSTFiles+'" \r\n        folders="'+newSTFolders+'" \r\n        help="help.xml" \r\n        dbcmds="cmd.xml" \r\n        sortareas="priority" \r\n        sortproperties="'+newSTSortproperties+'" \r\n        templatefolders="">\r\n    </template>';
 			
 			CTTools.writeTextFile( ti.url, '<?xml version="1.0" encoding="utf-8"?>\r\n<ct>\r\n    '+tistr+'\r\n</ct>' );
 			
 			var cmd:File = tmpl.resolvePath("cmd.xml");
-			var cmdstr:String = '    <appload>\r\n    <!-- App Load Commands Execute Once On Load -->\r\n       <cmd name="SetValue String agf.ui.Language.language de"/>\r\n       <cmd name="CTTools browser-preview"/>\r\n    </appload>\r\n    <dbcreate>\r\n        <cmd name="CTTools subtemplate template-generic:/'+newSTName+'/st/text"/>\r\n    </dbcreate>';
+			var cmdstr:String = '    <appload>\r\n    <!-- App Load Commands Execute Once On Load -->\r\n</appload>\r\n    <dbcreate>\r\n        <cmd name="CTTools subtemplate template-generic:/st/app.contemple.text"/>\r\n        <cmd name="CTTools subtemplate template-generic:/st/app.contemple.image"/>\r\n        <cmd name="CTTools subtemplate template-generic:/st/app.contemple.menu-item"/>\r\n    </dbcreate>';
 			CTTools.writeTextFile( cmd.url, '<?xml version="1.0" encoding="utf-8"?>\r\n<ct>\r\n    <appstart>\r\n    <!-- App Start Commands Execute Every Restart -->\r\n    </appstart>\r\n'+cmdstr+'\r\n</ct>' );
 			
 			var help:File = tmpl.resolvePath("help.xml");
-			CTTools.writeTextFile( help.url, '<?xml version="1.0" encoding="utf-8" ?>\r\n<ct>\r\n    <item name="Welcome">\r\n        <lang name="en" value="Welcome"/>\r\n        <lang name="de" value="Willkommen"/>\r\n    </item>\r\n</ct>' );
+			CTTools.writeTextFile( help.url, '<?xml version="1.0" encoding="utf-8" ?>\r\n<ct>\r\n    <item name="Welcome">\r\n        <lang name="en" value="Welcome"/>\r\n        <lang name="de" value="Willkommen"/>\r\n    </item>\r\n<item name="'+newSTName+'">\r\n        <lang name="en" value="'+newSTName+'"/>\r\n        <lang name="de" value="'+newSTName+'"/>\r\n    </item>\r\n</ct>' );
 			
 			var jsw:Boolean = false;
 			var cssw:Boolean = false;
@@ -1024,7 +1090,6 @@
 					pathSt = tmpString.lastIndexOf(CTOptions.urlSeparator);
 					if( pathSt >= 0  ) {
 						pathName = tmpString.substring( pathSt+1 );
-						
 					}else{
 						pathName = tmpString;
 					}
@@ -1049,7 +1114,7 @@
 					
 					if( file.extension == "js" && !jsw) {
 						jsw = true;
-						filetext = '(function ($) {\r\n    if(typeof onepage_p1 == "undefined") \r\n{\r\n     onepage_p1 = {\r\n    docStart:function() {}\r\n}\r\n     var p = onepage_p1;\r\n  };\r\n})(jQuery);';
+						filetext = "";//'(function ($) {\r\n    if(typeof onepage_p1 == "undefined") \r\n{\r\n     onepage_p1 = {\r\n    docStart:function() {}\r\n}\r\n     var p = onepage_p1;\r\n  };\r\n})(jQuery);';
 						embedfiles += '\r\n    <script type=text/javascript src='+file.name+"."+file.extension+'></script>';
 					} else if( file.extension == "css" && !cssw) {
 						cssw = true;
@@ -1085,9 +1150,13 @@
 				}
 				indexFile = tmpl.resolvePath( pathName + ( pathExtension == "" ? "" : "."+pathExtension) );
 			}
-			if( file.exists ) {
+			
+			if( indexFile.exists )
+			{
 				CTTools.copyFile( indexFile.url, tmpl.resolvePath(newSTIndex).url );
-			}else{
+			}
+			else
+			{
 				//newSTIndex);
 				var head:String = '\r\n    <meta charset=utf-8>\r\n    <meta name=mobile-web-app-capable content=yes>\r\n    <meta name=viewport content=width=device-width,initial-scale=1.0,minimum-scale={#8.MOBILE-MIN-SCALE:Number(0.1,20,0.1)=1},maximum-scale={#9.MOBILE-MAX-SCALE:Number(0.1,20,0.1)=1},user-scalable={#7.ALLOW-SCALE-ON-MOBILE-DEVICES:Boolean(1,0)=0}>';
 				head += '\r\n    <meta name="apple-mobile-web-app-capable" content="yes">\r\n    <meta name="apple-mobile-web-app-status-bar-style" content="black">\r\n    <meta name="description" content="{#4.PAGE-DESCRIPTION:String}">\r\n    <meta name="author" content="{#3.PAGE-AUTHOR:String}">\r\n';
@@ -1338,6 +1407,9 @@
 		private static var newSTSortproperties:String;
 		private static var newSTLabel:String;
 		private static var newSTIcon:String;
+		private static var newSTArticlename:String;
+		private static var newSTArticlepage:String;
+		private static var newSTParselistlabel:Boolean;
 		
 		private static var newSTTemplateFolder:String="";
 		private static var newSTCompleteHandler:Function;
@@ -1390,7 +1462,7 @@
 				{
 					cc = s.charCodeAt(i);
 					
-					if( cc == 9 || cc == 10 || cc == 13  /*|| i == L-1 */ )
+					if( cc == 9 || cc == 10 || cc == 13 )
 					{
 						if( mdc != "" ) {
 							mdt = out.substring( mdo );
@@ -1407,7 +1479,7 @@
 						continue;
 					}
 					
-					if( ltlf == i - 1 /*|| i == 0*/ )
+					if( ltlf == i - 1 )
 					{
 						// markdown action
 						mdc = "";
@@ -1722,6 +1794,14 @@
 										val = "@";
 									}else if( nm == "hashtag") {
 										val = "#";
+									/*}else if( nm == "lt") {
+										val = "&lt;";
+									}else if( nm == "gt") {
+										val = "&gt;";
+									}else if( nm == "sbro") {
+										val = "[";
+									}else if( nm == "sbrc") {
+										val = "]";*/
 									/*}else if( nm == "separator") {
 										val = "#separator";*/
 									}else if( nm == "br") {

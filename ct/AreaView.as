@@ -9,7 +9,8 @@
 	import flash.display.Sprite;
 	import flash.events.*;
 	import flash.geom.Rectangle;
-	
+	import flash.utils.setTimeout;
+	 
 	public class AreaView extends CssSprite
 	{
 		public function AreaView(w:Number=0, h:Number=0, parentCS:CssSprite=null, style:CssStyleSheet=null, name:String='', id:String="", classes:String="", noInit:Boolean=false)  {
@@ -29,7 +30,7 @@
 		// new items
 		public var scrollpane2:ScrollContainer;
 		public var itemList2:ItemList;
-		private var sizeH:Number = 290;
+		private var sizeH:Number = 100;
 		private var sizeButton:Button;
 		private var currItemId:int=-1;
 		private var currItemName:String="";
@@ -78,6 +79,7 @@
 			sizeButton.addEventListener( MouseEvent.MOUSE_DOWN, viewSizeDown );
 			
 			setWidth( getWidth() );
+			setHeight(getHeight());
 		}
 		
 		public function clearAreas () :void {
@@ -106,6 +108,10 @@
 		}
 		
 		private function newItemClick (e:MouseEvent) :void {
+			if( e ) {
+				e.stopImmediatePropagation();
+				e.preventDefault();
+			}
 			if( clickScrolling ) {
 				clickScrolling = false;
 			}
@@ -116,13 +122,19 @@
 		}
 		private function newItemUp (e:MouseEvent) :void
 		{
+			if( e ) {
+				e.stopImmediatePropagation();
+				e.preventDefault();
+			}
 			stage.removeEventListener( MouseEvent.MOUSE_UP, newItemUp );
 			
 			if( newItemDrag ) {
 				newItemDrag = false;
 			}else{
 				stage.removeEventListener( MouseEvent.MOUSE_MOVE, newItemMove );
-				clickScrolling = false;
+				setTimeout( function () {
+					clickScrolling = false;
+				}, 77);
 			}
 		}
 		
@@ -153,6 +165,10 @@
 		
 		private function newItemDown (e:MouseEvent) :void
 		{
+			if( e ) {
+				e.stopImmediatePropagation();
+				e.preventDefault();
+			}
 			var currItem:Button = Button(e.currentTarget);
 			
 			currItemId = currItem.options.intid;
@@ -182,6 +198,7 @@
 			var L:int;
 			var sbw:int;
 			var itm:CssSprite;
+			var btn:Button;
 			
 			if( scrollpane1 ) {
 				sbw = 0;
@@ -202,11 +219,12 @@
 				if( scrollpane2.slider.visible ) sbw = 10;
 				
 				scrollpane2.setWidth( w );
+				
 				if( itemList2 && itemList2.items ) {
 					L = itemList2.items.length;
 					for(i=0; i<L; i++) {
-						itm = CssSprite( itemList2.items[i] );
-						itm.setWidth( w - ( cssBoxX + itm.cssBoxX + sbw ) );
+						btn = Button( itemList2.items[i] );
+						btn.setWidth( w - ( cssBoxX + btn.cssBoxX + sbw ) );
 					}
 					itemList2.setWidth(0);
 					itemList2.init();
@@ -235,7 +253,7 @@
 			}
 			if( scrollpane2 ) {
 				scrollpane2.y = cssTop + h1 + newItemLabel.cssSizeY + cssTop + 2;
-				scrollpane2.setHeight ( h2 - (newItemLabel.cssSizeY) );
+				scrollpane2.setHeight ( h2 - newItemLabel.height );
 				scrollpane2.contentHeightChange();
 			}
 			if(newItemLabel) {
@@ -247,7 +265,13 @@
 			}
 		}
 		
-		private function btnUp (event:MouseEvent) :void {
+		// area tree click
+		private function btnUp (event:MouseEvent) :void
+		{
+			if( event ) {
+				event.stopImmediatePropagation();
+				event.preventDefault();
+			}
 			stage.removeEventListener( MouseEvent.MOUSE_MOVE, btnMove );
 			stage.removeEventListener( MouseEvent.MOUSE_UP, btnUp );
 		}
@@ -268,6 +292,10 @@
 			}
 		}
 		private function btnDown (event:MouseEvent) :void {
+			if( event ) {
+				event.stopImmediatePropagation();
+				event.preventDefault();
+			}
 			stage.addEventListener( MouseEvent.MOUSE_MOVE, btnMove );
 			stage.addEventListener( MouseEvent.MOUSE_UP, btnUp );
 			clickScrolling = false;
@@ -276,6 +304,10 @@
 		
 		// resizing height 
 		private function viewSizeDown (e:MouseEvent) :void {
+			if( e ) {
+				e.stopImmediatePropagation();
+				e.preventDefault();
+			}
 			if( stage ) {
 				stage.addEventListener( MouseEvent.MOUSE_UP, viewSizeUp );
 				addEventListener( Event.ENTER_FRAME, viewSizeFrame );
@@ -283,6 +315,10 @@
 			}
 		}
 		private function viewSizeUp (e:MouseEvent) :void {
+			if( e ) {
+				e.stopImmediatePropagation();
+				e.preventDefault();
+			}
 			if( stage ) {
 				stage.removeEventListener( MouseEvent.MOUSE_UP, viewSizeUp );
 				removeEventListener( Event.ENTER_FRAME, viewSizeFrame );
@@ -300,7 +336,6 @@
 				sizeH = minH;
 			}
 			setHeight( getHeight() );
-			setWidth(getWidth());
 		}
 	}
 }

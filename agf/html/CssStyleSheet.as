@@ -461,7 +461,11 @@
 			var fmt:TextFormat = new TextFormat();
 			
 			if( st.fontFamily ) fmt.font = CssUtils.parseFontFamily( st.fontFamily );
-			if( st.fontSize ) fmt.size = CssUtils.parse( st.fontSize );
+			//if( st.fontSize ) fmt.size = CssUtils.parse( st.fontSize );
+			//only px font-size
+			//if( st.fontSize ) fmt.size = parseInt( st.fontSize ); //CssUtils.parse( st.fontSize );
+			if( st.fontSize ) fmt.size = parseInt( st.fontSize ); //CssUtils.parse( st.fontSize );
+			
 			if( st.color ) fmt.color = CssUtils.parse( st.color );
 			if( (st.fontWeight && st.fontWeight == "bold") || st.fontWeight >= 500 ) fmt.bold = true;
 			if( st.fontStyle && st.fontStyle == "italic" ) fmt.italic = true;

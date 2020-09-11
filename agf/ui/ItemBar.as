@@ -90,12 +90,15 @@
 					for(i=1; i<L; i++) 
 					{
 						it = Ctrl( items[i] );
-						if(!contains(it)) addChild(it);
-						it.x = tmp.x + tmp.width + margin;
-						hgt = Math.floor( tmp.height );
-						if(hgt > maxH) maxH = hgt;
-						
-						tmp = it;
+						if (!contains(it)) addChild(it);
+						if ( !it.visible ) {
+							it.x = 0;
+						}else{
+							it.x = tmp.x + tmp.width + margin;
+							hgt = Math.floor( tmp.height );
+							if(hgt > maxH) maxH = hgt;
+							tmp = it;
+						}
 					}
 				}
 				

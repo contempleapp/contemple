@@ -22,57 +22,42 @@
 	* - New with Template Folder / ZipFile
 	* - Select previously installed Template
 	*/
-	public class StartScreen extends Sprite 
+	public class StartScreen extends BaseScreen
 	{
-		public function StartScreen () 
+		public function StartScreen () {}
+		
+		protected override function create () :void
 		{
-			container = Application.instance.view.panel;
-			container.addEventListener(Event.RESIZE, newSize);
-			create();
-		}
-		private function create () :void
-		{
+			super.create();
+			
 			var i:int;
 			var pi:PopupItem;
 			
 			var w:int = container.getWidth();
 			var h:int = container.getHeight();
 			
-			cont = new CssSprite( w, h, null, container.styleSheet, 'body', '', '', true);
-			addChild(cont);
-			cont.init();
-			
-			body = new CssSprite(w, h, cont, container.styleSheet, 'div', '', 'editor start-screen', false);
-			body.setWidth( w - body.cssBoxX );
-			body.setHeight( h - body.cssBoxY );
-			
-			if( CTOptions.animateBackground ) {
-				HtmlEditor.dayColorClip( body.bgSprite );
-			}
-			
-			title = new Label(0, 0, body, container.styleSheet, '', 'start-screen-title', false);
+			title = new Label(0, 0, scrollpane.content, container.styleSheet, '', 'start-screen-title', false);
 			title.label = Language.getKeyword( "Install a Website or Template" );
 			title.textField.autoSize = TextFieldAutoSize.LEFT;
 		
-			installBtn = new Button( [ new IconFromFile( Options.iconDir + "/earth.png",Options.iconSize,Options.iconSize), Language.getKeyword("Connect to website") ], 0, 0, body, container.styleSheet, '','start-screen-btn', false);
+			installBtn = new Button( [ new IconFromFile( Options.iconDir + "/earth.png",Options.iconSize,Options.iconSize), Language.getKeyword("Connect to website") ], 0, 0, scrollpane.content, container.styleSheet, '','start-screen-btn', false);
 			installBtn.addEventListener( MouseEvent.CLICK, installBtnHandler);
 			
-			installText = new Label( 0, 0, body, container.styleSheet, '', 'start-screen-info', false);
+			installText = new Label( 0, 0, scrollpane.content, container.styleSheet, '', 'start-screen-info', false);
 			installText.textField.multiline = true;
 			installText.textField.wordWrap = true;
 			installText.textField.autoSize = TextFieldAutoSize.LEFT;
 			installText.label = Language.getKeyword("Connect to a Website with Contemple Hub enabled");
 			
-			
-			newBtn = new Button( [ new IconFromFile( Options.iconDir + "/folder.png",Options.iconSize,Options.iconSize), Language.getKeyword("Install a new Template Folder") ], 0, 0, body, container.styleSheet, '','start-screen-btn', false);
+			newBtn = new Button( [ new IconFromFile( Options.iconDir + "/folder.png",Options.iconSize,Options.iconSize), Language.getKeyword("Install a new Template Folder") ], 0, 0, scrollpane.content, container.styleSheet, '','start-screen-btn', false);
 			newBtn.addEventListener( MouseEvent.CLICK, newBtnHandler);
 			
-			newZipBtn = new Button( [ new IconFromFile( Options.iconDir + "/file-code.png",Options.iconSize,Options.iconSize), Language.getKeyword("Install a new Template Zip") ], 0, 0, body, container.styleSheet, '','start-screen-btn', false);
+			newZipBtn = new Button( [ new IconFromFile( Options.iconDir + "/file-code.png",Options.iconSize,Options.iconSize), Language.getKeyword("Install a new Template Zip") ], 0, 0, scrollpane.content, container.styleSheet, '','start-screen-btn', false);
 			newZipBtn.addEventListener( MouseEvent.CLICK, newZipBtnHandler);
 			
-			installedTemplates = new Popup( [new IconArrowDown( Application.instance.mainMenu.iconColor, 1, Options.iconSize, Options.iconSize * .5 )
-			, Language.getKeyword("Select Installed Template") ], 0, 0, body, container.styleSheet, '','start-screen-popup', false);
-			
+			installedTemplates = new Popup( [new IconArrowDown( Application.instance.mainMenu.iconColor, 1, Options.iconSize, Options.iconSize )
+			, Language.getKeyword("Select Installed Template") ], 0, 0, scrollpane.content, container.styleSheet, '','start-screen-popup', false);
+			installedTemplates.alignH = "left";
 			installedTemplates.addEventListener( PopupEvent.SELECT, selectInstallTemplate);
 			
 			if ( CTTools.activeTemplate ) {
@@ -98,10 +83,10 @@
 				}
 			}
 			
-			newText = new Button( [  Language.getKeyword("Select a Folder or a ZIP file with a Template") ], 0, 0, body, container.styleSheet, '','start-screen-new-template', false);
+			newText = new Button( [  Language.getKeyword("Select a Folder or a ZIP file with a Template") ], 0, 0, scrollpane.content, container.styleSheet, '','start-screen-new-template', false);
 			newText.addEventListener( MouseEvent.CLICK, newTextHandler);
 			
-			currTmplText = new Label( 0, 0, body, container.styleSheet, '', 'start-screen-info', false);
+			currTmplText = new Label( 0, 0, scrollpane.content, container.styleSheet, '', 'start-screen-info', false);
 			currTmplText.textField.multiline = true;
 			currTmplText.textField.wordWrap = true;
 			currTmplText.textField.autoSize = TextFieldAutoSize.LEFT;
@@ -111,19 +96,14 @@
 		}
 		
 		public var title:Label;
-		public var container: Panel;
 		public var installText:Label;
 		public var currTmplText:Label;
 		public var newText:Button; // toggle button:
-		private var scrollContainer:ScrollContainer;
 		
 		private var installBtn:Button;
 		private var newBtn:Button;
 		private var newZipBtn:Button;
 		private var installedTemplates:Popup;
-		
-		private var cont:CssSprite;
-		private var body:CssSprite;
 		
 		private var showNewTmpl:Boolean = false;
 		
@@ -213,23 +193,21 @@
 			}
 		}
 		
-		private function newSize (e:Event) :void
+		protected override function newSize (e:Event) :void
 		{
+			super.newSize(e);
+			
 			var w:int = container.getWidth();
 			var h:int = container.getHeight();
 			var w3:int = Math.floor((w - (body.cssBoxX + container.cssBoxX)) / 3);
 			
-			var cx:int = body.cssLeft;
+			var cx:int = 0;
 			var cy:int = 0;
 			
-			body.setWidth(w);
-			body.setHeight(h);
-			
 			if ( title ) {
-				title.x = Math.floor( (w - title.getWidth() ) * .5);
-				title.y = body.cssTop;
-				
-				cy = title.y + title.height + title.cssMarginBottom;
+				title.x = Math.floor( (w - (title.getWidth()+body.cssBoxX) ) * .5);
+				title.y = 0;
+				cy = title.height + title.cssMarginBottom;
 			}
 			if ( installText ) {
 				installText.x = cx;
@@ -248,6 +226,7 @@
 				newText.y = cy + newText.cssMarginTop;
 				cy += newText.cssSizeY + newText.cssMarginY;
 			}
+			
 			if ( newBtn ) {
 				newBtn.x = cx;
 				newBtn.y = cy + newBtn.cssMarginTop;
@@ -267,6 +246,7 @@
 			if ( installedTemplates ) {
 				installedTemplates.x = cx;
 				installedTemplates.y = cy + installedTemplates.cssMarginTop;
+				cy += installedTemplates.cssSizeY + newText.cssMarginY;
 			}
 		}
 	}

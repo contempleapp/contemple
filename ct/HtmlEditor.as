@@ -16,6 +16,8 @@
 	import flash.utils.setTimeout;
 	import flash.filesystem.File;
 	import flash.filters.*;
+	import agf.html.CssUtils;
+	import agf.utils.NumberUtils;
 	import agf.animation.EnvelopeChannel;
 	import ct.ctrl.InputTextBox;
 	import flash.media.StageWebView; 
@@ -25,6 +27,11 @@
 	{
 		public function HtmlEditor ()
 		{
+			if( ! CTTools.activeTemplate ) {
+				Application.instance.cmd( "Application view StartScreen" );
+				return;
+			}
+			
 			var main:Main = Main(Application.instance);
 			container = main.view.panel;
 			main.view.addEventListener( AppEvent.VIEW_CHANGE, removePanel );
@@ -53,12 +60,18 @@
 		public static var renderPreview:Boolean = true;
 		public static var env:EnvelopeChannel;
 		private static var history:Vector.<Object> = new Vector.<Object>();
+		public static var maxHistory:int = 2;
+		
+		internal static var tmpEditorW:Number = 1;
+		internal static var tmpEditorH:Number = 0.6;
 		
 		public function historyBack () :void {
-			var uo:Object = history.pop();
-			if( webView && webView.stage ) {
-				webView.loadURL( uo.uri + InputTextBox.getUniqueName("?", 1) + uo.hash );
-				if( adresBar ) adresBar.text = uo.uri;
+			if( history && history.length > 0 ) {
+				var uo:Object = history.pop();
+				if( webView && webView.stage ) {
+					webView.loadURL( uo.uri + InputTextBox.getUniqueName("?", 1) + uo.hash );
+					if( adresBar ) adresBar.text = uo.uri;
+				}
 			}
 		}
 		
@@ -69,9 +82,15 @@
 			return isPreviewOpen ? webView.viewPort.x : 0;
 		}
 		
+		public static function get previewY () :int {
+			return isPreviewOpen ? webView.viewPort.y : 0;
+		}
+		
 		private function create () :void
 		{
 			var editor_w:Number = TemplateTools.editor_w;
+			var editor_h:Number = TemplateTools.editor_h;
+			
 			if( webView == null ) webView = new StageWebView( CTOptions.nativePreview );
 			if( previewBg && container.contains(previewBg)) container.removeChild( previewBg );
 			if( reloadBtn && container.contains(reloadBtn)) container.removeChild( reloadBtn );
@@ -85,17 +104,17 @@
 			var w:int = container.cssSizeX - container.cssBoxX;
 			var h:int = container.cssSizeY - container.cssBoxY;
 			
-			editor = new TemplateEditor ( (w * editor_w), h, container, container.styleSheet, 'body', '','editor', false);
+			editor = new TemplateEditor ( (w * editor_w), (h * editor_h), container, container.styleSheet, 'body', '','editor', false);
 			container.addEventListener( MouseEvent.MOUSE_DOWN, resizeEditor );
 			
 			if( CTOptions.previewInEditor )				
 			{
 				previewBg = new CssSprite( 1,1, container, container.styleSheet, 'div', '', 'preview-bg', false );
 				
-				resizeIcon = new Button( [new IconFromFile("app:/"+Options.iconDir + CTOptions.urlSeparator + "ziehen-h.png", 24, 24)], 0, 0, container, container.styleSheet, '', 'preview-resize-icon', false);
+				resizeIcon = new Button( [new IconFromFile("app:/"+Options.iconDir + CTOptions.urlSeparator + "ziehen-h.png", Options.btnSize, Options.btnSize)], 0, 0, container, container.styleSheet, '', 'preview-resize-icon', false);
 				resizeIcon.addEventListener( MouseEvent.MOUSE_DOWN, resizeIconClick );
 				
-				reloadBtn = new Button( [new IconFromFile("app:/"+Options.iconDir + CTOptions.urlSeparator + "sync-btn.png",18,18)], 0, 0, container, container.styleSheet, '', 'preview-reload-btn', false);
+				reloadBtn = new Button( [new IconFromFile("app:/"+Options.iconDir + CTOptions.urlSeparator + "sync-btn.png",Options.iconSize,Options.iconSize)], 0, 0, container, container.styleSheet, '', 'preview-reload-btn', false);
 				reloadBtn.addEventListener( MouseEvent.CLICK, reloadClick );
 				
 				adresBar = new TextField();
@@ -104,7 +123,7 @@
 				if( !adresBarFMT ) adresBarFMT = container.styleSheet.getTextFormat( ["*","body",".preview-adres-bar"] );
 				adresBar.text = "AypQÜÄÖ";
 				adresBar.setTextFormat( adresBarFMT );
-				adresBar.height = adresBar.textHeight ;
+				adresBar.height = adresBar.textHeight + (4*CssUtils.numericScale);
 				adresBar.text = "";
 				adresBar.embedFonts = Options.embedFonts;
 				adresBar.antiAliasType = Options.antiAliasType;
@@ -129,21 +148,16 @@
 			}
 		}
 		
-		private static var tmpEditorW:Number = 0.75;
-		
-		private function adresActivate ( e:FocusEvent ) :void
-		{
+		private function adresActivate ( e:FocusEvent ) :void {
 			if( stage ) {
 				stage.addEventListener( KeyboardEvent.KEY_DOWN, adresKeyDown );
 			}
 		}
 		
-		private function adresKeyDown ( e:KeyboardEvent ) :void
-		{
+		private function adresKeyDown ( e:KeyboardEvent ) :void {
 			if ( e.charCode == 13 ) {
 				var filepath:String = adresBar.text;
 				var s7:String = filepath.substring(0, 7);
-				
 				if( filepath.substring(0,4) == "www." ) {
 					filepath = "http://" + filepath;
 				}else if( s7 != "http://" && s7 != "file://" && filepath.substring(0, 8) != "https://" ) {
@@ -153,8 +167,7 @@
 			}
 		}
 		
-		private function adresDeactivate ( e:FocusEvent ) :void
-		{
+		private function adresDeactivate ( e:FocusEvent ) :void {
 			stage.removeEventListener( KeyboardEvent.KEY_DOWN, adresKeyDown );
 		}
 		
@@ -165,15 +178,32 @@
 			}
 		}
 		
+		public static function showPreview( enabled:Boolean=true ) :void {
+			if( !enabled ) {
+				renderPreview = false;
+				if( webView ) webView.stage = null;
+				tmpEditorW = TemplateTools.editor_w;
+				tmpEditorH = TemplateTools.editor_h;
+				TemplateTools.editor_w = 1;
+				TemplateTools.editor_h = 1;
+			}else{
+				renderPreview = true;
+				TemplateTools.editor_w = tmpEditorW;
+				TemplateTools.editor_h = tmpEditorH;
+			}
+		}
+		
 		public function collapseClick (e:Event=null) :void {
 			if( renderPreview ) {
 				renderPreview = false;
 				webView.stage = null;
 				tmpEditorW = TemplateTools.editor_w;
+				tmpEditorH = TemplateTools.editor_h;
 				TemplateTools.editor_w = 1;
 			}else{
 				renderPreview = true;
 				TemplateTools.editor_w = tmpEditorW;
+				TemplateTools.editor_h = tmpEditorH;
 				setTimeout( displayFiles, 0 );
 			}
 			setTimeout( newSize, 50 );
@@ -183,94 +213,179 @@
 		public function newSize (e:Event=null) :void
 		{
 			var editor_w:Number = TemplateTools.editor_w;
-			var w:Number = Math.ceil( container.cssSizeX - ( container.cssBoxX + 4 ) );
-				
-			var h:Number = Math.ceil(container.getHeight());
+			var editor_h:Number = TemplateTools.editor_h;
+			
+			var w:Number = Math.ceil( container.getWidth() );// container.cssSizeX - ( container.cssBoxX + 4 ) );				
+			var h:Number = Math.ceil( container.getHeight() );
 			
 			if( editor ) {
-				editor.setWidth( Math.ceil(w * editor_w) );
-				editor.setHeight( h );
+				editor.setWidth( Math.ceil( w * editor_w) );
+				editor.setHeight( Math.ceil( h * editor_h) );
 			}
 			
-			if(  editor_w >= 1 )
+			if( Popup.topContainer ) {
+				Popup.topContainer.setWidth( w * editor_w );
+				Popup.topContainer.setHeight(Application.instance.mainMenu.cssSizeY + h * editor_h );
+			}
+			
+			var tbh:int;
+			var bw:int;
+			var pvx:Number;
+			var pvpos:Number;
+			var pvwidth:int;
+			var stw:Number;
+			var sth:Number;
+					
+			
+			if( CTOptions.previewAtBottom )
 			{
-				// Hide preview
-				if( previewBg && previewBg.visible == true ) previewBg.visible = false;
-				if( resizeIcon && resizeIcon.visible == true ) resizeIcon.visible = false;
-				if( reloadBtn && reloadBtn.visible == true ) reloadBtn.visible = false;
-				if( adresBar && adresBar.visible == true ) adresBar.visible = false;
+				if(  editor_h >= 1 )
+				{
+					// Hide preview
+					if( previewBg && previewBg.visible == true ) previewBg.visible = false;
+					if( resizeIcon && resizeIcon.visible == true ) resizeIcon.visible = false;
+					if( reloadBtn && reloadBtn.visible == true ) reloadBtn.visible = false;
+					if( adresBar && adresBar.visible == true ) adresBar.visible = false;
+				}
+				else
+				{
+					bw = 0;
+					pvx = h * (1-editor_h);
+					pvpos = Math.ceil(h * editor_h );
+					pvwidth = Math.ceil( h * (1-editor_h));
+					
+					if( previewBg ) {
+						previewBg.x = 0;
+						previewBg.y = pvpos;
+						previewBg.setWidth( w );
+						previewBg.setHeight( pvwidth );
+						if( !previewBg.visible ) previewBg.visible = true;
+					}
+					
+					if( resizeIcon && adresBar && reloadBtn ) {
+						resizeIcon.x = 0;
+						bw += resizeIcon.cssSizeX + resizeIcon.cssMarginX;
+						tbh = Math.max( tbh, resizeIcon.height + resizeIcon.cssMarginY );
+						if( !resizeIcon.visible ) resizeIcon.visible = true;
+				
+						adresBar.x = resizeIcon.x + resizeIcon.cssSizeX + resizeIcon.cssMarginRight;
+						
+						bw += reloadBtn.cssSizeX + reloadBtn.cssMarginX;
+						adresBar.width = w - (bw + 4);
+						tbh = Math.max( tbh, adresBar.height );
+						if( !adresBar.visible ) adresBar.visible = true;
+				
+						reloadBtn.x = container.cssSizeX - (reloadBtn.cssSizeX + reloadBtn.cssMarginRight);
+						
+						tbh = Math.max( tbh, reloadBtn.height + reloadBtn.cssMarginY );
+						if( !reloadBtn.visible ) reloadBtn.visible = true;
+					
+						resizeIcon.y = pvpos + Math.floor( (tbh - resizeIcon.cssSizeY) * .5 );
+						reloadBtn.y = pvpos + Math.floor( (tbh - reloadBtn.cssSizeY) * .5 );
+						adresBar.y = pvpos + Math.floor( (tbh - adresBar.height) * .5 );
+					}
+					
+					stw = Application.instance.mainMenu.cssSizeY + tbh;
+					sth = container.stage.stageHeight - (Application.instance.mainMenu.cssSizeY + 2 + tbh);
+					
+					if( webView && webView.stage && sth > 0 && stw > 0 ) {
+						webView.viewPort = new Rectangle( 	Math.floor( 4 * CssUtils.numericScale), 
+															stw + pvpos, 
+															container.stage.stageWidth - ( 8 * CssUtils.numericScale), 
+															pvwidth - (Math.floor( 4 * CssUtils.numericScale) + tbh) );
+					}
+					
+				}
+				
+			}else{
+				
+				if(  editor_w >= 1 )
+				{
+					// Hide preview
+					if( previewBg && previewBg.visible == true ) previewBg.visible = false;
+					if( resizeIcon && resizeIcon.visible == true ) resizeIcon.visible = false;
+					if( reloadBtn && reloadBtn.visible == true ) reloadBtn.visible = false;
+					if( adresBar && adresBar.visible == true ) adresBar.visible = false;
+				}
+				else
+				{
+					tbh = 0;
+					bw = 0;
+					pvx = w * (1-editor_w);
+					pvpos = Math.ceil(w * editor_w );
+					pvwidth = Math.ceil( w * (1-editor_w));
+					
+					if( previewBg ) {
+						previewBg.x = pvpos;
+						previewBg.y = 0;
+						previewBg.setWidth( pvwidth+1 );
+						previewBg.setHeight( h );
+						if( !previewBg.visible ) previewBg.visible = true;
+					}
+					
+					if( resizeIcon && adresBar && reloadBtn ) {
+						resizeIcon.x = pvpos + resizeIcon.cssMarginLeft;
+						bw += resizeIcon.cssSizeX + resizeIcon.cssMarginX;
+						tbh = Math.max( tbh, resizeIcon.height + resizeIcon.cssMarginY );
+						if( !resizeIcon.visible ) resizeIcon.visible = true;
+				
+						adresBar.x = resizeIcon.x + resizeIcon.cssSizeX + resizeIcon.cssMarginRight;
+						bw += reloadBtn.cssSizeX + reloadBtn.cssMarginX;
+						adresBar.width = pvx - (bw + 4);
+						tbh = Math.max( tbh, adresBar.height );
+						if( !adresBar.visible ) adresBar.visible = true;
+				
+						reloadBtn.x = container.cssSizeX - (reloadBtn.cssSizeX + reloadBtn.cssMarginRight);
+						tbh = Math.max( tbh, reloadBtn.height + reloadBtn.cssMarginY );
+						if( !reloadBtn.visible ) reloadBtn.visible = true;
+					
+						resizeIcon.y = Math.floor( (tbh - resizeIcon.cssSizeY) * .5 );
+						reloadBtn.y = Math.floor( (tbh - reloadBtn.cssSizeY) * .5 );
+						adresBar.y = Math.floor( (tbh - adresBar.height) * .5 );
+					}
+					
+					stw = Application.instance.mainMenu.cssSizeY + tbh;
+					sth = container.stage.stageHeight - (Application.instance.mainMenu.cssSizeY + 2 + tbh);
+					
+					if( webView && webView.stage && sth > 0 && stw > 0 ) {
+						webView.viewPort = new Rectangle( 	w * editor_w + 4, 
+															stw, 
+															pvwidth - 2, 
+															sth );
+					}
+				}
+				
 			}
-			else
-			{
-				var tbh:int=0;
-				var bw:int=0;
-				var pvx:Number = w * (1-editor_w);
-				var pvpos:Number = Math.ceil(w * editor_w );
-				var pvwidth:int =  Math.ceil( w * (1-editor_w));
-				
-				if( previewBg ) {
-					previewBg.x = pvpos;
-					previewBg.setWidth( pvwidth+1 );
-					previewBg.setHeight( h );
-					if( !previewBg.visible ) previewBg.visible = true;
-				}
-				
-				if( resizeIcon && adresBar && reloadBtn ) {
-					resizeIcon.x = pvpos + resizeIcon.cssMarginLeft;
-					bw += resizeIcon.cssSizeX + resizeIcon.cssMarginX;
-					tbh = Math.max( tbh, resizeIcon.height + resizeIcon.cssMarginY );
-					if( !resizeIcon.visible ) resizeIcon.visible = true;
-			
-					adresBar.x = resizeIcon.x + resizeIcon.cssSizeX + resizeIcon.cssMarginRight;
-					bw += reloadBtn.cssSizeX + reloadBtn.cssMarginX;
-					adresBar.width = pvx - (bw + 4);
-					tbh = Math.max( tbh, adresBar.height );
-					if( !adresBar.visible ) adresBar.visible = true;
-			
-					reloadBtn.x = container.cssSizeX - (reloadBtn.cssSizeX + reloadBtn.cssMarginRight);
-					tbh = Math.max( tbh, reloadBtn.height + reloadBtn.cssMarginY );
-					if( !reloadBtn.visible ) reloadBtn.visible = true;
-				
-					resizeIcon.y = Math.floor( (tbh - resizeIcon.cssSizeY) * .5 );
-					reloadBtn.y = Math.floor( (tbh - reloadBtn.cssSizeY) * .5 );
-					adresBar.y = Math.floor( (tbh - adresBar.height) * .5 );
-				}
-				
-				var stw:Number = Application.instance.mainMenu.cssSizeY + tbh;
-				var sth:Number = container.stage.stageHeight - (Application.instance.mainMenu.cssSizeY + 2 + tbh);
-				
-				if( webView && webView.stage && sth > 0 && stw > 0 ) {
-					webView.viewPort = new Rectangle( 	w * editor_w + 4, 
-														stw, 
-														pvwidth - 2, 
-														sth );
-				}
-			}
+		}
 		
-		}
 		private function resizeIconClick (e:MouseEvent) :void {
-			if( !CTOptions.previewAtBottom ) {
-				stage.addEventListener( MouseEvent.MOUSE_MOVE, resizeEditorMove);
-				stage.addEventListener( MouseEvent.MOUSE_UP, resizeEditorUp);
-			}
+			stage.addEventListener( MouseEvent.MOUSE_MOVE, resizeEditorMove);
+			stage.addEventListener( MouseEvent.MOUSE_UP, resizeEditorUp);
 		}
+		
 		private function resizeEditor (e:MouseEvent) :void {
-			//if( CTOptions.previewAtBottom ) {
-				
-			//}else{
-				if( editor.mouseX > editor.getWidth() -12 && editor.mouseX < editor.getWidth() + 12 ) {
+			var d:int = 10 * CssUtils.numericScale;
+			if( CTOptions.previewAtBottom ) {
+				if( editor.mouseY > editor.getHeight() - d && editor.mouseY < editor.getHeight() + d *2) {
 					stage.addEventListener( MouseEvent.MOUSE_MOVE, resizeEditorMove);
 					stage.addEventListener( MouseEvent.MOUSE_UP, resizeEditorUp);
 				}
-			//}
+			}else{
+				if( editor.mouseX > editor.getWidth() -d && editor.mouseX < editor.getWidth() + d ) {
+					stage.addEventListener( MouseEvent.MOUSE_MOVE, resizeEditorMove);
+					stage.addEventListener( MouseEvent.MOUSE_UP, resizeEditorUp);
+				}
+			}
 		}
-		private function clamp (v:Number, min:Number, max:Number) :Number {
-			if( v < min ) v = min;
-			else if( v > max ) v = max;
-			return v;
-		}
+	
 		private function resizeEditorMove (e:MouseEvent) :void {
-			TemplateTools.editor_w = clamp( mouseX / container.getWidth(), .3, .8);
+			if( CTOptions.previewAtBottom ) {
+				TemplateTools.editor_h = NumberUtils.clamp( mouseY / container.getHeight(), .3, .8);
+				TemplateTools.editor_w = 1;
+			}else{
+				TemplateTools.editor_w = NumberUtils.clamp( mouseX / container.getWidth(), .3, .8);
+				TemplateTools.editor_h = 1;
+			}
 			newSize(null);
 		}
 		private function resizeEditorUp (e:MouseEvent) :void {
@@ -312,10 +427,11 @@
 			if (pf && pf.type == "html")
 			{
 				var editor_w:Number = TemplateTools.editor_w;
+				var editor_h:Number = TemplateTools.editor_h;
 				
 				var p:CssSprite = CssSprite( Application.instance.view );
 				var w:Number = p.getWidth() * (1-editor_w);
-				var h:Number = p.getHeight();
+				var h:Number = p.getHeight() * (1-editor_h);
 				var tbh:int = 0;
 				
 				if(reloadBtn) {
@@ -340,7 +456,10 @@
 				newSize( null );
 				
 				var rnd:String = InputTextBox.getUniqueName("?", 1);
-				if( history ) history.push( { hash:hash, rnd:rnd, uri:uri } );
+				if( history ) { 
+					history.push( { hash:hash, rnd:rnd, uri:uri } );
+					if( history.length > maxHistory ) history.shift();
+				}
 				
 				webView.loadURL( uri + rnd + hash );
 				
@@ -364,6 +483,7 @@
 				}
 			}
 		}
+		
 		private function createDayChannel () :void {
 			var dt:Date = new Date();
 			if ( env == null ) {
@@ -404,6 +524,7 @@
 				sp.filters = [ cmf ];
 			}
 		}
+		
 		private function redrawBG () :void {
 			dayColorClip( editor.bgSprite );
 			if ( CTOptions.animateBackground ) {

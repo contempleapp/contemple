@@ -125,7 +125,6 @@
 					
 					if( x.update.@version != undefined )
 					{
-						Console.log("Compare Versions: Current: " + CTTools.activeTemplate.version +" - Online: " + x.update.@version.toString() );
 						
 						var updateType:String = CTTools.compareVersions( CTTools.activeTemplate.version, x.update.@version.toString() );
 						
@@ -289,11 +288,6 @@
 			//step++;
 			
 			progress = ( numFiles / zip.getFileCount() ) * 100;
-			
-			/*if( CTOptions.verboseMode || CTOptions.debugOutput )
-			{
-				Console.log("Extract: " + Math.floor(progress) +"%");
-			}*/
 			
 			if( _showInstallView && progress > 0)
 			{

@@ -52,6 +52,7 @@
 	import ct.Template;
 	import ct.ProjectFile;
 	import ct.AreaProcessor;
+	import ct.ConstantsEditor;
 	
 	public class InputTextBox extends AreaProcessor
 	{
@@ -74,14 +75,19 @@
 		
 		// For name types
 		public static var uniqueNameLen:int = 2;
-		public static function getUniqueName (prefix:String="Item_", len:int=0) :String {
+		public static function getUniqueName (prefix:String="Item_", len:int=0) :String
+		{
 			var rndstr:String = "";
 			if( len < 1 ) len = uniqueNameLen;
-			for(var i:int=0; i<len; i++) {
+			
+			for(var i:int=0; i<len; i++)
+			{
 				rndstr += "" + int(Math.random() * 9999).toString(16).toUpperCase();
 			}
 			return prefix + rndstr;
 		}
+		
+		public static var disableFileSearch:Boolean = false;
 		
 		public var trimValue:Boolean = true;
 		public var trimQuotesValue:Boolean = true;
@@ -93,7 +99,7 @@
 		private var fmt:TextFormat;
 		
 		// For color Type
-		private var displayMode:String="hex"; // rgb or hex
+		private var displayMode:String="hex"; // rgb, rgba, hsl, hsla or hex
 		
 		public var args:Array = null; // arguments for _type
 		public var propObj:Object = null; // arguments for _type
@@ -138,8 +144,7 @@
 		public static var screenUnits:Array = ["rem","em","px","%","vw","vh"];
 		
 		public var labelText:String;
-		
-		public var  colorClip:Sprite;
+		public var colorClip:Sprite;
 		
 		private var _type:String;
 		private var _tgt:InteractiveObject;
@@ -149,6 +154,7 @@
 		public var tfPopup:Popup;
 		public var tfSlider:Slider;
 		
+		public var tfIcon:Sprite;
 		public var btWidth:int = 0;
 		
 		public var wrapBegin:String="";
@@ -160,11 +166,11 @@
 		public var history:Vector.<String> = new Vector.<String>();
 		public var future:Vector.<String> = new Vector.<String>();
 		// Area
-		private var areaName:String;
-		private var areaType:String;
-		private var areaOffset:int=0;
-		private var areaLimit:int=0;
-		private var areaSubTemplateFilter="";
+		public var areaName:String;
+		public var areaType:String;
+		public var areaOffset:int=0;
+		public var areaLimit:int=0;
+		public var areaSubTemplateFilter="";
 		
 		private var clickScrolling:Boolean = false;
 		private static var sbClickValue:Number;
@@ -173,14 +179,15 @@
 		private var _color:uint=0;
 		private var _dir:String="";
 		private var _file:String="";
-		public static var rtNodeName:String = "span";
+		public static var rtNodeName:String = "div";
 		public var specialCharIcons: Object = {};
 		
 		public var plugin:Object;
 		private var superType:String="";
 		private var superArgs:Array;
 		
-		public static var specialChars:Object = {
+		public static var specialChars:Object =
+		{
 			name:".Special Chars",
 			whitespace: "&nbsp;",
 			alpha: "&#945;",
@@ -259,24 +266,28 @@
 		
 		public var pageItemName:String = "";
 		
-		public function historyPop () :String {
+		public function historyPop () :String
+		{
 			var s:String = history.pop();
 			toggleUndoButtons();
 			return s;
 		}
 		
-		public function historyPush ( v:String ) :void {
+		public function historyPush ( v:String ) :void
+		{
 			history.push( v );
 			toggleUndoButtons();
 		}
 		
-		public function futurePop () :String {
+		public function futurePop () :String
+		{
 			var s:String = future.pop();
 			toggleUndoButtons();
 			return s;
 		}
 		
-		public function futurePush ( v:String ) :void {
+		public function futurePush ( v:String ) :void
+		{
 			future.push( v );
 			toggleUndoButtons();
 		}
@@ -291,17 +302,23 @@
 				{
 					if ( rtItemList.items[i].options.originalLabel == ".Undo" )
 					{
-						if( history.length > 0 ) {
+						if( history.length > 1 )
+						{
 							rtItemList.items[i].alpha = 1;
-						}else{
+						}
+						else
+						{
 							rtItemList.items[i].alpha = .1;
 						}
 					}
 					else if ( rtItemList.items[i].options.originalLabel == ".Redo" )
 					{
-						if( future.length > 0 ) {
+						if( future.length > 1 )
+						{
 							rtItemList.items[i].alpha = 1;
-						}else{
+						}
+						else
+						{
 							rtItemList.items[i].alpha = .1;
 						}
 					}
@@ -309,48 +326,61 @@
 			}
 		}
 		
-		public function get type () :String {
+		public function get type () :String
+		{
 			return _type;
 		}
 		
-		public function get _supertype () :String {
+		public function get _supertype () :String
+		{
 			return _type == "plugin" ? (superType == "" ? _type : superType) : _type;
 		}
 		
-		public function create () :void   {
+		public function create () :void
+		{
 			fmt = styleSheet.getTextFormat( stylesArray, "normal" );
 			setupTextField( textField, textChange, onActivate, onDeactivate);
 		}
 		// allow only 0-9, a-s, A-Z and the _-$: specialChars
 		// If string is empty, returns getUniqueName()
 		// n: a trimmed string (with only single white-spaces
-		private function parseName (n:String) :String {
+		private function parseName (n:String) :String
+		{
 			if( !n || n == " " ) return getUniqueName();
 			var L:int = n.length;
 			var i:int;
 			var cc:int
 			var o:String="";
-			for( i=0; i<L; i++) {
+			
+			for( i=0; i<L; i++)
+			{
 				cc = n.charCodeAt(i);
-				if( cc <= 32 ) {
+				if( cc <= 32 )
+				{
 					o += "-";
 				// 0 - 9 || a - z || A - Z || - || _ || $ || :
-				}else if( (cc >= 48 && cc <= 57) || (cc >= 97 && cc <= 122) || (cc >= 65 && cc <= 90) || cc == 45 || cc == 95 || cc == 36 ||cc == 58 ) {
+				}
+				else if( (cc >= 48 && cc <= 57) || (cc >= 97 && cc <= 122) || (cc >= 65 && cc <= 90) || cc == 45 || cc == 95 || cc == 36 ||cc == 58 )
+				{
 					o += String.fromCharCode(cc);
 				}
 			}
 			
 			cc = o.charCodeAt(0);
-			if( cc >= 48 && cc <= 57)  {
+			if( cc >= 48 && cc <= 57)
+			{
 				o = "_" + o;
 			}
 			
-			if( cc == 45 ) {
+			if( cc == 45 )
+			{
 				// Search for "-----..."
 				var allcc:Boolean=true;
 				L = o.length;
-				for( i=0; i<L; i++) {
-					if( o.charCodeAt(i) != 45 ) {
+				for( i=0; i<L; i++)
+				{
+					if( o.charCodeAt(i) != 45 )
+					{
 						allcc = false;
 						break;
 					}
@@ -399,7 +429,8 @@
 					var stylchain:Array = [".media-info"];
 					var fmt:TextFormat = styleSheet.getTextFormat( stylchain, "normal" );
 					
-					if( mediaInfo == null ) {
+					if( mediaInfo == null ) 
+					{
 						mediaInfo = new TextField();
 					}
 					
@@ -431,33 +462,40 @@
 					
 					setHeight( Math.max( sp.height, mediaInfo.textHeight + (tfBtn ? tfBtn.cssSizeY : 4 )) + textField.textHeight + 8 );
 					
-					setWidth( cssSizeX );
+					setWidth( /*cssSizeX*/ getWidth() );
 					setTimeout( function(){
 						dispatchEvent( new Event("heightChange") );
-					},0);
+					},123);
 				}
-			}else{
+			}
+			else
+			{
 				Console.log( "Can Not Load Image: " + value );
-				// search image in min, raw, and online if hub-script.. hup->get-root-dir -> http://xyz.com/dir/ , hub->get-file ( value ) -> http://xyz.com/dir/value
-				if( value.substring(0,7) != "file://" && lastWebFileChecked != value )
+				
+				if( !disableFileSearch )
 				{
-					//var dl:Boolean = 
-					lastWebFileChecked = value;
-					var rv:Boolean = CTTools.findWebFile( value, onFindFileComplete );
-					
-					if( !rv )
+					// search image in min, raw, and online if hub-script.. hup->get-root-dir -> http://xyz.com/dir/ , hub->get-file ( value ) -> http://xyz.com/dir/value
+					if( value.substring(0,7) != "file://" && lastWebFileChecked != value )
 					{
-						setTimeout(reloadImage, 350);
+						lastWebFileChecked = value;
+						var rv:Boolean = CTTools.findWebFile( value, onFindFileComplete );
+						
+						if( !rv )
+						{
+							setTimeout(reloadImage, 350);
+						}
+						
 					}
-					
 				}
 			}
 		}
 		
 		private  var lastWebFileChecked:String = "";
 		
-		private function onFindFileComplete (success:Boolean) :void {
-			if( success ) {
+		private function onFindFileComplete (success:Boolean) :void
+		{
+			if( success )
+			{
 				var tmp:String = value;
 				activateValue = value = "";
 				lastWebFileChecked = "";
@@ -466,8 +504,10 @@
 			}
 		}
 		
-		private function largeImagePreview (e:MouseEvent = null) :void {
-			if( HtmlEditor.isPreviewOpen ) {
+		private function largeImagePreview (e:MouseEvent = null) :void
+		{
+			if( HtmlEditor.isPreviewOpen )
+			{
 				try {
 					var he:HtmlEditor = HtmlEditor( Application.instance.view.panel.src );
 					if( he ) {
@@ -482,21 +522,16 @@
 		
 		public function loadImage (path:String) :void
 		{
-			//if( mediaInfo && contains(mediaInfo) ) removeChild( mediaInfo );
-			
-			//setHeight( tfBtn.cssSizeY );
-			//dispatchEvent( new Event("heightChange") );
-			
 			Application.instance.resourceMgr.clearResourceCache( path, true );
 			Application.instance.resourceMgr.loadResource( path, onImageLoaded, false );
 		}
 		
-		private function loadVideo (path:String) :void {
+		private function loadVideo (path:String) :void
+		{
 			var sp:Video = new Video ( mediaWidth, mediaHeight );
 			
 			// TODO: display video player
 			mediaContainer.addChild( sp );
-				
 			setHeight( textField.height );	
 		}
 		
@@ -543,20 +578,55 @@
 					}
 					setHeight( plg.getHeight() + 2 );
 					setWidth( cssSizeX );
-					//setTimeout( function(){
 					dispatchEvent( new Event( "heightChange") );
-					//},0);
 				}
 				else
 				{
 					Console.log("Error: Plugin '"+args[0]+"' Class Error");
 				}
-			}else{
+			}
+			else
+			{
 				Console.log("Error: Plugin '"+args[0]+"' Class Not Found");
 			}
 			
 		}
+		
+		public function convertColorTo ( mode:String ) :void
+		{
+			displayMode = mode;
+			colorValue = 0xFF << 24 | color;
+		}
+		
+		public function setCurrentDate () :void
+		{
+			enterDate( new Date() );
+		}
+		
+		public function setVal ( val:String ) :void
+		{
+			if( _supertype == "listmultiple" || _supertype == "labellistmultiple" || _supertype == "listappend" ||  _supertype == "labellistappend" || _supertype == "itemlistmultiple" )
+			{
+				listAppend( val );
+			}
+			else
+			{
+				value = val;
+			}
+		}
+		
+		public function setMin () :void
+		{
+			value = String(min);
+		}
+		
+		public function setMax () :void
+		{
+			value = String(max);
+		}
+		
 		private var dateFormat:String="d. m. y";
+		
 		private function enterDate (d:Date) :void
 		{
 			if( dateFormat )
@@ -594,16 +664,25 @@
 		//     : set type :
 		//      ..........
 		//
-		public function setType (tp:String="text") :void {
+		public function setType (tp:String="text") :void
+		{
 			_type = tp;
 			
 			var i:int;
 			var L:int;
+			var s2:String;
 			var tfh:int;
 			var ta_str:String;
 			var ta_arr:Array;
 			var ta_i:int;
 			var btn:Button;
+			var pc:PropertyCtrl;
+			
+			try {
+				pc = PropertyCtrl( parent );
+			}catch( e:Error) {
+				pc = null;
+			}
 			
 			if( mediaContainer && contains(mediaContainer)) removeChild( mediaContainer );
 			
@@ -611,6 +690,8 @@
 			tfBtn = null;
 			if( tfPopup && contains(tfPopup)) removeChild( tfPopup );
 			tfPopup = null;
+			if( tfIcon && contains(tfIcon)) removeChild( tfIcon );
+			tfIcon = null;
 			if( tfSlider && contains(tfSlider)) removeChild( tfSlider );
 			tfSlider = null;
 			if( colorClip && contains(colorClip)) removeChild( colorClip );
@@ -620,9 +701,11 @@
 			if( htmlTextField && contains( htmlTextField ) ) removeChild( htmlTextField );
 			htmlTextField = null;
 			
-			if( vectorTextFields ) {
+			if( vectorTextFields )
+			{
 				L = vectorTextFields.length;
-				for(i=0; i<L; i++) {
+				for(i=0; i<L; i++)
+				{
 					if(vectorTextFields[i] && vectorTextFields[i].textField && contains(vectorTextFields[i].textField)) removeChild(vectorTextFields[i].textField);
 					if(vectorTextFields[i] && vectorTextFields[i].tfSlider && contains(vectorTextFields[i].tfSlider)) removeChild(vectorTextFields[i].tfSlider);
 				}
@@ -641,7 +724,7 @@
 				value = HtmlParser.toInputText( value );
 			}
 			
-			if( tp == "directory" || tp == "file" || tp == "image" || tp=="video" || tp=="audio" || tp=="pdf" || tp=="font" || tp == "zip")
+			if( tp == "directory" || tp == "file"  ||  tp == "files" || tp == "image" || tp=="video" || tp=="audio" || tp=="pdf" || tp=="font" || tp == "zip")
 			{
 				var icoPath:String;
 				if( tp == "image" ) {
@@ -660,18 +743,39 @@
 				tfBtn = new Button([ new IconFromFile( icoPath,Options.iconSize,Options.iconSize ) ],btWidth,0,this,styleSheet,'','textbox-button', false);
 				tfBtn.textAlign = "center";
 				
-				if( tp == "directory" ) {
+				if(pc && !pc.uiCmds ) pc.uiCmds = new Vector.<UICmd>();
+					
+				if( tp == "directory" )
+				{
 					tfBtn.addEventListener( MouseEvent.CLICK, selectDirectory );
+					if( pc )
+					{
+						pc.uiCmds.push( new UICmd( [Language.getKeyword("Select Directory")], '', selectDirectory));
+					}
 				}
 				else
 				{
 					initDragNDrop(this);
 					
-					if( this is VectorTextField ) {
+					if( this is VectorTextField )
+					{
 						tfBtn.addEventListener( MouseEvent.CLICK, selectFiles );
-					}else{
-						tfBtn.addEventListener( MouseEvent.CLICK, selectFile );
+						if( pc )
+						{
+							pc.uiCmds.push( new UICmd( [Language.getKeyword("Select Files")], '', selectFiles));
+						}
 					}
+					else
+					{
+						tfBtn.addEventListener( MouseEvent.CLICK, selectFile );
+						if( pc ) {
+							pc.uiCmds.push( new UICmd([Language.getKeyword("Select File")], '', selectFile));
+						}
+					}
+				}
+				if( pc )
+				{
+					pc.uiCmds.push( new UICmd( [Language.getKeyword("None")],'',selectNone) );
 				}
 				
 				if( tp == "image" ) {
@@ -693,7 +797,8 @@
 					fileFilterDescription = "Font Files";
 					allowed_extensions  =  "*.ttf;*.woff;*.woff2;*.eot;";
 				}
-				if( args ) {
+				if( args )
+				{
 					L = args.length;
 					if( L > 0 ) www_folder = args[0];
 					if( L > 1 ) rename_template = args[1];
@@ -701,7 +806,8 @@
 					if( L > 3 ) allowed_extensions = args[3];
 				}
 				
-				if( tp == "image" ) {
+				if( tp == "image" )
+				{
 					var m:Number = 4;
 					var o:Object = styleSheet.getMultiStyle( [".media-container"] );
 					if( o.marginLeft ) m = CssUtils.parse( o.marginLeft, this, "h" )
@@ -712,15 +818,37 @@
 					mediaContainer.x = m;
 					addChild(mediaContainer);
 					
-					if( value && value != "" && value.toLowerCase() != "none") {
+					if( value && value != "" && value.toLowerCase() != "none")
+					{
 						loadImage( CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderRaw + CTOptions.urlSeparator + value );
 					}
-					//setHeight( mediaHeight + textField.height + 2 );
-				}//else{
+				}
+				else
+				{
+					// test if file exists
+					if( ! disableFileSearch )
+					{
+						if( tp != "directory" && lastWebFileChecked != value )
+						{
+							if( CssUtils.trim(value) != "" && value.toLowerCase() != "none" )
+							{
+								var testFile:File = new File( CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderRaw + CTOptions.urlSeparator + value );
+								if( !testFile.exists )
+								{
+									if( value.substring(0,7) != "file://" )
+									{
+										lastWebFileChecked = value;
+										CTTools.findWebFile( value, onFindFileComplete );
+									}
+								}
+							}
+						}
+					}
+				}
 				
 				setHeight( textField.height + 2);
 				setWidth(getWidth());
-				//}
+				
 			}
 			else if( tp == "nodestyle" ) 
 			{
@@ -747,18 +875,28 @@
 			}
 			else if ( tp == "date" )
 			{
-				if( args ) {
+				if( args )
+				{
 					L = args.length;
 					if( L > 0 ) dateFormat = args[0];
 				}
-				if( !value ) {
-					enterDate( new Date() );
-					activateValue = "";
+				
+				if(pc)
+				{
+					if(!pc.uiCmds ) pc.uiCmds = new Vector.<UICmd>();
+					pc.uiCmds.push( new UICmd( [Language.getKeyword("Today")],'',setCurrentDate) );
 				}
+				if( !value )
+				{
+					setCurrentDate();
+				}
+				
+				setHeight( textField.height + 2 );
 			}
 			else if ( tp == "boolean" )
 			{
-				if( args ) {
+				if( args )
+				{
 					L = args.length;
 					if( L > 0 ) boolYes = args[0];
 					if( L > 1 ) boolNo = args[1];
@@ -769,7 +907,8 @@
 				tfBtn = new Button([ico],0,0,this,styleSheet,'','textbox-boolean-btn', false);
 				tfBtn.addEventListener( MouseEvent.CLICK, boolButtonHandler );
 				
-				if( boolValue || value == boolYes || value=="true" || CssUtils.stringToBool(value) ) {
+				if( boolValue || value == boolYes || value=="true" || CssUtils.stringToBool(value) )
+				{
 					boolValue = true;
 				}
 				
@@ -865,7 +1004,8 @@
 				// - In hteml template display the generated Bitmap:
 				// <img src="{#wave:Plugin("contemple.WaveForm","plugins.WaveFormEx",256,4,'#567','#123') ='images/waveform-01.png'}
 				//
-				if( !args || args.length <= 1 ) {
+				if( !args || args.length <= 1 )
+				{
 					Console.log("Error: Plugin Arguments Missing: Plugin( id, className, [superArgs..] )");
 					return;
 				}
@@ -873,17 +1013,25 @@
 			}
 			else if( tp == "number" || tp == "integer" || tp == "screennumber" || tp == "screeninteger" )
 			{
-				if( args && args.length > 1) {
+				if(pc)
+				{
+					if(!pc.uiCmds ) pc.uiCmds = new Vector.<UICmd>();
+					pc.uiCmds.push(new UICmd(['#separator']));
+				}
+				if( args && args.length > 1)
+				{
 					tfSlider = new Slider(0, 0, this,styleSheet, '', 'textbox-slider', false);
 					tfSlider.setScrollerHeight( int(textField.width / 10) );
-					tfSlider.setHeight( textField.width-8 );
-					tfSlider.setWidth( tfSlider.getWidth() || 8 );
+					tfSlider.setHeight( textField.width - (8 * CssUtils.numericScale) );
+					tfSlider.setWidth( tfSlider.getWidth() || int(8 * CssUtils.numericScale) );
 					tfSlider.rotation = -90;
 					tfSlider.x = 0;
 					tfSlider.wheelScrollTarget = null;
-					tfSlider.y = textField.height+6;
+					tfSlider.y = textField.height + int( 6 * CssUtils.numericScale );
 					tfSlider.minValue = Number( args[0] );
+					min = tfSlider.minValue;
 					tfSlider.maxValue = Number( args[1] );
+					max = tfSlider.maxValue;
 					tfSlider.value = StringMath.forceNumber( value );
 					tfSlider.addEventListener( "begin", sliderBegin );
 					tfSlider.addEventListener( MouseEvent.MOUSE_UP, sliderUp );
@@ -893,26 +1041,35 @@
 					if( cdp >= 0 ) { decPlaces = cdp; }
 					if( args.length > 3 ) outsideRange = CssUtils.stringToBool( args[3] );
 					if( args.length > 4 ) decPlaces = parseInt(args[4]);
-				}
-				if( tp == "screennumber" || tp == "screeninteger"  ) {
 					
-					tfPopup = new Popup( [ new IconArrowDown( Application.instance.mainMenu.iconColor ) ], btWidth, textField.height - 1, this, styleSheet, '', 'textbox-popup', false);
-					tfPopup.alignH = "right";
-					tfPopup.textAlign = "right";
-					tfPopup.alignV = "bottom";
-					
-					L = screenUnits.length;
-					for(i=0; i < L; i++) {
-						tfPopup.rootNode.addItem( [ "" + screenUnits[i] ], styleSheet);
+					if(pc)
+					{
+						pc.uiCmds.push(new UICmd([Language.getKeyword("Minimum")],'',setMin));
+						pc.uiCmds.push(new UICmd([Language.getKeyword("Maximum")],'',setMax));
 					}
+				}
+				if ( tp == "screennumber" ||  tp == "screeninteger"  )
+				{
+					L = screenUnits.length;
 					
-					tfPopup.addEventListener( Event.SELECT, ppScreenNumberSelect );
+					if(pc) pc.uiCmds.push( new UICmd(['#separator']) );
+					
+					for (i = 0; i < L; i++)
+					{
+						if (pc)
+						{
+							pc.uiCmds.push(new UICmd([Language.getKeyword("Convert to ") + " " + screenUnits[i].toUpperCase()], '', convertNumberTo, [screenUnits[i]] ));
+						}
+					}
 				}
 				
-				if( tfSlider ) {
-					setHeight( textField.height + 16 );
-				}else{
-					setHeight( textField.height + 2 );
+				if( tfSlider )
+				{
+					setHeight( textField.height + int(16 * CssUtils.numericScale) );
+				}
+				else
+				{
+					setHeight( textField.height + int(2 * CssUtils.numericScale) );
 				}
 				
 			}
@@ -941,7 +1098,8 @@
 					if( args.length > 3 ) vectorSeparator = args[3] || ",";
 					if( args.length > 4 ) vectorDynamic = typeof args[4] == "boolean" ? args[4] : CssUtils.stringToBool( args[4] );
 
-					if( L <= 1 || vectorDynamic) {
+					if( L <= 1 || vectorDynamic)
+					{
 						if( L == 0 ) L = 1;
 						// dynamic length
 						vectorPlusButton = new Button(["+"], Options.btnSize, 0, vectorContainer, styleSheet, '', 'input-vector-plus-button', false);
@@ -964,7 +1122,7 @@
 					var splitValues:Array = value.split( vectorSeparator );
 					var typeList:Array;
 					
-					if( vectorType == "directory" || vectorType == "file" || vectorType == "image" || vectorType == "video" || vectorType == "audio" || vectorType == "pdf" || vectorType == "font" || vectorType == "zip" )
+					if( vectorType == "directory" || vectorType == "file" || vectorType == "files" || vectorType == "image" || vectorType == "video" || vectorType == "audio" || vectorType == "pdf" || vectorType == "font" || vectorType == "zip" )
 					{
 						if( args.length > 5 ) defaultWWWFolder = args[5];
 						if( args.length > 6 ) defaultRename = args[6];
@@ -983,13 +1141,16 @@
 							
 							if( splitValues.length > i ) vecValue = splitValues[i];
 							
-							if( args.length > valStart+1) {
+							if( args.length > valStart+1) 
+							{
 								vecArgs.push(args[valStart+1]);
 								if( args.length > valStart+2) vecArgs.push(args[valStart+2]);
 								if( args.length > valStart+3) vecArgs.push(args[valStart+3]);
 								if( args.length > valStart+4) vecArgs.push(args[valStart+4]);
 								if(args.length > valStart+5) vecWrap = args[valStart+5];
-							}else{
+							}
+							else
+							{
 								vecArgs.push( defaultWWWFolder, defaultRename, defaultDescr, defaultExtList );
 								vecWrap = vectorWrap;
 							}
@@ -1013,7 +1174,8 @@
 						
 						L2 = Math.max( L, splitValues.length );
 						
-						for(i=0; i<L2; i++) {
+						for(i=0; i<L2; i++)
+						{
 							vecArgs = [];
 							vecObj = {};
 							valStart = 7 + i*5;
@@ -1039,20 +1201,23 @@
 						if( args.length > 7 ) pre = args[7];
 						if( args.length > 8 ) post = args[8];
 						
-						for(i=0; i<L2; i++) {
+						for(i=0; i<L2; i++)
+						{
 							vecArgs = [];
 							vecObj = {};
 							valStart = 9 + i*4;
 
-							if( args.length > valStart ) {
-									
+							if( args.length > valStart ) 
+							{
 								vecValue = args[ valStart ];
 								if( splitValues.length > i ) vecValue = splitValues[i];
 								if( args.length > valStart+1) vecArgs.push(Number(args[valStart+1]));
 								if( args.length > valStart+2) vecArgs.push(Number(args[valStart+2]));
 								if( args.length > valStart+3) vecArgs.push(Number(args[valStart+3]));
 								if( args.length > valStart+4) vecArgs.push(Number(args[valStart+4]));
-							}else{
+							}
+							else
+							{
 								vecArgs.push( field, labelfield, pre, post);
 							}
 							
@@ -1068,9 +1233,12 @@
 						{ 
 							if( typeof args[5] == "string" )
 							{
-								if( args[5].charAt(0) == "*" ) {
+								if( args[5].charAt(0) == "*" )
+								{
 									typeList = String(Application.instance.strval(ta_str.substring(1),true)).split(",");
-								}else{
+								}
+								else
+								{
 									typeList = String(args[5]).split(",");
 								}
 							}
@@ -1094,17 +1262,22 @@
 
 								if( args.length > valStart ) vecValue = args[ valStart ];
 								if( splitValues.length > i ) vecValue = splitValues[i];
-								if( vecValue.indexOf(":")) {
+								if( vecValue.indexOf(":"))
+								{
 									tps = vecValue.split(":");
-									if( tps.length > 1 ) {
+									if( tps.length > 1 )
+									{
 										vtp = tps.shift();
 										vecValue = tps.join(":");
 									}									
-								}else{
+								}
+								else
+								{
 									vtp = "";
 								}
 								tf = new VectorTextField( vectorType, vecArgs, vecObj, vecValue, cssWidth, cssHeight, vectorContainer, styleSheet, '', nodeClass, false );
-								tf.tfPopup.label = vtp;
+								
+								if( tf.tfPopup && tf.tfPopup.label ) tf.tfPopup.label = vtp;
 								tf.wrap = vecWrap;
 								tf.rootVector = this;
 								vectorTextFields.push( tf );
@@ -1115,14 +1288,26 @@
 					{
 						L2 = Math.max( L, splitValues.length );
 						
-						for(i=0; i<L2; i++) {
+						if( args.length > 5 ) defaultWWWFolder = args[5];
+						
+						for(i=0; i<L2; i++)
+						{
 							vecArgs = [];
 							vecObj = {};
 							valStart = 5 + i*2;
 
-							if( args.length > valStart ) vecValue = args[ valStart ];
+							if( args.length > valStart )
+							{
+								vecValue = args[ valStart ];
+								vecArgs.push( args[valStart] );
+							};
 							if( splitValues.length > i ) vecValue = splitValues[i];
-							if( args.length > valStart+1) vecWrap = args[valStart+1];
+							if( args.length > valStart+1)
+							{
+								vecWrap = args[valStart+1];
+								vecArgs.push( args[valStart+1] );
+								// only two args supported..
+							}
 
 							tf = new VectorTextField( vectorType, vecArgs, vecObj, vecValue, cssWidth, cssHeight, vectorContainer, styleSheet, '', nodeClass, false );
 							tf.wrap = vecWrap;
@@ -1136,7 +1321,8 @@
 				}
 				
 				var vpmb:int = 0;
-				if(vectorPlusButton && vectorMinusButton) {
+				if(vectorPlusButton && vectorMinusButton)
+				{
 					vpmb = Math.max(vectorPlusButton.cssSizeY, vectorMinusButton.cssSizeY)
 				}
 				setHeight( textField.height + 2 + vpmb );
@@ -1169,7 +1355,9 @@
 				setHeight( tfh + 2 );
 				setWidth(getWidth());
 				
-			}else if( tp == "color") {
+			}
+			else if ( tp == "color")
+			{
 				setHeight( textField.height + 2);
 				colorClip = new Sprite();
 				colorValue = value;
@@ -1178,21 +1366,36 @@
 				
 				if( colorStyle )
 				{
-					if( colorStyle.marginRight ) {
+					if( colorStyle.marginRight )
+					{
 						colorOfs = CssUtils.parse( colorStyle.marginRight, this );
 					}
-					if( colorStyle.paddingRight ) {
+					if( colorStyle.paddingRight )
+					{
 						colorOfs = Math.max( colorOfs, CssUtils.parse( colorStyle.paddingRight, this) );
 					}
 				}
-				
+				if(pc)
+				{
+					if(!pc.uiCmds ) pc.uiCmds = new Vector.<UICmd>();
+					pc.uiCmds.push(new UICmd(['#separator']));
+					pc.uiCmds.push(new UICmd([Language.getKeyword('Select Color')],'',onSelectColor,[null]));
+					pc.uiCmds.push(new UICmd(['#separator']));
+					pc.uiCmds.push(new UICmd([Language.getKeyword('Convert to') + ' RGB'],'',convertColorTo,['rgb']));
+					pc.uiCmds.push(new UICmd([Language.getKeyword('Convert to') + ' RGBA'],'',convertColorTo,['rgba']));
+					pc.uiCmds.push(new UICmd(['#separator']));
+					pc.uiCmds.push(new UICmd([Language.getKeyword('Convert to') + ' HSL'],'',convertColorTo,['hsl']));
+					pc.uiCmds.push(new UICmd([Language.getKeyword('Convert to') + ' HSLA'],'',convertColorTo,['hsla']));
+					pc.uiCmds.push(new UICmd(['#separator']));
+					pc.uiCmds.push(new UICmd([Language.getKeyword('Convert to') + ' HEX'],'',convertColorTo,['hex']));
+				}
 				drawCurrentColor();
 				
 				ColorPicker.testColor( this._color );
 				
 				if( propObj && propObj.defValue )
 				{
-					var clo:int = CssUtils.parse( propObj.defValue);
+					var clo:int = CssUtils.parse( propObj.defValue );
 					ColorPicker.testColor( clo );
 				}
 				
@@ -1202,16 +1405,25 @@
 			else if( tp == "richtext" )
 			{
 				var cssclasses:Array;
-				if( CTTools.templateConstants && CTTools.templateConstants["richTextCssClasses"] != undefined ) {
-					if( args && args.length > 0 ) {
+				if( CTTools.templateConstants && CTTools.templateConstants["richTextCssClasses"] != undefined )
+				{
+					if( args && args.length > 0 )
+					{
 						cssclasses = (args[0] + CTTools.templateConstants["richTextCssClasses"]).split(",");
-					}else{
+					}
+					else
+					{
 						cssclasses = CTTools.templateConstants["richTextCssClasses"].split(",");
 					}
-				}else{
-					if( args && args.length > 0 ) {
+				}
+				else
+				{
+					if( args && args.length > 0 )
+					{
 						cssclasses = (args[0] + CTOptions.richTextCssClasses.join(",")).split(",");
-					}else{
+					}
+					else
+					{
 						cssclasses = CTOptions.richTextCssClasses;
 					}
 				}
@@ -1225,8 +1437,10 @@
 					name: new IconFromFile( Options.iconDir + CTOptions.urlSeparator + "categorize.png", Options.iconSize, Options.iconSize )
 				}
 				
-				for (var icname:String in specialChars ) {
-					if ( icname != "name" ) {
+				for (var icname:String in specialChars )
+				{
+					if ( icname != "name" )
+					{
 						specialCharIcons[ icname ] = new IconFromHtml( '<p class="special-char-icon">' + specialChars[icname] + '</p>', styleSheet, "special-char-icon", Options.iconSize, Options.iconSize );
 					}
 				}
@@ -1247,58 +1461,83 @@
 				var ppi:PopupItem;
 				var icons:Array;
 				
-				for( i=0; i < richTextButtons.length; i++) {
-					if( richTextButtons[i] is Array ) {
-						if( richTextButtons[i][0].charAt(0) == "." ) {
+				for( i=0; i < richTextButtons.length; i++)
+				{
+					if( richTextButtons[i] is Array )
+					{
+						if( richTextButtons[i][0].charAt(0) == "." )
+						{
 							icons = [];
-						}else{
+						}
+						else
+						{
 							icons = [ richTextButtons[i][0] ];
 						}
 						
 						if( richTextIcons && richTextIcons.length > i )
 						{
-							if( richTextIcons[i] is Array && richTextIcons[i].length > 0 ) {
+							if( richTextIcons[i] is Array && richTextIcons[i].length > 0 )
+							{
 								icons.push( richTextIcons[i][0] );
 							}
 						}						
 						btnpp = new Popup( icons, 0,0,rtItemList, cssStyleSheet,'','richtext-popup' + (i==0?" richtext-popup-first" : (i==richTextButtons.length-1 ? " richtext-popup-last":"") ),false);
-						btnpp.alignH = "right";
+						btnpp.alignH = "left";
 						btnpp.textAlign = "right";
 						btnpp.alignV = "bottom";
 						
-						for(s=1; s < richTextButtons[i].length; s++) {
+						for(s=1; s < richTextButtons[i].length; s++)
+						{
 							btnpp.rootNode.addItem( [ ""+richTextButtons[i][s]], cssStyleSheet);
 						}
+						
 						btnpp.addEventListener( Event.SELECT, richtTextPPHandler);
 						rtItemList.addItem(btnpp,true);
 					
-					}else if( richTextButtons[i] is String ){
-						if( richTextButtons[i].charAt(0) == "." ) {
+					}
+					else if( richTextButtons[i] is String )
+					{
+						
+						if( richTextButtons[i].charAt(0) == "." )
+						{
 							icons = [];
-						}else{
+						}
+						else
+						{
 							icons = [ Language.getKeyword( richTextButtons[i] ) ];
 						}
+						
 						if( richTextIcons && richTextIcons.length > i ) {
 							icons.push( richTextIcons[i] );
-						}		
+						}
+						
 						btn = new Button(icons,0,0,rtItemList,this.styleSheet,'','richtext-btn'+ (i==0?" richtext-btn-first" : (i==richTextButtons.length-1?" richtext-btn-last":"")),false);
 						btn.options.originalLabel = richTextButtons[i];
 						btn.addEventListener(MouseEvent.MOUSE_DOWN, richtTextBtnHandler);
 						rtItemList.addItem(btn, true);
 					
-					}else if ( richTextButtons[i] is Object ) {
-						if( richTextButtons[i].name.charAt(0) == "." ) {
+					}
+					else if ( richTextButtons[i] is Object )
+					{
+						if( richTextButtons[i].name.charAt(0) == "." )
+						{
 							icons = [];
-						}else{
+						}
+						else
+						{
 							icons = [richTextButtons[i].name];
 						}
-						if( richTextIcons && richTextIcons.length > i ) {
-							if( richTextIcons[i] is Object && richTextIcons[i]["name"] != undefined ) {
+						
+						if( richTextIcons && richTextIcons.length > i )
+						{
+							if( richTextIcons[i] is Object && richTextIcons[i]["name"] != undefined )
+							{
 								icons.push(  richTextIcons[i]["name"] );
 							}
 						}
+						
 						btnpp = new Popup( icons,0,0,rtItemList, cssStyleSheet,'','richtext-popup' + (i==0?" richtext-popup-first" : (i==richTextButtons.length-1 ? " richtext-popup-last":"") ),false);
-						btnpp.alignH = "right";
+						btnpp.alignH = "left";
 						btnpp.textAlign = "right";
 						btnpp.alignV = "bottom";
 						
@@ -1308,8 +1547,10 @@
 							{
 								icons = [];
 								
-								if( richTextIcons && richTextIcons.length > i ) {
-									if( richTextIcons[i] is Object && richTextIcons[i][n] != undefined ) {
+								if( richTextIcons && richTextIcons.length > i )
+								{
+									if( richTextIcons[i] is Object && richTextIcons[i][n] != undefined )
+									{
 										icons.push( richTextIcons[i][n] );
 									}
 								}
@@ -1337,7 +1578,8 @@
 			}
 			else if ( tp == "area" )
 			{
-				if( args ) {
+				if( args )
+				{
 					L = args.length;
 					
 					// Inline Area:
@@ -1346,7 +1588,8 @@
 					var areaObj:Object = {};
 					CTTools.cloneTo( propObj, areaObj );
 					
-					if( updateItem ) {
+					if( updateItem )
+					{
 						CTTools.cloneTo( updateItem, areaObj );
 					}
 					try {
@@ -1364,41 +1607,68 @@
 					showAreaItems()
 				}
 			}
-			else if( tp == "typed" ) {
+			else if( tp == "typed" )
+			{
 				if( args && args.length > 0 )
 				{
 					var types:Array;
 					
-					if( args[0] is String ) {
-						var s2:int = args[0].indexOf(":");
-						if( s2 >= 1 ) {
+					if(pc)
+					{
+						if(!pc.uiCmds ) pc.uiCmds = new Vector.<UICmd>();
+						else pc.uiCmds.push(new UICmd(['#separator']));
+						pc.uiCmds.push(new UICmd([Language.getKeyword('None')],'',setVal,['']));
+						pc.uiCmds.push(new UICmd(['#separator']));
+					}
+					
+					if( args[0] is String )
+					{
+						var s3:int = args[0].indexOf(":");
+						if( s3 >= 1 )
+						{
 							types = [];
 							var tmp:Array = args[0].split(":");
-							if( CTTools.pageItems ) {
+							if( CTTools.pageItems )
+							{
 								L = CTTools.pageItems.length;
-								for( i=0; i < L; i++) {
-									if( CTTools.pageItems[i].area == tmp[0] ) {
+								for( i=0; i < L; i++)
+								{
+									if( CTTools.pageItems[i].area == tmp[0] )
+									{
 										types.push( CTTools.pageItems[i][tmp[1]] );
 									}
 								}
 							}
 						
 						}
-					}else{
+						else
+						{
+							types = args; 
+						}
+					}
+					else
+					{
 						types = args[0] is Array ? args[0] : args;
 					}
 					
-					if( types ) {
+					if( types )
+					{
 						
-						tfPopup = new Popup( [ new IconArrowDown( Application.instance.mainMenu.iconColor ), types[0] ], 0, textField.height - 1, this, styleSheet, '', 'textbox-typed', false);
+						tfPopup = new Popup( [ new IconArrowDown( Application.instance.mainMenu.iconColor, 1, Options.iconSize, Options.iconSize ), types[0] ], 0, textField.height - 1, this, styleSheet, '', 'textbox-typed', false);
 						tfPopup.alignH = "right";
 						tfPopup.textAlign = "right";
 						tfPopup.alignV = "bottom";
 						
-						if( types.length > 0) {
+						if( types.length > 0)
+						{
 							L = types.length;
-							for(i=0; i < L; i++) {
+							for(i=0; i < L; i++)
+							{
 								tfPopup.rootNode.addItem( [ "" + types[i] ], styleSheet);
+								if(pc)
+								{
+									pc.uiCmds.push(new UICmd([types[i]],'',setTyped,[types[i]]));
+								}
 							}
 						}
 						
@@ -1408,220 +1678,349 @@
 				}
 				setHeight( textField.height + 2 );
 				
-			}else if( tp == "list" ) {
+			}
+			else if( tp == "list" )
+			{
 				if( args && args.length > 0 )
 				{
-					tfPopup = new Popup( [ new IconArrowDown( Application.instance.mainMenu.iconColor ) ], btWidth, textField.height - 1, this, styleSheet, '', 'textbox-popup', false);
-					tfPopup.alignH = "right";
-					tfPopup.textAlign = "right";
-					tfPopup.alignV = "bottom";
+					tfIcon = new IconArrowDown( Application.instance.mainMenu.iconColor, 1, Options.iconSize, Options.iconSize );
+					addChild( tfIcon );
 					
-					if( args.length > 0) {
-						L = args.length;
-						for(i=0; i < L; i++)
+					if (pc)
+					{
+						if(!pc.uiCmds ) pc.uiCmds = new Vector.<UICmd>();
+						else pc.uiCmds.push(new UICmd(['#separator']));
+						pc.uiCmds.push(new UICmd([Language.getKeyword('None')],'',setVal,['']));
+						pc.uiCmds.push(new UICmd(['#separator']));
+						
+						if( args.length == 1 )
 						{
-							ta_str = args[i];
-							
-							if( ta_str.charAt(0) == "#" && ( ta_str != "#separator" ) )
+							var spa:Array;
+							if( args[0] is Array )
 							{
-								if( CTTools.templateConstants && CTTools.templateConstants[ ta_str.substring(1) ] != undefined )
-								{
-									ta_arr = CTTools.templateConstants[ ta_str.substring(1) ].split(",");
+								spa = args[0];
+							}
+							else
+							{
+								spa = args[0].split(",");
+							}
+							
+							L = spa.length;
+							
+							for(i=0; i < L; i++)
+							{
+								ta_str = spa[i];
 									
-								}
-								if( !ta_arr ) {
-									try {
-										ta_str2 = String( Application.instance.strval( ta_str.substring(1), true ) );
-										if( ta_str2 != "{*"+ta_str.substring(1)+"}" ) {
-											ta_arr = ta_str2.split(",");
-										}
-									}catch(e:Error) {
+								if( ta_str.charAt(0) == "#" && ( ta_str != "#separator" ) )
+								{
+									if( CTTools.templateConstants && CTTools.templateConstants[ ta_str.substring(1) ] != undefined )
+									{
+										ta_arr = CTTools.templateConstants[ ta_str.substring(1) ].split(",");
 										
+									}
+									if( !ta_arr ) {
+										try {
+											ta_str2 = String( Application.instance.strval( ta_str.substring(1), true ) );
+											if( ta_str2 != "{*"+ta_str.substring(1)+"}" ) {
+												ta_arr = ta_str2.split(",");
+											}
+										}catch(e:Error) {
+											
+										}
+									}
+									
+									if( ta_arr )
+									{
+										for( ta_i=0; ta_i < ta_arr.length; ta_i++)
+										{
+											s2 = TemplateTools.obj2Text(ta_arr[ta_i], "#", propObj, false, false );
+											pc.uiCmds.push(new UICmd([s2],'',setVal,[s2]))
+										}
+										
+										continue;
+									}
+									else
+									{
+										Console.log("Identifier Not Found: " + ta_str);
 									}
 								}
 								
-								if( ta_arr )
-								{
-									for( ta_i=0; ta_i < ta_arr.length; ta_i++)
-									{
-										tfPopup.rootNode.addItem( [ "" + TemplateTools.obj2Text(ta_arr[ta_i], "#", propObj, false, false ) ], styleSheet);
-									}
-									
+								s2 = TemplateTools.obj2Text( ta_str, "#", propObj, false, false );
+								
+								pc.uiCmds.push(new UICmd([s2],'',setVal,[s2]));
+							}
+						}
+						else
+						{
+							L = args.length;
+							for(i=0; i < L; i++)
+							{
+								if( args[i] is Array ) {
+									pc.uiCmds.push(new UICmd([args[i]],'',setVal,[args[i]]));
 									continue;
 								}else{
-									Console.log("Identifier Not Found: " + ta_str);
+									ta_str = args[i];
+									
+									if( ta_str.charAt(0) == "#" && ( ta_str != "#separator" ) )
+									{
+										if( CTTools.templateConstants && CTTools.templateConstants[ ta_str.substring(1) ] != undefined )
+										{
+											ta_arr = CTTools.templateConstants[ ta_str.substring(1) ].split(",");
+											
+										}
+										if( !ta_arr ) {
+											try {
+												ta_str2 = String( Application.instance.strval( ta_str.substring(1), true ) );
+												if( ta_str2 != "{*"+ta_str.substring(1)+"}" ) {
+													ta_arr = ta_str2.split(",");
+												}
+											}catch(e:Error) {
+												
+											}
+										}
+										
+										if( ta_arr )
+										{
+											for( ta_i=0; ta_i < ta_arr.length; ta_i++)
+											{
+												s2 = TemplateTools.obj2Text(ta_arr[ta_i], "#", propObj, false, false );
+												pc.uiCmds.push(new UICmd([s2],'',setVal,[s2]));
+												
+											}
+											
+											continue;
+										}
+										else
+										{
+											Console.log("Identifier Not Found: " + ta_str);
+										}
+									}
 								}
+								s2 = TemplateTools.obj2Text( ta_str, "#", propObj, false, false );
+								pc.uiCmds.push(new UICmd([s2],'',setVal,[s2]));
 							}
-							
-							// no var or constants found:
-							tfPopup.rootNode.addItem( [ "" + TemplateTools.obj2Text( ta_str, "#", propObj, false, false ) ], styleSheet);
+								
 						}
 					}
-					tfPopup.addEventListener( Event.SELECT, ppListSelect );
-					textField.width = textField.width - tfPopup.cssSizeX;
+					
+					tfIcon.addEventListener( MouseEvent.CLICK, iconListSelect );
+					textField.width = textField.width - tfIcon.width;
 				}
 				setHeight( textField.height + 2 );
-			}else if( tp == "listappend" || tp == "listmultiple" ) {
+			}
+			else if( tp == "listappend" || tp == "listmultiple" )
+			{
 				if( args && args.length > 0 )
 				{
-					tfPopup = new Popup( [ new IconArrowDown( Application.instance.mainMenu.iconColor ) ], btWidth, textField.height - 1, this, styleSheet, '', 'textbox-popup', false);
-					tfPopup.alignH = "right";
-					tfPopup.textAlign = "right";
-					tfPopup.alignV = "bottom";
+					tfIcon = new IconArrowDown( Application.instance.mainMenu.iconColor, 1, Options.iconSize, Options.iconSize );
+					addChild( tfIcon );
 					
-					listAppendSeparator = args[0];
-					var ta_str2:String;
+					if (pc)
+					{
+						if(!pc.uiCmds ) pc.uiCmds = new Vector.<UICmd>();
+						else pc.uiCmds.push(new UICmd(['#separator']));
+						pc.uiCmds.push(new UICmd([Language.getKeyword('None')],'',setVal,['']));
+						pc.uiCmds.push(new UICmd(['#separator']));
 					
-					if( args.length > 1) {
-						L = args.length;
-						for(i=1; i < L; i++)
-						{
-							ta_str = args[i];
+						listAppendSeparator = args[0];
+						var ta_str2:String;
+						
+						if( args.length > 1) {
+							L = args.length;
 							
-							if( ta_str.charAt(0) == "#" && ( ta_str != "#separator" ) )
+							for(i=1; i < L; i++)
 							{
-								if( CTTools.templateConstants && CTTools.templateConstants[ ta_str.substring(1) ] != undefined )
-								{
-									ta_arr = CTTools.templateConstants[ ta_str.substring(1) ].split(",");
-								}
+								ta_str = args[i];
 								
-								if( !ta_arr ) {
-									try {
-										ta_str2 = String( Application.instance.strval( ta_str.substring(1), true ) );
-										if( ta_str2 != "{*"+ta_str.substring(1)+"}" ) {
-											ta_arr = ta_str2.split();
-										}
-									}catch(e:Error) {
-										
-									}
-								}
-								
-								if( ta_arr )
+								if( ta_str.charAt(0) == "#" && ( ta_str != "#separator" ) )
 								{
-									for( ta_i=0; ta_i < ta_arr.length; ta_i++)
+									if( CTTools.templateConstants && CTTools.templateConstants[ ta_str.substring(1) ] != undefined )
 									{
-										tfPopup.rootNode.addItem( [ "" + TemplateTools.obj2Text(ta_arr[ta_i], "#", propObj, false, false ) ], styleSheet);
+										ta_arr = CTTools.templateConstants[ ta_str.substring(1) ].split(",");
 									}
-									continue;
+									
+									if( !ta_arr ) {
+										try {
+											ta_str2 = String( Application.instance.strval( ta_str.substring(1), true ) );
+											if( ta_str2 != "{*"+ta_str.substring(1)+"}" )
+											{
+												ta_arr = ta_str2.split();
+											}
+										}catch(e:Error) {
+											
+										}
+									}
+									
+									if( ta_arr )
+									{
+										for( ta_i=0; ta_i < ta_arr.length; ta_i++)
+										{
+											s2 = TemplateTools.obj2Text(ta_arr[ta_i], "#", propObj, false, false );
+											pc.uiCmds.push(new UICmd([s2],'',setVal,[s2]));
+										}
+										continue;
+									}
+									else
+									{
+										Console.log("Identifier Not Found: " + ta_str);
+									}
 								}
-								else
-								{
-									Console.log("Identifier Not Found: " + ta_str);
-								}
+								s2 = TemplateTools.obj2Text( ta_str, "#", propObj, false, false );
+								// no var or constants found:
+								pc.uiCmds.push(new UICmd([s2],'',setVal,[s2]));
 							}
-							
-							// no var or constants found:
-							tfPopup.rootNode.addItem( [ "" + TemplateTools.obj2Text( ta_str, "#", propObj, false, false ) ], styleSheet);
-							
 						}
+						tfIcon.addEventListener( MouseEvent.CLICK, iconListSelect );
+						textField.width = textField.width - tfIcon.width;
 					}
-					tfPopup.addEventListener( Event.SELECT, ppListAppendSelect );
-					textField.width = textField.width - tfPopup.cssSizeX;
 				}
 				setHeight( textField.height + 2 );
-			}else if( tp == "pagelist" ) {
+			}
+			else if( tp == "pagelist" )
+			{
 				
-				tfPopup = new Popup( [ new IconArrowDown( Application.instance.mainMenu.iconColor ) ], btWidth, textField.height - 1, this, styleSheet, '', 'textbox-popup', false);
-				tfPopup.alignH = "right";
-				tfPopup.textAlign = "right";
-				tfPopup.alignV = "bottom";
-				var pages:Array = [];
-				
-				if( CTTools.pages )
+				if ( pc )
 				{
-					L = CTTools.pages.length;
+					tfIcon = new IconArrowDown( Application.instance.mainMenu.iconColor, 1, Options.iconSize, Options.iconSize );
+					addChild( tfIcon );
 					
-					if( args && args.length > 0)
+					var pages:Array = [];
+					
+					if( CTTools.pages && pc )
 					{
-						var key:String;
-						var val:String;
-						if( args.length > 1 ) {
-							key = args[0].toLowerCase();
-							val = args[1];
-						}else{
-							val = args[0];
-							key = "parent";
-						}
 						
-						for(i=0; i<L; i++) {
-							// filter pages by key/val - args[0]/args[1]
-							if( pages[i][key] == val ) {
+						if(!pc.uiCmds ) pc.uiCmds = new Vector.<UICmd>();
+						else pc.uiCmds.push(new UICmd(['#separator']));
+						pc.uiCmds.push(new UICmd([Language.getKeyword('None')],'',setVal,['']));
+						pc.uiCmds.push(new UICmd(['#separator']));
+					
+						L = CTTools.pages.length;
+						
+						if( args && args.length > 0)
+						{
+							var key:String;
+							var val:String;
+							if( args.length > 1 )
+							{
+								key = args[0].toLowerCase();
+								val = args[1];
+							}
+							else
+							{
+								val = args[0];
+								key = "parent";
+							}
+							
+							for(i=0; i<L; i++)
+							{
+								// filter pages by key/val - args[0]/args[1]
+								if( pages[i][key] == val )
+								{
+									pages.push( CTTools.pages[i].filename );
+								}
+							}
+							if( pages.length > 0 )
+							{
+								if( args.length > 2 )
+								{
+									// filter again with args[2]/args[3]
+									if( args.length > 3 )
+									{
+										key = args[2].toLowerCase();
+										val = args[3];
+									}
+									else
+									{
+										val = args[2];
+										key = "parent";
+									}
+									
+									for(i=pages.length-1; i>=0; i--)
+									{
+										if( pages[i][key] != val )
+										{
+											pages.splice(i,1);
+										}
+									}
+								}
+							}
+						}
+						else
+						{
+							// show all pages
+							for(i=0; i<L; i++) {
 								pages.push( CTTools.pages[i].filename );
 							}
 						}
-						if( pages.length > 0 )
+					}
+					pages.sort();
+					
+					if( pages.length > 0)
+					{
+						L = pages.length;
+						for(i=0; i < L; i++)
 						{
-							if( args.length > 2 ) {
-								// filter again with args[2]/args[3]
-								if( args.length > 3 ) {
-									key = args[2].toLowerCase();
-									val = args[3];
-								}else{
-									val = args[2];
-									key = "parent";
-								}
-								for(i=pages.length-1; i>=0; i--) {
-									if( pages[i][key] != val ) {
-										pages.splice(i,1);
-									}
-								}
+							pc.uiCmds.push(new UICmd([pages[i]],'',setVal,[pages[i]]));
+							
+						}
+					}
+					
+					tfIcon.addEventListener( MouseEvent.CLICK, iconListSelect );
+					textField.width = textField.width - tfIcon.width;
+				}
+				setHeight( textField.height + 2 );
+				
+			}
+			else if( tp == "arealist" )
+			{
+				if ( pc )
+				{
+					tfIcon = new IconArrowDown( Application.instance.mainMenu.iconColor, 1, Options.iconSize, Options.iconSize );
+					addChild( tfIcon );
+					
+					var areas:Array = [];
+					if(pc)
+					{
+						if(!pc.uiCmds ) pc.uiCmds = new Vector.<UICmd>();
+						else pc.uiCmds.push(new UICmd(['#separator']));
+						pc.uiCmds.push(new UICmd([Language.getKeyword('None')],'',setVal,['']));
+						pc.uiCmds.push(new UICmd(['#separator']));
+					}
+					
+					if( CTTools.activeTemplate && CTTools.activeTemplate.areasByName )
+					{
+						for(var areaname:String in CTTools.activeTemplate.areasByName )
+						{
+							if( areas.indexOf( CTTools.activeTemplate.areasByName[areaname].name ) == -1 )
+							{
+								areas.push(CTTools.activeTemplate.areasByName[areaname].name);
 							}
 						}
 					}
-					else
+					areas.sort();
+					
+					if( areas.length > 1)
 					{
-						// show all pages
-						for(i=0; i<L; i++) {
-							pages.push( CTTools.pages[i].filename );
+						L = areas.length;
+						for(i=0; i < L; i++)
+						{
+							pc.uiCmds.push(new UICmd([areas[i]],'',setVal,[areas[i]]));
 						}
 					}
+					tfIcon.addEventListener( MouseEvent.CLICK, iconListSelect );
+					textField.width = textField.width - tfIcon.width;
+					
 				}
-				pages.sort();
-				
-				if( pages.length > 0) {
-					L = pages.length;
-					for(i=0; i < L; i++) {
-						tfPopup.rootNode.addItem( [ "" + pages[i] ], styleSheet);
-					}
-				}
-				tfPopup.addEventListener( Event.SELECT, ppListSelect );
-				textField.width = textField.width - tfPopup.cssSizeX;
 				setHeight( textField.height + 2 );
-				
-			}else if( tp == "arealist" ) {
-				
-				tfPopup = new Popup( [ new IconArrowDown( Application.instance.mainMenu.iconColor ) ], btWidth, textField.height - 1, this, styleSheet, '', 'textbox-popup', false);
-				tfPopup.alignH = "right";
-				tfPopup.textAlign = "right";
-				tfPopup.alignV = "bottom";
-				var areas:Array = [];
-				
-				if( CTTools.activeTemplate && CTTools.activeTemplate.areasByName ) {
-					for(var areaname:String in CTTools.activeTemplate.areasByName ) {
-						areas.push(CTTools.activeTemplate.areasByName[areaname].name);
-					}
-				}
-				areas.sort();
-				
-				if( areas.length > 1) {
-					L = areas.length;
-					for(i=0; i < L; i++) {
-						tfPopup.rootNode.addItem( [ "" + areas[i] ], styleSheet);
-					}
-				}
-				tfPopup.addEventListener( Event.SELECT, ppListSelect );
-				textField.width = textField.width - tfPopup.cssSizeX;
-				setHeight( textField.height + 2 );
-				
-			}else if( tp == "itemlist" ) {
+			}
+			else if( tp == "itemlist" )
+			{
 				
 				// ItemList( area-name, [field], [pre], [post], [labelfield] )
-				if( args && args.length > 0)
+				if( pc && args && args.length > 0)
 				{
-					tfPopup = new Popup( [ new IconArrowDown( Application.instance.mainMenu.iconColor ) ], btWidth, textField.height - 1, this, styleSheet, '', 'textbox-popup', false);
-					tfPopup.alignH = "right";
-					tfPopup.textAlign = "right";
-					tfPopup.alignV = "bottom";
+					tfIcon = new IconArrowDown( Application.instance.mainMenu.iconColor, 1, Options.iconSize, Options.iconSize );
+					addChild( tfIcon );
 					
 					var items:Array = [];
 					var area:String = args[0];
@@ -1635,31 +2034,37 @@
 					if( args.length > 3 ) post = args[3];
 					if( args.length > 4 ) labelfield = args[4];
 					
-					if( CTTools.pageItems ) {
+					if( CTTools.pageItems )
+					{
+						if(!pc.uiCmds ) pc.uiCmds = new Vector.<UICmd>();
+						else pc.uiCmds.push(new UICmd(['#separator']));
+						pc.uiCmds.push(new UICmd([Language.getKeyword('None')],'',setVal,['']));
+						pc.uiCmds.push(new UICmd(['#separator']));
+						
 						L = CTTools.pageItems.length;
-						for( i=0; i < L; i++) {
-							if( CTTools.pageItems[i].area == area ) {
-								ppi = tfPopup.rootNode.addItem( [ "" + CTTools.pageItems[i][labelfield]], styleSheet);
-								ppi.options.labelValue = pre + CTTools.pageItems[i][field] + post;
+						for( i=0; i < L; i++)
+						{
+							if( CTTools.pageItems[i].area == area )
+							{
+								pc.uiCmds.push(new UICmd([ CTTools.pageItems[i][labelfield] ],'',setVal,[  pre + CTTools.pageItems[i][field] + post ] ));
 							}
 						}
 					}
 					
-					tfPopup.addEventListener( Event.SELECT, ppLabelListSelect );
-					textField.width = textField.width - tfPopup.cssSizeX;
+					tfIcon.addEventListener( MouseEvent.CLICK, iconListSelect );
+					textField.width = textField.width - tfIcon.width;
+					
 					setHeight( textField.height + 2 );
 				}
 			}
 			else if ( tp == "itemlistappend" || tp == "itemlistmultiple" )
 			{
 				// ItemList( area-name, [field], [pre], [post], [labelfield] )
-				if( args && args.length > 1)
+				if( pc && args && args.length > 1)
 				{
-					tfPopup = new Popup( [ new IconArrowDown( Application.instance.mainMenu.iconColor ) ], btWidth, textField.height - 1, this, styleSheet, '', 'textbox-popup', false);
-					tfPopup.alignH = "right";
-					tfPopup.textAlign = "right";
-					tfPopup.alignV = "bottom";
-
+					tfIcon = new IconArrowDown( Application.instance.mainMenu.iconColor, 1, Options.iconSize, Options.iconSize );
+					addChild( tfIcon );
+					
 					listAppendSeparator = args[0];
 					
 					var items1:Array = [];
@@ -1674,72 +2079,102 @@
 					if( args.length > 4 ) post1 = args[4];
 					if( args.length > 5 ) labelfield1 = args[5];
 					
-					if( CTTools.pageItems ) {
+					if( CTTools.pageItems )
+					{
+						if(!pc.uiCmds ) pc.uiCmds = new Vector.<UICmd>();
+						else pc.uiCmds.push(new UICmd(['#separator']));
+						pc.uiCmds.push(new UICmd([Language.getKeyword('None')],'',setVal,['']));
+						pc.uiCmds.push(new UICmd(['#separator']));
+						
 						L = CTTools.pageItems.length;
-						for( i=0; i < L; i++) {
-							if( CTTools.pageItems[i].area == area1 ) {
-								ppi = tfPopup.rootNode.addItem( [ "" + CTTools.pageItems[i][labelfield1]], styleSheet);
-								ppi.options.labelValue = pre1 + CTTools.pageItems[i][field1] + post1;
+						for( i=0; i < L; i++)
+						{
+							if( CTTools.pageItems[i].area == area1 )
+							{
+								pc.uiCmds.push(new UICmd([CTTools.pageItems[i][labelfield1]],'',setVal,[pre1 + CTTools.pageItems[i][field1] + post1]));
 							}
 						}
 					}
 					
-					tfPopup.addEventListener( Event.SELECT, ppListAppendSelect );
-					textField.width = textField.width - tfPopup.cssSizeX;
+					tfIcon.addEventListener( MouseEvent.CLICK, iconListSelect );
+					textField.width = textField.width - tfIcon.width;
 					setHeight( textField.height + 2 );
 				}
-			}else if( tp == "labellist" ) {
-				if( args && args.length > 0 ) {
-					tfPopup = new Popup( [ new IconArrowDown( Application.instance.mainMenu.iconColor ) ], btWidth, textField.height - 1, this, styleSheet, '', 'textbox-popup', false);
-					tfPopup.alignH = "right";
-					tfPopup.textAlign = "right";
-					tfPopup.alignV = "bottom";
-					if( args.length > 0) {
+			}
+			else if( tp == "labellist" )
+			{
+				if( pc && args && args.length > 0 )
+				{
+					
+					tfIcon = new IconArrowDown( Application.instance.mainMenu.iconColor, 1, Options.iconSize, Options.iconSize );
+					addChild( tfIcon );
+					
+					if(!pc.uiCmds ) pc.uiCmds = new Vector.<UICmd>();
+					else pc.uiCmds.push(new UICmd(['#separator']));
+					pc.uiCmds.push(new UICmd([Language.getKeyword('None')],'',setVal,['']));
+					pc.uiCmds.push(new UICmd(['#separator']));
+				
+					if( args.length > 0)
+					{
 						L = args.length;
 						var ppi2:PopupItem;
-						for(i=0; i < L; i+=2) {
-							ppi2 = tfPopup.rootNode.addItem( [ "" + TemplateTools.obj2Text( args[i], "#", propObj, false, false ) ], styleSheet);
-							ppi2.options.labelValue = TemplateTools.obj2Text( args[i+1], "#", propObj, false, false );
+						for(i=0; i < L; i+=2)
+						{
+							s2 = TemplateTools.obj2Text( args[i], "#", propObj, false, false );
+							pc.uiCmds.push(new UICmd([s2],'',setVal,[TemplateTools.obj2Text( args[i+1], "#", propObj, false, false )]));
 						}
 					}
-					tfPopup.addEventListener( Event.SELECT, ppLabelListSelect );
-					textField.width = textField.width - tfPopup.cssSizeX;
+					tfIcon.addEventListener( MouseEvent.CLICK, iconListSelect );
+					textField.width = textField.width - tfIcon.width;
 				}
 				setHeight( textField.height + 2 );
-			}else if( tp == "labellistmultiple"  || tp == "labellistappend" ) {
+			}
+			else if( tp == "labellistmultiple"  || tp == "labellistappend" )
+			{
 				if( args && args.length > 0 ) {
-					tfPopup = new Popup( [ new IconArrowDown( Application.instance.mainMenu.iconColor ) ], btWidth, textField.height - 1, this, styleSheet, '', 'textbox-popup', false);
-					tfPopup.alignH = "right";
-					tfPopup.textAlign = "right";
-					tfPopup.alignV = "bottom";
 					
 					listAppendSeparator = args[0];
 					
-					if( args.length > 0) {
+					if(!pc.uiCmds ) pc.uiCmds = new Vector.<UICmd>();
+					else pc.uiCmds.push(new UICmd(['#separator']));
+					pc.uiCmds.push(new UICmd([Language.getKeyword('None')],'',setVal,['']));
+					pc.uiCmds.push(new UICmd(['#separator']));
+				
+					if( args.length > 0)
+					{
 						L = args.length;
 						var ppi3:PopupItem;
-						for(i=1; i < L; i+=2) {
-							ppi3 = tfPopup.rootNode.addItem( [ "" + TemplateTools.obj2Text( args[i], "#", propObj, false, false )  ], styleSheet);
-							ppi3.options.labelValue = TemplateTools.obj2Text( args[i+1], "#", propObj, false, false );
+						
+						for(i=1; i < L; i+=2)
+						{
+							s2 = TemplateTools.obj2Text( args[i], "#", propObj, false, false );
+							pc.uiCmds.push(new UICmd([s2],'',setVal,[TemplateTools.obj2Text( args[i+1], "#", propObj, false, false )]));
 						}
 					}
-					tfPopup.addEventListener( Event.SELECT, ppListAppendSelect );
-					textField.width = textField.width - tfPopup.cssSizeX;
+					
+					tfIcon.addEventListener( MouseEvent.CLICK, iconListSelect );
+					textField.width = textField.width - tfIcon.width;
 				}
 				setHeight( textField.height + 2 );
-			}else if( tp == "name" ) {
-				if( value == "" ) {
+			}
+			else if( tp == "name" )
+			{
+				if( value == "" )
+				{
 					value = getUniqueName();
 				}
 				setHeight( textField.height + 2);
 			}
 			else if(type=="vectorlink") 
 			{
-				if( args.length>1 && args[1].toLowerCase() == "none") {
+				if( args.length>1 && args[1].toLowerCase() == "none")
+				{
 					// hidden
 					setHeight(1);
 					visible = false;
-				}else{
+				}
+				else
+				{
 					var tptmp:String = _type;
 					setType("vector");
 					if( vectorPlusButton ) vectorPlusButton.visible = false;
@@ -1762,12 +2197,14 @@
 		
 		protected function formatVector () :void
 		{
-			if( vectorTextFields ) {
+			if( vectorTextFields )
+			{
 				var yp:int = 0;
 				var L:int = vectorTextFields.length;
 				var tf:InputTextBox;
 				
-				for(var i:int=0; i<L; i++) {
+				for(var i:int=0; i<L; i++)
+				{
 					tf = vectorTextFields[i];
 					tf.y = yp;
 					yp += tf.cssSizeY;
@@ -1777,12 +2214,14 @@
 			textField.height = yp;
 			textField.alpha = 0;
 		
-			if( vectorPlusButton ) {
+			if( vectorPlusButton )
+			{
 				vectorPlusButton.y = yp + cssTop;
 				vectorContainer.setChildIndex( vectorPlusButton, vectorContainer.numChildren-1);
 			}
 
-			if( vectorMinusButton ){
+			if( vectorMinusButton )
+			{
 				vectorMinusButton.y = yp + cssTop;
 				vectorContainer.setChildIndex( vectorMinusButton, vectorContainer.numChildren-2)
 			}
@@ -1805,66 +2244,99 @@
 			}
 		}
 		
-		public function vectorPlusClick ( e:MouseEvent ) :void {
-			if( !TemplateEditor.clickScrolling ) {
+		private function abortLongClick () :void
+		{
+			var pc:PropertyCtrl;
+			
+			if( parent && parent is PropertyCtrl )
+			{
+				var p:DisplayObjectContainer = parent;
+				setTimeout( function() {
+				PropertyCtrl( p ).abortLongClick = true;
+				}, 0);
+			}
+		}
+		
+		public function vectorPlusClick ( e:MouseEvent ) :void
+		{
+			if( !TemplateEditor.clickScrolling )
+			{
+				abortLongClick();
+				
 				if( vectorTextFields && vectorContainer )
 				{
 					var vecObj:Object = {};
 					
 					CTTools.cloneTo( propObj, vecObj );
 					var vecArgs:Array = [];
-					if(vectorTextFields.length > 0) {
+					
+					if(vectorTextFields.length > 0)
+					{
 						var L:int=vectorTextFields[0].args.length;
-						for(var i:int=0; i<L; i++) {
+						
+						for(var i:int=0; i<L; i++)
+						{
 							// Not Dynmaic Type Vector
 							vecArgs.push( vectorTextFields[0].args[i] );
 						}
 					}
 					
 					var tf:VectorTextField = new VectorTextField( vectorType, vecArgs, vecObj, '', cssWidth, cssHeight, vectorContainer, styleSheet, '', nodeClass, false );
-					//var yp:int = 0;
 					
 					tf.rootVector = this;
-					if( vectorTextFields.length > 0) {
+					if( vectorTextFields.length > 0)
+					{
 						tf.wrap = vectorTextFields[0].wrap;
 					}
 					var ev:InputEvent = new InputEvent( this, "add" );
 					
-					if( vectorCurrent == -1) {
+					if( vectorCurrent == -1)
+					{
 						vectorTextFields.push( tf );
 						ev.val = vectorTextFields.length;
-					}else{
+					}
+					else
+					{
 						vectorTextFields.splice( vectorCurrent, 0, tf );
 						ev.val = vectorCurrent;
 					}
 					dispatchEvent( ev );
 					
-					//tf.y = yp
-					//yp += tf.cssSizeY;
-
 					setHeight( getHeight() + tf.cssSizeY );
 					init();
 					
 					formatVector();
 					
-					dispatchEvent ( new Event("heightChange") );
-					dispatchEvent( new Event("lengthChange") );
 					textEnter();
+					
+					setTimeout( function () {
+						dispatchEvent ( new Event("heightChange") );
+						dispatchEvent( new Event("lengthChange") );
+					}, 0);
 				}
-			}else{
+			}
+			else
+			{
 				TemplateEditor.endClickScrolling();
 			}
 		}
 		
-		public function vectorMinusClick ( e:MouseEvent ) :void {
-			if( !TemplateEditor.clickScrolling ) {
+		public function vectorMinusClick ( e:MouseEvent ) :void
+		{
+			if( !TemplateEditor.clickScrolling )
+			{
+				abortLongClick();
+				
 				if( vectorTextFields && vectorContainer )
 				{
 					var tf:VectorTextField;
 					
-					if( vectorCurrent == -1) {
+					if( vectorCurrent == -1)
+					{
 						tf = vectorTextFields.pop();
-					}else{
+					}
+					else
+					{
 						tf = vectorTextFields[vectorCurrent];
 						vectorTextFields.splice( vectorCurrent,1);
 						var ev:InputEvent = new InputEvent( this, "clear" );
@@ -1884,13 +2356,17 @@
 					
 					textEnter();
 				}
-			}else{
+			}
+			else
+			{
 				TemplateEditor.endClickScrolling();
 			}
 		}
 		
-		protected function richtTextPPHandler ( e:PopupEvent ) :void {
+		protected function richtTextPPHandler ( e:PopupEvent ) :void
+		{
 			var curr:PopupItem = e.selectedItem;
+			abortLongClick();
 			
 			if( rtViewCode == true )
 			{
@@ -1924,10 +2400,13 @@
 					var ko:int = -1;
 					var ke:int = -1;
 					
-					if( beginid == endid ) {
+					if( beginid == endid )
+					{
 						// Test if cursor is in Markup Code...
-						if( beginid > 0 ) {
-							for( i = beginid; i >= 0; i--) {
+						if( beginid > 0 )
+						{
+							for( i = beginid; i >= 0; i--)
+							{
 								ti = tm.charCodeAt(i);
 								if( ti == 91 ) { // [
 									ke = i;
@@ -1938,8 +2417,10 @@
 									break;
 								}
 							}
-							if( ke >= 0 ) {
-								for( i=beginid; i<tm.length; i++ ) {
+							if( ke >= 0 )
+							{
+								for( i=beginid; i<tm.length; i++ )
+								{
 									ti = tm.charCodeAt(i);
 									if( ti == 93 ) { // ]
 										ko = i+1;
@@ -1948,7 +2429,9 @@
 								}
 							}
 						}
-						if( ke == -1 || ko == -1 ) {
+						
+						if( ke == -1 || ko == -1 )
+						{
 							// not in markup code..
 							// add empty tag..
 							historyPush( value );
@@ -1961,7 +2444,9 @@
 							textField.setSelection( tp, tp );
 							
 							return ;
-						}else{
+						}
+						else
+						{
 							// inside block..
 							
 							var te:int = tm.indexOf("class=", ke);
@@ -1970,7 +2455,8 @@
 							{
 								var ko2:int = tm.indexOf('"', te +7);
 								
-								if( ko2 >= 0 ) {
+								if( ko2 >= 0 )
+								{
 									historyPush( value );
 									
 									value = textField.text.substring(0, ko2) + " " + lb + '"]' + textField.text.substring( ko );
@@ -1987,7 +2473,8 @@
 						}
 					}
 					
-					if( ke >= 0 && ko >= 0 ) {
+					if( ke >= 0 && ko >= 0 )
+					{
 						beginid = ko;
 						endid = ke;
 					}
@@ -2008,7 +2495,8 @@
 		
 		}
 		
-		private function showSelectTextError () :void {
+		private function showSelectTextError () :void
+		{
 			var win2:Window = Window( Application.instance.window.InfoWindow( "SelectTextWindow", agf.ui.Language.getKeyword("Select Some Text Error"), Language.getKeyword("Select Some Text First"), {
 				complete: function (b:Boolean=false) {},
 				continueLabel:Language.getKeyword("OK"),
@@ -2022,7 +2510,8 @@
 		protected function nodeStyleHandler (e:MouseEvent) :void
 		{
 			// Open Styles Editor...
-			if( !TemplateEditor.clickScrolling ) {
+			if( !TemplateEditor.clickScrolling )
+			{
 				
 			}
 		}
@@ -2030,13 +2519,16 @@
 		protected function styleClassHandler (e:MouseEvent) :void
 		{
 			// Open Class Editor...
-			if( !TemplateEditor.clickScrolling ) {
+			if( !TemplateEditor.clickScrolling )
+			{
 				
 			}
 		}
 		
-		protected function richtTextBtnHandler (e:MouseEvent) :void {
-			if( !TemplateEditor.clickScrolling ) {
+		protected function richtTextBtnHandler (e:MouseEvent) :void
+		{
+			if( !TemplateEditor.clickScrolling )
+			{
 				var btn:Button = Button(e.currentTarget);
 				var lb:String = btn.label;
 				var beginid:int = textField.selectionBeginIndex;
@@ -2047,27 +2539,36 @@
 				
 				if(textField.text.charCodeAt( endid -1) <= 32) endid--;
 				
-				if( btn.options.originalLabel == "Code" ) {
+				if( btn.options.originalLabel == "Code" )
+				{
 					rtViewCode = true;
 					textField.visible = true;
 					htmlTextField.visible = false;
 					return;
-				}else if( btn.options.originalLabel == "Live") {
+				}
+				else if( btn.options.originalLabel == "Live")
+				{
 					rtViewCode = false;
 					textField.visible = false;
 					htmlTextField.visible = true;
 					return;
-				}else if( btn.options.originalLabel == ".Undo") {
+				}
+				else if( btn.options.originalLabel == ".Undo")
+				{
 					
-					if( history && history.length > 0 ) {
+					if( history && history.length > 0 )
+					{
 						s = historyPop();
 						futurePush( value );
 						value = s;
 						textEnter();
 						return;
 					}
-				}else if( btn.options.originalLabel == ".Redo") {
-					if( future && future.length > 0 ) {
+				}
+				else if( btn.options.originalLabel == ".Redo")
+				{
+					if( future && future.length > 0 )
+					{
 						s = futurePop();
 						historyPush( value );
 						value = s;
@@ -2079,7 +2580,8 @@
 				var nl:String;
 				var nle:String;
 				
-				if( btn.options.originalLabel == ".Bold") {
+				if( btn.options.originalLabel == ".Bold")
+				{
 					historyPush( value );
 					value = textField.text.substring(0, beginid) + '**'+ (beginid >= endid ? "":textField.text.substring( beginid, endid )) + "**" + textField.text.substring( endid );
 					tp = beginid + 2 + (endid > beginid ? (endid - beginid) : 0);
@@ -2087,7 +2589,9 @@
 					stage.focus = textField;
 					textField.setSelection( tp, tp );
 					
-				}else if( btn.options.originalLabel == ".Italic") {
+				}
+				else if( btn.options.originalLabel == ".Italic")
+				{
 					historyPush( value );
 					value = textField.text.substring(0, beginid) + '*'+( beginid >= endid?"":textField.text.substring( beginid, endid )) + "*" + textField.text.substring( endid );
 					tp = beginid + 1 + (endid > beginid ? (endid - beginid) : 0);
@@ -2095,18 +2599,29 @@
 					stage.focus = textField;
 					textField.setSelection( tp, tp );
 					
-				}else if( btn.options.originalLabel == ".Heading") {
+				}
+				else if( btn.options.originalLabel == ".Heading")
+				{
 					historyPush( value );
 					nli = textField.text.charCodeAt(beginid-1);
-					if( beginid == 0 || nli == 9 || nli == 10 || nli == 13 ) {
+					
+					if( beginid == 0 || nli == 9 || nli == 10 || nli == 13 )
+					{
 						nl = "";
-					}else{
+					}
+					else
+					{
 						nl = "\n";
 					}
+					
 					nli = textField.text.charCodeAt(endid);
-					if( nli == 9 || nli == 10 || nli == 13 ) {
+					
+					if( nli == 9 || nli == 10 || nli == 13 )
+					{
 						nle = "";
-					}else{
+					}
+					else
+					{
 						nle = "\n";
 					}
 					value = textField.text.substring(0, beginid) +  nl+ '# '+( beginid >= endid?"":textField.text.substring( beginid, endid )) + nle + textField.text.substring( endid );
@@ -2115,18 +2630,28 @@
 					stage.focus = textField;
 					textField.setSelection( tp, tp );
 					
-				}else if( btn.options.originalLabel == ".List") {
+				}
+				else if( btn.options.originalLabel == ".List")
+				{
 					historyPush( value );
 					nli = textField.text.charCodeAt(beginid-1);
-					if( beginid == 0 || nli == 9 || nli == 10 || nli == 13 ) {
+					if( beginid == 0 || nli == 9 || nli == 10 || nli == 13 )
+					{
 						nl = "";
-					}else{
+					}
+					else
+					{
 						nl = "\n";
 					}
+					
 					nli = textField.text.charCodeAt(endid);
-					if( nli == 9 || nli == 10 || nli == 13 ) {
+					
+					if( nli == 9 || nli == 10 || nli == 13 )
+					{
 						nle = "";
-					}else{
+					}
+					else
+					{
 						nle = "\n";
 					}
 					value = textField.text.substring(0, beginid) +  nl+ '- '+( beginid >= endid?"":textField.text.substring( beginid, endid )) + nle + textField.text.substring( endid );
@@ -2135,7 +2660,9 @@
 					stage.focus = textField;
 					textField.setSelection( tp, tp );
 					
-				}else if( btn.options.originalLabel == ".Link") {
+				}
+				else if( btn.options.originalLabel == ".Link") 
+				{
 					// Get Link Window
 					var win:Window = Window( Application.instance.window.GetStringWindow( "LinkWindow", agf.ui.Language.getKeyword("CT-Get-Link"), Language.getKeyword("CT-Get-Link-MSG"), {
 					complete: function (str:String) {
@@ -2162,7 +2689,8 @@
 		
 		protected function boolButtonDoubleClickHandler ( e:MouseEvent ) :void
 		{
-			if( !TemplateEditor.clickScrolling ) {
+			if( !TemplateEditor.clickScrolling ) 
+			{
 				textField.removeEventListener( MouseEvent.MOUSE_DOWN, boolButtonDoubleClickHandler );
 				tfBtn.removeEventListener( MouseEvent.MOUSE_DOWN, boolButtonDoubleClickHandler );
 				
@@ -2171,32 +2699,41 @@
 				textField.type = TextFieldType.INPUT;
 				textField.setSelection( 0, textField.text.length );
 				onActivate(null);
-			}else{
+			}
+			else
+			{
 				TemplateEditor.endClickScrolling();
 			}
 		}
 		
 		protected function boolButtonDoubleClickAbort () :void
 		{
-			if( !TemplateEditor.clickScrolling ) {
-					textField.removeEventListener( MouseEvent.MOUSE_DOWN, boolButtonDoubleClickHandler );
-					tfBtn.removeEventListener( MouseEvent.MOUSE_DOWN, boolButtonDoubleClickHandler );
-					
-					boolValue = tmp_bool_value;
-					textEnter();
-			}else{
+			if( !TemplateEditor.clickScrolling )
+			{
+				textField.removeEventListener( MouseEvent.MOUSE_DOWN, boolButtonDoubleClickHandler );
+				tfBtn.removeEventListener( MouseEvent.MOUSE_DOWN, boolButtonDoubleClickHandler );
+				
+				boolValue = tmp_bool_value;
+				textEnter();
+			}
+			else
+			{
 				TemplateEditor.endClickScrolling();
 			}
 		}
 		
 		protected function boolButtonHandler ( e:MouseEvent ) :void
 		{
-			if( !TemplateEditor.clickScrolling ) {
+			if( !TemplateEditor.clickScrolling )
+			{
 				var v:String = value;
 				
-				if( v == boolNo) {
+				if( v == boolNo)
+				{
 					tmp_bool_value = true;
-				}else{
+				}
+				else
+				{
 					tmp_bool_value = false;
 				}
 				
@@ -2204,42 +2741,57 @@
 				tfBtn.addEventListener( MouseEvent.MOUSE_DOWN, boolButtonDoubleClickHandler );
 				
 				setTimeout( boolButtonDoubleClickAbort, 353 );
-			}else{
+			}
+			else
+			{
 				TemplateEditor.endClickScrolling();
 			}
 		}
-		public function boolIcon (v:Boolean) :void {
+		
+		public function boolIcon (v:Boolean) :void
+		{
 			tfBtn.clips = [ new IconFromFile(  (v ? Options.iconDir + CTOptions.urlSeparator + "toggle-on-btn.png" : Options.iconDir + CTOptions.urlSeparator + "toggle-off-btn.png"), Options.btnSize, Options.btnSize) ];
 			tfBtn.init();
 		}
 		
-		public function set boolValue (v:Boolean) :void {
+		public function set boolValue (v:Boolean) :void
+		{
 			_boolValue = v;
 			boolIcon(v);
 			value = _boolValue ? boolYes : boolNo;
 		}
 		
-		public function get boolValue ():Boolean {
+		public function get boolValue ():Boolean
+		{
 			return _boolValue;
 		}
 		
-		//public var blockBackground:Boolean=true;
 		public static var blocker:Sprite;
-		private static function blockHandler (e:MouseEvent) :void {}
 		
-		protected function onSelectColor ( e:MouseEvent ) :void {
+		private function blockHandler (e:MouseEvent) :void
+		{
+			if( colorPicker )
+			{
+				colorPicker.removeCP();
+			}
+		}
+		
+		protected function onSelectColor ( e:MouseEvent ) :void
+		{
 			var tc:CssSprite = Application.instance.topContent
 			var panel:CssSprite = Application.instance.view.panel;
-			if( tc ) {
+			if( tc )
+			{
 				var cp:ColorPicker = ColorPicker(tc.getChildByName("color_picker"));
-				if( cp ) {
+				if( cp )
+				{
 					tc.removeChild(cp);
 					textEnter();
 					return;
 				}
-				var pw:int = panel.getWidth() * TemplateTools.editor_w;
+				var pw:int = panel.cssSizeX/*getWidth()*/ * TemplateTools.editor_w;
 				
-				if( HtmlEditor.isPreviewOpen ) {
+				if( HtmlEditor.isPreviewOpen && !CTOptions.previewAtBottom ) {
 					pw = HtmlEditor.previewX;
 				}
 				
@@ -2254,28 +2806,28 @@
 				if( ! tc.contains( blocker) ) tc.addChild( blocker );
 				
 				// hardcode padding: 16px
-				colorPicker = new ColorPicker( pw, panel.getHeight() - mmh, tc, styleSheet, '', 'editor input-color-picker', false);
+				colorPicker = new ColorPicker( pw, (panel.cssSizeY/*getHeight()*/ * TemplateTools.editor_h) - mmh, tc, styleSheet, '', 'editor input-color-picker', false);
 				
 				colorPicker.name = "color_picker";
 				colorPicker.setLabel( labelText );
 				
-				if( displayMode == "rgba" || displayMode == "hsla" ) {
+				if( displayMode == "rgba" || displayMode == "hsla" )
+				{
 					colorPicker.color32 = _color;
-				}else{
+				}
+				else
+				{
 					colorPicker.color = _color;
 				}
 				
 				colorPicker.x = 0;
 				colorPicker.y = mmh;
 				
-				if( CTOptions.animateBackground ) {
+				if( CTOptions.animateBackground )
+				{
 					HtmlEditor.dayColorClip( colorPicker.bgSprite );
 					colorPicker.bgSprite.width  = pw + 16;
-					//colorPicker.bgSprite.height  = mmh;
 				}
-				
-				//if( colorPicker.y + colorPicker.cssSizeY > tc.getHeight() ) colorPicker.y = mmh;//panel.getHeight() - colorPicker.cssSizeY;
-				//if( colorPicker.y < 0 ) colorPicker.y = 0;
 				
 				colorPicker.target = this;
 				colorPicker.targetName = "setColorValue";
@@ -2284,29 +2836,39 @@
 		
 		public function onRemoveCP () :void
 		{
-			if( blocker ) {
+			if( blocker )
+			{
 				var tc:CssSprite = Application.instance.topContent
 				if( tc && tc.contains( blocker ) ) tc.removeChild( blocker );
 			}
 		}
-		public function setColorValue ( c:uint ) :void {
+		
+		public function setColorValue ( c:uint ) :void
+		{
 			colorValue = c;
 			drawCurrentColor();
 			textEnter();
 		}
 			
-		protected function sliderBegin ( e:Event ) :void {
+		protected function sliderBegin ( e:Event ) :void
+		{
+			abortLongClick();
+			
 			if( _supertype == "screennumber" || _supertype == "screeninteger" )
 			{
 				var s:String = textField.text;
 				var c:int=s.length;
-				for(var i:int=c-1; i>=0; i--) {
-					if( !isNaN(Number(s.charAt(i))) ) {
+				for(var i:int=c-1; i>=0; i--)
+				{
+					if( !isNaN(Number(s.charAt(i))) )
+					{
 						c = i;
 						break;
 					}
 				}
-				if( c != s.length ) {
+				
+				if( c != s.length )
+				{
 					var num:String = s.substring( 0, c );
 					var unit:String = s.substring( c+1 );
 					StringMath.distFormat = unit;
@@ -2315,76 +2877,111 @@
 			activateValue = textField.text;
 		}
 		
-		protected function sliderChange ( e:Event ) :void {
-			if( TemplateEditor.clickScrolling ) {
+		protected function sliderChange ( e:Event ) :void
+		{
+			if( TemplateEditor.clickScrolling )
+			{
 				TemplateEditor.abortClickScrolling();
 			}
-			if( tfSlider ) {
+			
+			if( tfSlider )
+			{
 				var gr:Number;
-				if( _supertype == "screennumber" || _supertype == "screeninteger" ) {
-					if( sliderGrid != 0 ) {
+				if( _supertype == "screennumber" || _supertype == "screeninteger" )
+				{
+					if( sliderGrid != 0 )
+					{
 						gr = sliderGrid;
 						textField.text = "" + (Math.round( (_type=="integer" ? Math.round( StringMath.forceNumber( String(tfSlider.value))) : StringMath.forceNumber( String(tfSlider.value) )) / gr ) * gr).toFixed(decPlaces) + StringMath.distFormat;
-					}else{
+					}
+					else
+					{
 						textField.text = "" + ( _type == "integer" ? Math.round( StringMath.forceNumber(String(tfSlider.value)) ) : StringMath.forceNumber(String(tfSlider.value)) ) + StringMath.distFormat;
 					}
-				}else{
-					if( sliderGrid != 0 ) {
+				}
+				else
+				{
+					if( sliderGrid != 0 )
+					{
 						gr = sliderGrid;
 						textField.text = "" + (Math.round( (_type=="integer" ? Math.round(tfSlider.value) : tfSlider.value) / gr ) * gr).toFixed(decPlaces);
-					}else{
+					}
+					else
+					{
 						textField.text = "" + ( _type == "integer" ? Math.round( tfSlider.value ) : tfSlider.value);
 					}
 				}
 			}
 		}
 		
-		protected function sliderUp ( e:MouseEvent ) :void {
-			if( tfSlider ) {
+		protected function sliderUp ( e:MouseEvent ) :void
+		{
+			if( tfSlider )
+			{
 				sliderChange(null);
-				//setTimeout( function () {
 				textEnter(); 
-				
-				//}, 950 );
 			}
 		}
 		
-		protected function ppListSelect ( e:PopupEvent ) :void {
+		protected function ppListSelect ( e:PopupEvent ) :void
+		{
 			var curr:PopupItem = e.selectedItem;
 			var lb:String = curr.label;
 			value = lb;
 			textEnter();
 		}
-		
-		protected function ppScreenNumberSelect ( e:PopupEvent ) :void {
-			var curr:PopupItem = e.selectedItem;
-			var lb:String = curr.label;
+		protected function iconListSelect ( e:MouseEvent ) :void
+		{
+			var pc:PropertyCtrl = PropertyCtrl( parent );
 			
+			if ( pc )
+			{
+				pc.abortLongClick = true;
+				pc.showOptions();
+			}
+		}
+		
+		public function convertNumberTo ( lb:String ) :void
+		{			
 			var val:Number = StringMath.forceNumber( textField.text );
 			var s:String = textField.text;
 			var a:int;
 			var ez:int = s.length;
 			var num:String  = "";
-			for(var i:int =0; i<s.length; i++) {
+			
+			for(var i:int =0; i<s.length; i++)
+			{
 				// 0 - 9 || . 
 				a = s.charCodeAt(i);
-				if(a >= 40 && a <= 57 || a==69) {
+				
+				if(a >= 40 && a <= 57 || a==69)
+				{
 					num += s.charAt(i);
-				}else{
+				}
+				else
+				{
 					ez = i;
 					break;
 				}
 			}
+			
 			num = CssUtils.trim(num);
 			var unit:String = CssUtils.trim( s.substring(ez) );
 			
-			if( unit == "%" && (lb == "vh" || lb == "vw") ) {
+			if( unit == "%" && (lb == "vh" || lb == "vw") )
+			{
 				num = String( Number(num) );
-			}else if( (unit == "vh" || unit == "vw") && lb == "%" ) {
+			}
+			else if( (unit == "vh" || unit == "vw") && lb == "%" ) 
+			{
 				num = String( Number(num) );
-			}else if( unit == "px" && (lb == "rem" || lb == "em")) {
+			}
+			else if( unit == "px" && (lb == "rem" || lb == "em"))
+			{
 				num = String( Number(num)/16 );
-			}else if( ( unit == "em" || unit == "rem" ) && lb == "px") {
+			}
+			else if( ( unit == "em" || unit == "rem" ) && lb == "px")
+			{
 				num = String( Number(num)*16 );
 			}
 			
@@ -2392,13 +2989,22 @@
 			
 			value = "" + num + lb;
 			
-			if(tfSlider && !isNaN(Number(num))) {
+			if(tfSlider && !isNaN(Number(num)))
+			{
 				tfSlider.value = Number(num);
 			}
 			textEnter();
 		}
 		
-		protected function ppTypedSelect ( e:PopupEvent ) :void {
+		public function setTyped ( tp:String ) :void
+		{
+			tfPopup.label = tp;
+			setWidth(getWidth());
+			textEnter();
+		}
+		
+		protected function ppTypedSelect ( e:PopupEvent ) :void
+		{
 			var curr:PopupItem = e.selectedItem;
 			var lb:String = curr.label;
 			
@@ -2408,59 +3014,77 @@
 			textEnter();
 		}
 		
-		protected function ppLabelListSelect ( e:PopupEvent ) :void {
+		protected function ppLabelListSelect ( e:PopupEvent ) :void
+		{
 			var curr:PopupItem = e.selectedItem;
-			if( Application.instance.shortcutMgr.shiftDown ) {
+			
+			if( Application.instance.shortcutMgr.shiftDown )
+			{
 				value += listAppendSeparator +  curr.options.labelValue;
-			}else{
+			}
+			else
+			{
 				value =  curr.options.labelValue;
 			}
 			textEnter();
 		}
 		
-		protected function ppListAppendSelect ( e:PopupEvent ) :void
+		protected function listAppend ( lb:String ) :void
 		{
-			var curr:PopupItem = e.selectedItem;
-			var lb:String = curr.label;
+			if ( lb == "" )
+			{
+				value = "";
+				return;
+			}
 			
 			if( _supertype == "listmultiple" || _supertype == "labellistmultiple" || _supertype == "itemlistmultiple" )
 			{
-				if (  _type != "listmultiple" ) {
-					lb = curr.options.labelValue;
-				}
-				if( Application.instance.shortcutMgr.shiftDown ) {
+				if( Application.instance.shortcutMgr.shiftDown )
+				{
 					// force add
 					value += listAppendSeparator + lb;
-				}else{
+				}
+				else
+				{
 					
 					var v:String = value;
 					var st:int = v.indexOf( lb );
 						
-					if( st >= 0 ) {
+					if( st >= 0 )
+					{
 						// remove
 						value = CssUtils.trim( v.substring(0, st) + v.substring( st + lb.length ) );
+						
 						if( value == "" ) 
 						{
 							activateValue = " ";
 						}
-					}else{
+					}
+					else
+					{
 						
 						var id:int = args.indexOf( lb );
 						var i:int;
 						var s1:int = -1;
 						var s2:int = args.indexOf( "#separator", id );
 						
-						if( s2 >= 0 ) {
+						if( s2 >= 0 )
+						{
 							s1 = args.lastIndexOf( "#separator", s2-1 );
-						}else{
+						}
+						else
+						{
 							s1 = args.lastIndexOf( "#separator", id-1 );
-							if( s1 >= 0 ) {
+							if( s1 >= 0 )
+							{
 								s2 = args.length;
 							}
 						}
 						
-						if( s1 < 0 ) {
-							if ( s2 >= 0 ) {
+						if( s1 < 0 )
+						{
+							if ( s2 >= 0 )
+							{
 								// Group: 0 - s2
 								s1 = 0;
 							}
@@ -2474,9 +3098,12 @@
 							var aid:int;
 							var spl:int=-1;
 							
-							for(i=L-1; i>=0; i--) {
+							for(i=L-1; i>=0; i--)
+							{
 								aid = args.indexOf( values[i] );
-								if( aid > s1 && aid < s2 ) {
+								
+								if( aid > s1 && aid < s2 )
+								{
 									values.splice(i, 1);
 									spl = i;
 								}
@@ -2485,12 +3112,17 @@
 							if( spl == -1 ) values.push(lb);
 							else values.splice(spl,0,lb);
 							
-							if( values.length == 0 ) {
+							if( values.length == 0 )
+							{
 								activateValue = " ";
 								value = "";
-							}else if( values.length == 1 ) {
+							}
+							else if( values.length == 1 )
+							{
 								value = values[0];
-							}else{
+							}
+							else
+							{
 								value = values.join(listAppendSeparator);
 							}
 							
@@ -2498,35 +3130,62 @@
 						else
 						{
 							// no groups
-							if( v == "" ) {
+							if( v == "" )
+							{
 								value = lb;
-							}else{
+							}
+							else
+							{
 								value += listAppendSeparator + lb;
 							}
 						}
 					}
 				}
-			}else{
+			}
+			else
+			{
 				value += listAppendSeparator + lb;
 			}
 			
 			textEnter();
 		}
+		protected function ppListAppendSelect ( e:PopupEvent ) :void
+		{
+			var curr:PopupItem = e.selectedItem;
+			var lb:String = curr.label;
+			
+			if( _supertype == "listmultiple" || _supertype == "labellistmultiple" || _supertype == "itemlistmultiple" )
+			{
+				if (  _type != "listmultiple" )
+				{
+					lb = curr.options.labelValue;
+				}
+			
+				listAppend( lb );
+			}
+		}
+		
+		public static var heightDirty:Boolean = false;
 		
 		public override function setWidth ( w:int ) :void
 		{
 			super.setWidth(w -cssBoxX);
 			
-			if(rtItemList) {
-				if( rtItemList.vert ) {
+			if(rtItemList)
+			{
+				if( rtItemList.vert )
+				{
 					rtItemList.x = w - (rtItemList.width + rtItemList.cssBoxX + 8);
-				}else{
+				}
+				else
+				{
 					rtItemList.x = cssLeft;
 					rtItemList.y = -rtItemList.height;
 				}
 				var H:int = textField.height;
 				
-				if( _supertype == "richtext" || _supertype == "text" || _supertype == "code" ) {
+				if( _supertype == "richtext" || _supertype == "text" || _supertype == "code" )
+				{
 					textField.autoSize = TextFieldAutoSize.LEFT;
 				}
 				
@@ -2534,37 +3193,50 @@
 				
 				if( _supertype == "richtext" || _supertype == "text" || _supertype == "code" )
 				{
+					H = textField.height;
 					textField.autoSize = TextFieldAutoSize.NONE;
-				
-					if( textField.height !=  H )  {
-						// autosize changed height..
-						var m:TextLineMetrics = textField.getLineMetrics(0);
-						setHeight( getHeight() + (textField.height-H) + m.ascent + m.descent + m.leading );
-						dispatchEvent ( new Event("heightChange") );
-					}
-					if( htmlTextField ) {
+					setHeight( H + 8 );
+					heightDirty = true;
+					
+					if ( htmlTextField )
+					{
 						htmlTextField.width = textField.width;
 					}
 				}
 			}
 			else
 			{
-				if( tfBtn ) {
+				if( tfBtn )
+				{
 					textField.width = w - tfBtn.cssSizeX;
 					tfBtn.x =  w - tfBtn.cssSizeX;
-				}else if( tfPopup ) {
+				}
+				else if( tfPopup )
+				{
 					textField.width = w - tfPopup.cssSizeX
 					tfPopup.x = w - tfPopup.cssSizeX;
-				}else if( colorClip ) {
+				}
+				else if( tfIcon )
+				{
+					textField.width = w - tfIcon.width
+					tfIcon.x = w - (tfIcon.width + int(Options.iconSize * 0.5));
+				}
+				else if( colorClip )
+				{
 					textField.width = w-(colorClip.width );
 					colorClip.x =  w - colorClip.width;
-				}else{
+				}
+				else
+				{
 					textField.width = w;
 				}
 				
-				if( mediaContainer && mediaInfo && mediaInfo.length > 0 ) {
+				if( mediaContainer && mediaInfo && mediaInfo.length > 0 )
+				{
 					var fmt:TextFormat = mediaInfo.getTextFormat( 0, 1 );
-					if( fmt && fmt.align == "right" ) {
+					
+					if( fmt && fmt.align == "right" )
+					{
 						mediaInfo.x = w - (mediaInfo.width + mediaContainer.x + 8 );
 					}
 				}
@@ -2572,55 +3244,78 @@
 			var i:int;
 			var L:int;
 			
-			if( itemList ) {
-				if(itemList.items) {
+			if( itemList )
+			{
+				if(itemList.items)
+				{
 					var ppw:int = 0;
-					if( rtItemList ) {
+					
+					if( rtItemList )
+					{
 						ppw = 8 + Options.btnSize;
 					}
+					
 					L = itemList.items.length;
-					for( i=0; i < L; i++) {
+					
+					for( i=0; i < L; i++)
+					{
 						itemList.items[i].setWidth( w - (itemList.items[i].cssBoxX + cssBoxX + ppw + 2) );
 					}
 				}
+				
 				itemList.setWidth(0);
 				itemList.init();
 			}
 			
-			if( multiSelectMenu ) {
+			if( multiSelectMenu )
+			{
 				multiSelectMenu.setWidth( w - (multiSelectMenu.cssBoxX) );
 			}
 			
-			if( vectorTextFields ) {
+			if( vectorTextFields )
+			{
 				L = vectorTextFields.length;
-				for( i=0; i<L; i++) {
+				
+				for( i=0; i<L; i++)
+				{
 					vectorTextFields[i].setWidth( w );
 				}
-				if( vectorPlusButton && vectorMinusButton ) {
+				
+				if( vectorPlusButton && vectorMinusButton )
+				{
 					vectorPlusButton.x = w - vectorPlusButton.cssSizeX-2;
 					vectorMinusButton.x = vectorPlusButton.x - (vectorMinusButton.cssSizeX + 2);
 				}
 			}
-			if( plugin ) {
-				plugin.setWidth( w  );
+			
+			if( plugin )
+			{
+				plugin.setWidth( w );
 			}
-			if( tfSlider ) {
-				tfSlider.setHeight( w  ); 
+			
+			if( tfSlider )
+			{
+				tfSlider.setHeight( w ); 
 			}
 		}
+		
 		public override function setHeight ( h:int ) :void
 		{
-			if( rtItemList ) {
+			if( rtItemList )
+			{
 				if( h < rtItemList.height ) h = rtItemList.height;
 			}
+			super.setHeight( h );
 			
 			if(_supertype=="image")
 			{
-				super.setHeight( h );
-				if( mediaContainer ) {
+				if( mediaContainer )
+				{
 					mediaContainer.y = cssTop;
 					textField.y = cssTop + mediaContainer.height + 2;
-				}else{
+				}
+				else
+				{
 					textField.y = cssTop;
 				}
 				
@@ -2630,36 +3325,44 @@
 			}
 			else
 			{
-				super.setHeight(h);
-				
 				textField.y = cssTop;
 				textField.height = h;
 			}
 			
-			if( htmlTextField ) {
+			if ( tfIcon )
+			{
+				tfIcon.y = int( (Options.btnSize - textField.height) * 0.5 );
+			}
+			
+			if( htmlTextField ) 				
+			{
 				htmlTextField.height = textField.height;
 			}
 			
 			var sld:int=2;
-			if(tfSlider) {
-				//sld = tfSlider.cssSizeX;// tfSlider.getWidth();
+			
+			if(tfSlider)
+			{
 				tfSlider.y = textField.height + textField.y + 5;
 			}
 		}
 		
-		public function get value () :String {
+		public function get value () :String
+		{
 			return textField ? textField.text : "";
 		}
 		
-		public function set value ( v:String ) :void {
-			
+		public function set value ( v:String ) :void
+		{			
 			textField.text = v || "";
 			
-			if ( _supertype == "boolean" && tfBtn) {
+			if ( _supertype == "boolean" && tfBtn)
+			{
 				boolIcon( v == boolYes || CssUtils.stringToBool(v) );
 			}
 			
-			if( tfSlider ) {
+			if( tfSlider )
+			{
 				if( _supertype == "number" ) 
 					tfSlider.value = Number( v );
 				else if( _supertype == "integer" ) 
@@ -2667,52 +3370,68 @@
 			}
 		}
 		
-		private function textChange (e:Event) :void {
-			if( _supertype == "richtext" || _supertype == "text" || _supertype == "code" ) {
+		private function textChange (e:Event) :void
+		{
+			if( _supertype == "richtext" || _supertype == "text" || _supertype == "code" )
+			{
 				historyPush( textField.text );
 			}
 		}
 		private var colorOfs:int=0;
 		
-		private function drawCurrentColor () :void {
+		private function drawCurrentColor () :void
+		{
 			if( colorClip ) 
 			{
 				// simulate padding-right:
 				var ofs:int = colorOfs;
 				colorClip.graphics.beginFill( 0, 0 );
-				colorClip.graphics.drawRect(0, 2, Options.btnSize+ofs, textField.height );
+				colorClip.graphics.drawRect(0, 0, Options.btnSize+ofs, cssSizeY - (4*CssUtils.numericScale) /* textField.height*/ );
 				colorClip.graphics.endFill();
 				
 				colorClip.graphics.beginFill( this._color, 1 );
-				colorClip.graphics.drawRect(0, 2, Options.btnSize, textField.height );
+				colorClip.graphics.drawRect(0, 0, Options.btnSize, cssSizeY- (4*CssUtils.numericScale)/*textField.height */);
 				colorClip.graphics.endFill();
 			}
 		}
 		
 		public function textEnter () :void
 		{
-			if( _type == "plugin" && superType != "" ) {
+			if( _type == "plugin" && superType != "" )
+			{
 				_type = superType;
 				textEnter();
 				return;
 			}
+			
 			var v:String = value;
 			if( trimValue ) v = CssUtils.trim(v);	
 			if( trimQuotesValue ) v = CssUtils.trimQuotes(v);
 			
-			if( _type == "number" || _type=="screennumber" ){
+			if( _type == "number" || _type=="screennumber" )
+			{
 				value = "" + StringMath.evaluate( v, decPlaces, _type == "screennumber" );
-			}else if( _type == "integer" || _type=="screeninteger" ){
+			}
+			else if( _type == "integer" || _type=="screeninteger" )
+			{
 				value = "" + StringMath.evaluate( v, 1, _type == "screeninteger" );
-			}else if( _type == "image" ) {
+			}
+			else if( _type == "image" )
+			{
 				setTimeout( reloadImage, 250 );
-			}else if( _type == "color" ){
+			}
+			else if( _type == "color" )
+			{
 				colorValue = v;
 				drawCurrentColor();
-			}else if( _type == "boolean" ){
+			}
+			else if( _type == "boolean" )
+			{
 				boolValue = v == boolYes || v == "1" || v.toLowerCase() == "true" ? true : false;
 				textField.text = boolValue ? boolYes : boolNo;
-			}else if( _type == "name" ){
+			}
+			else if( _type == "name" )
+			{
 				value = parseName(v);
 			}
 			else if( (_type == "vector" || _type == "vectorlink") && vectorTextFields)
@@ -2722,18 +3441,29 @@
 					var str:String = "";
 					var L:int = vectorTextFields.length;
 					var vt:VectorTextField;
-					for( var i:int = 0; i < L; i++) {
+					
+					for( var i:int = 0; i < L; i++)
+					{
 						vt = vectorTextFields[i];
-						if( vt.type == "number" || vt.type=="screennumber" ){
+						
+						if( vt.type == "number" || vt.type=="screennumber" )
+						{
 							str += vectorSeparator + StringMath.evaluate( vt.value, 4, vt.type == "screennumber" );
-						}else if( vt.type == "integer" || vt.type=="screeninteger" ){
+						}
+						else if( vt.type == "integer" || vt.type=="screeninteger" )
+						{
 							str += vectorSeparator + StringMath.evaluate( vt.value, 1, vt.type == "screeninteger" );
-						}else if( vt.type == "typed" ){
+						}
+						else if( vt.type == "typed" )
+						{
 							str += vectorSeparator + vt.tfPopup.label + ":" + vt.value;
-						}else{
+						}
+						else
+						{
 							str += vectorSeparator + vt.value;
 						}
 					}
+					
 					textField.text = str.substring(1);
 					if( textField.text == vectorSeparator ) textField.text = "";
 				}
@@ -2745,35 +3475,51 @@
 			
 			if( value != activateValue )
 			{
-				if( _type == "plugin" ) {
+				if( _type == "plugin" )
+				{
 					plugin.setText( value );
 				}
 				dispatchEvent( new Event(ENTER, false, true) );
 			}
 		}
 		
-		public function set colorValue (t:*) :void {
-			
+		public function set colorValue (t:*) :void
+		{			
 			if( t is String )
 			{
-				if( t.charAt(0) == "#" ) {
+				if( t.charAt(0) == "#" )
+				{
 					displayMode = "hex";
-				}else if( t == "none" || t == "currentcolor" || t == "inherit"|| t.indexOf("gradient") >= 0  || t.indexOf("url(") >= 0 ) {
+				}
+				else if( t == "none" || t == "currentcolor" || t == "inherit"|| t.indexOf("gradient") >= 0  || t.indexOf("url(") >= 0 )
+				{
 					return;
-				}else if( t.indexOf("rgba") >= 0  ) {
+				}
+				else if( t.indexOf("rgba") >= 0  )
+				{
 					displayMode = "rgba";
-				}else if( t.indexOf("rgb") >= 0  ) {
+				}
+				else if( t.indexOf("rgb") >= 0  )
+				{
 					displayMode = "rgb";
-				}else if( t.indexOf("hsla") >= 0  ) {
+				}
+				else if( t.indexOf("hsla") >= 0  )
+				{
 					displayMode = "hsla";
-				}else if( t.indexOf("hsl") >= 0  ) {
+				}
+				else if( t.indexOf("hsl") >= 0  )
+				{
 					displayMode = "hsl";
-				}else if( t.length > 2 && t.charAt(1) == "x" ) {
+				}
+				else if( t.length > 2 && t.charAt(1) == "x" )
+				{
 					t = t.substring(1);
 					displayMode = "hex";
 				}
 				_color = CssUtils.stringToColor(t);
-			}else{
+			}
+			else
+			{
 				_color = uint(t);
 			}      
 			
@@ -2782,7 +3528,8 @@
 			var b:int = _color & 255;
 			var a:int = 0;
 			
-			if(displayMode == "hex") {
+			if(displayMode == "hex")
+			{
 				var r16:String = r.toString(16);
 				var g16:String = g.toString(16);
 				var b16:String = b.toString(16);
@@ -2797,40 +3544,55 @@
 				}else{
 					value = "#" + r16.toUpperCase() + g16.toUpperCase() + b16.toUpperCase();
 				}
-			}else if(displayMode == "hsla") {
+			}
+			else if(displayMode == "hsla")
+			{
 				var hsb:Object = ColorUtils.RGBtoHSV( r, g, b );
 				a = _color >> 24 & 255;
 				value = "hsla(" + hsb.h + "," + hsb.s + "%," + hsb.v + "%," + (Math.round((a/255)*100)/100) + ")";
-			}else if(displayMode == "hsl") {
+			}
+			else if(displayMode == "hsl")
+			{
 				var hsb2:Object = ColorUtils.RGBtoHSV( r, g, b );
 				value = "hsl(" + hsb2.h + "," + hsb2.s + "%," + hsb2.v + "%)";
-			}else if( displayMode == "rgba" ) {
+			}
+			else if( displayMode == "rgba" )
+			{
 				a = _color >> 24 & 255;
 				value = "rgba(" + r+ "," + g + "," + b + "," + (Math.round((a/255)*100)/100)  + ")";
-			}else{
+			}
+			else
+			{
 				value = "rgb(" + r+ "," + g + "," + b + ")";
 			}
 		}
 		
-		public function get color () :int {
+		public function get color () :int
+		{
 			return _color;
 		}
 		
-		private function enterListener ( e:KeyboardEvent ) :void {
-			if( !CTOptions.isMobile ) {
-				if ( e.charCode == 13 ) {
-					if( stage && stage.focus ) {
+		private function enterListener ( e:KeyboardEvent ) :void
+		{
+			if( !CTOptions.isMobile )
+			{
+				if ( e.charCode == 13 )
+				{
+					if( stage && stage.focus )
+					{
 						stage.focus = null; // call onDeactivate..
 					}
 				}
 			}
 		}
 	
-		protected function tfDown (event:MouseEvent) :void {
+		protected function tfDown (event:MouseEvent) :void
+		{
 			setTimeout(TemplateEditor.abortClickScrolling, 0);
 		}
 		
-		protected function onActivate (e:Event) :void {
+		protected function onActivate (e:Event) :void
+		{
 			if( textField )
 			{
 				addEventListener( MouseEvent.MOUSE_DOWN, tfDown );
@@ -2839,13 +3601,16 @@
 				{
 					var s:String = textField.text;
 					var c:int=s.length;
-					for(var i:int=c-1; i>=0; i--) {
-						if( !isNaN(Number(s.charAt(i))) ) {
+					for(var i:int=c-1; i>=0; i--)
+					{
+						if( !isNaN(Number(s.charAt(i))) )
+						{
 							c = i;
 							break;
 						}
 					}
-					if( c != s.length ) {
+					if( c != s.length )
+					{
 						var num:String = s.substring( 0, c );
 						var unit:String = s.substring( c+1 );
 						StringMath.distFormat = unit;
@@ -2857,10 +3622,12 @@
 				
 				textField.setTextFormat( fmt );
 				
-				if( stage && _supertype != "richtext" &&  _supertype != "text" && _supertype != "code" ) {
+				if( stage && _supertype != "richtext" &&  _supertype != "text" && _supertype != "code" )
+				{
 					stage.addEventListener( KeyboardEvent.KEY_DOWN, enterListener);
 				}
-				if(this is VectorTextField) {
+				if(this is VectorTextField)
+				{
 					VectorTextField(this).rootVector.setCurrVector(this);
 				}
 				swapState( "active" );
@@ -2868,7 +3635,8 @@
 			setTimeout( TemplateEditor.abortClickScrolling, 0);
 		}
 		
-		protected function onBoolDeactivate (e:Event) :void {
+		protected function onBoolDeactivate (e:Event) :void
+		{
 			textField.removeEventListener( FocusEvent.FOCUS_OUT, onBoolDeactivate );
 			onDeactivate( null );
 		}
@@ -2877,20 +3645,31 @@
 		{
 			textEnter();
 			
-			if( textField ) {
+			if( textField )
+			{
 				removeEventListener( MouseEvent.MOUSE_DOWN, tfDown );
 				fmt = styleSheet.getTextFormat( stylesArray, "normal");
 				textField.setTextFormat( fmt );
-				if( stage ) {
-					if(_supertype != "richtext" && _supertype != "text" && _supertype != "code" ) {
+				if( stage )
+				{
+					if(_supertype != "richtext" && _supertype != "text" && _supertype != "code" )
+					{
 						stage.removeEventListener( KeyboardEvent.KEY_DOWN, enterListener);
 					}
+				}
+				if( this is VectorTextField )
+				{
+					var vt:VectorTextField = VectorTextField(this);
+					setTimeout( function () {
+						vt.rootVector.vectorCurrent = -1;
+					}, 125);
 				}
 				swapState( "normal" );
 			}
 		}
 		
-		private function selectDirectory (e:MouseEvent) :void{
+		private function selectDirectory (e:MouseEvent) :void
+		{
 			var directory:File;
 			if( lastSelectedFiles[this.name] != null ) directory = new File( lastSelectedFiles[this.name] );
 			else if( lastSelectedFiles["_lastdir"] != null ) directory = new File( lastSelectedFiles["_lastdir"] );
@@ -2904,7 +3683,8 @@
 			}
 		}
 		
-		private function dirSelected (event:Event) :void {
+		private function dirSelected (event:Event) :void
+		{
 			var directory:File = event.target as File;
 			lastSelectedFiles[this.name] = directory.url;
 			lastSelectedFiles["_lastdir"] = directory.url;
@@ -2912,9 +3692,10 @@
 			textEnter();
 		}
 		
-		private function selectFile (e:MouseEvent) :void
+		private function selectFile (e:MouseEvent=null) :void
 		{
-			if( ! TemplateEditor.clickScrolling ) {
+			if( ! TemplateEditor.clickScrolling )
+			{
 				// Get Files from User
 				var docsDir:File;
 				
@@ -2923,34 +3704,47 @@
 				else docsDir = File.documentsDirectory;
 				
 				var flt:FileFilter = null;
-				if( allowed_extensions ) {
+				if( allowed_extensions )
+				{
 					flt = new FileFilter( Language.getKeyword(fileFilterDescription), allowed_extensions );
-				}else{
+				}
+				else
+				{
 					flt = new FileFilter( Language.getKeyword(fileFilterDescription), "*.*");
 				}
+				
 				try {
 					docsDir.browseForOpen("Select File", [flt]);
 					docsDir.addEventListener(Event.SELECT, fileSelected);
 				}catch (error:Error){
 					Console.log("Select File Error: " + error.message);
-			}
+				}
 			}
 		}
 		
-		private function selectFiles (e:MouseEvent) :void
+		private function selectNone (e:MouseEvent=null) :void {
+			value = "none";
+		}
+		
+		private function selectFiles (e:MouseEvent=null) :void
 		{
-			if( ! TemplateEditor.clickScrolling ) {
+			if( ! TemplateEditor.clickScrolling )
+			{
 				var docsDir:File;
 				if( lastSelectedFiles[this.name] != null ) docsDir = new File( lastSelectedFiles[this.name] );
 				if( lastSelectedFiles["_lastdir"] != null ) docsDir = new File( lastSelectedFiles["_lastdir"] );
 				else docsDir = File.documentsDirectory;
 				
 				var flt:FileFilter = null;
-				if( allowed_extensions ) {
+				if( allowed_extensions )
+				{
 					flt = new FileFilter( Language.getKeyword(fileFilterDescription), allowed_extensions );
-				}else{
+				}
+				else
+				{
 					flt = new FileFilter( Language.getKeyword(fileFilterDescription), "*.*");
 				}
+				
 				try {
 					docsDir.browseForOpenMultiple("Select Files", [flt]);
 					docsDir.addEventListener(FileListEvent.SELECT_MULTIPLE, filesSelected);
@@ -2974,7 +3768,8 @@
 		}
 		
 		// File browser handler
-		private function filesSelected (event:FileListEvent) :void {
+		private function filesSelected (event:FileListEvent) :void
+		{
 			var str:String = event.files[0].url;
 			
 			lastSelectedFiles[this.name] = event.files[0].parent.url;
@@ -2987,46 +3782,40 @@
 				
 				if( vt )
 				{
-				
-					if( vt.rootVector.vectorTextFields && vt.rootVector.vectorTextFields.length > 0 ) {
-						vt.rootVector.vectorTextFields[0].textField.text = str;
-						//vt.rootVector.vectorTextFields[i].textEnter();
-					}
+					var vcurr:int = 0;
 					
-					var vcurr:int = 0; //vt.rootVector.vectorCurrent;
-					
-					for ( i = 0; i < vt.rootVector.vectorTextFields.length; i++ ) {
-						if ( vt.rootVector.vectorTextFields[i] == this ) {
+					for ( i = 0; i < vt.rootVector.vectorTextFields.length; i++ )
+					{
+						if ( vt.rootVector.vectorTextFields[i] == this )
+						{
 							vcurr = i;
 							break;
 						}
 					}
 					
-					trace("Vector Curr: " + vcurr );
 					vt.rootVector.vectorTextFields[vcurr].textField.text = str;
 					
 					if ( event.files.length > 1 )
 					{
 						for (i = 1; i < event.files.length; i++)
 						{
-						//	str += vt.rootVector.vectorSeparator + event.files[i].url;
-							
-							if( vt.rootVector.vectorTextFields && vt.rootVector.vectorTextFields.length > i + vcurr ) {
+							if( vt.rootVector.vectorTextFields && vt.rootVector.vectorTextFields.length > i + vcurr )
+							{
 								vt.rootVector.vectorTextFields[i+vcurr].textField.text = event.files[i].url;
-								
 								vt.rootVector.vectorTextFields[i].reloadImage();
 							}
 						}
 					}
 					
-					//vt.rootVector.value= str;
 					vt.rootVector.activateValue = " ";
 					vt.rootVector.textEnter();
 					setType( _type );
 				}
-			}else{
-				
-				if( event.files.length > 1 ) {
+			}
+			else
+			{
+				if( event.files.length > 1 )
+				{
 					for (i = 1; i < event.files.length; i++)
 					{
 						str += "," + event.files[i].url;
@@ -3043,7 +3832,8 @@
 		{
 			if( _supertype == "image")
 			{
-				if( mediaContainer) { 
+				if( mediaContainer)
+				{ 
 					if( mediaInfo && mediaContainer.contains(mediaInfo) ) mediaContainer.removeChild( mediaInfo );
 					if(contains(mediaContainer)) removeChild( mediaContainer );
 					mediaContainer = null;
@@ -3063,36 +3853,44 @@
 			}
 		}
 		
-		private function initDragNDrop ( tgt:InteractiveObject ) :void {
+		private function initDragNDrop ( tgt:InteractiveObject ) :void
+		{
 			_tgt = tgt;
 			_tgt.addEventListener(NativeDragEvent.NATIVE_DRAG_ENTER,_onDragIn);
 			_tgt.addEventListener(NativeDragEvent.NATIVE_DRAG_EXIT,_onDragOut);
 			_tgt.addEventListener(NativeDragEvent.NATIVE_DRAG_DROP,_onDrop);
 		}
  		
-		public function _onDragIn(event:NativeDragEvent) :void {
+		public function _onDragIn(event:NativeDragEvent) :void
+		{
 			NativeDragManager.acceptDragDrop(_tgt);
 			swapState("active");
 		}
 		
-		public function _onDragOut(event:Event) :void {
+		public function _onDragOut(event:Event) :void
+		{
 			NativeDragManager.acceptDragDrop(_tgt);
 			swapState("normal");
 		}
-		public function _onDrop(event:NativeDragEvent) :void {
+		public function _onDrop(event:NativeDragEvent) :void
+		{
 			NativeDragManager.dropAction = NativeDragActions.COPY;
 			var dropfiles:Array = event.clipboard.formats;
 			var df:Array;
-			for each (var tp:String in dropfiles) {
-				if( tp == ClipboardFormats.FILE_LIST_FORMAT ) {
-					 df = event.clipboard.getData(tp) as Array;
-					 var path:String;
-					 for(var i:int = 0; i < df.length; i++) {
+			for each (var tp:String in dropfiles)
+			{
+				if( tp == ClipboardFormats.FILE_LIST_FORMAT )
+				{
+					df = event.clipboard.getData(tp) as Array;
+					var path:String;
+					for(var i:int = 0; i < df.length; i++)
+					{
 						 textField.text = File(df[i]).url;
 						 lastSelectedFiles[this.name] = File(df[i]).parent.url;
 						 lastSelectedFiles["_lastdir"] = lastSelectedFiles[this.name];
 						
-						 if( _supertype == "image") {
+						 if( _supertype == "image")
+							{
 							reloadImage();
 						 }
 						 textEnter();
@@ -3102,19 +3900,27 @@
 			}
 		}
 		
-		protected override function showMultiSelectMenu () :void {
+		protected override function showMultiSelectMenu () :void
+		{
 			super.showMultiSelectMenu();
 			multiSelectMenu.y = -multiSelectMenu.cssSizeY;
 		}
-		public override function displayInsertForm ( tmpl:Template, isUpdateForm:Boolean=false, subform:Boolean=false, inlineArea:String="", _areaItems:Array=null ) :void
+		
+		public override function displayInsertForm ( tmpl:Template, isUpdateForm:Boolean = false, subform:Boolean = false, inlineArea:String = "", _areaItems:Array = null,
+													cat:String="", ltscroll:Number=0, gotoDirection:int=1, forceLevel:Boolean = false) :void
 		{
 			try {
-				if( Application.instance.view.panel.src.editor.currentEditor is AreaEditor ) {
+				if( Application.instance.view.panel.src.editor.currentEditor is ConstantsEditor )
+				{
+					Application.instance.view.panel.src.editor.currentEditor.displayInsertForm ( tmpl, isUpdateForm, true, areaName, areaItems, cat, ltscroll, gotoDirection, forceLevel );
+				}
+				else if( Application.instance.view.panel.src.editor.currentEditor is AreaEditor )
+				{
 					Application.instance.view.panel.src.editor.currentEditor.updateItem = updateItem;
-					Application.instance.view.panel.src.editor.currentEditor.displayInsertForm ( tmpl, isUpdateForm, true, areaName, areaItems );
+					Application.instance.view.panel.src.editor.currentEditor.displayInsertForm ( tmpl, isUpdateForm, true, areaName, areaItems, cat, ltscroll, gotoDirection, forceLevel );
 				}
 			}catch(e:Error) {
-				Console.log("Error NO-AreaEditor: " + e );
+				Console.log("Error NO-AreaEditor or ConstantsEditor: " + e );
 			}
 		}
 		
@@ -3124,12 +3930,16 @@
 			var rawName:String = curr.options.templateID;
 			var T:Template = CTTools.findTemplate( rawName, "name" );
 			
-			if(T) {
-				displayInsertForm( T, false, true, areaName );
-			}else{
+			if(T)
+			{
+				displayInsertForm( T, false, true, areaName, null, '', 0, 4 );
+			}
+			else
+			{
 				Console.log("No Template Found For: " + rawName);
 			}
 		}
+		
 		protected override function areaItemDown (e:MouseEvent) :void
 		{
 			_subform = true;
@@ -3137,7 +3947,8 @@
 			super.areaItemDown(e);
 		}
 		
-		protected override function dragItemUp (e:MouseEvent) :void {
+		protected override function dragItemUp (e:MouseEvent) :void
+		{
 			super.dragItemUp(e);
 		}
 		
@@ -3146,7 +3957,8 @@
 			if( CTTools.subTemplates )
 			{
 				// Inline Area for AreaProcessor
-				if( !currentArea ) {
+				if( !currentArea )
+				{
 					currentArea = new Area( 0,0,[],0, areaName );
 				}
 				if( rtItemList && contains( rtItemList )) removeChild( rtItemList );
@@ -3155,27 +3967,84 @@
 				rtItemList = new ItemList(0,0,this,this.styleSheet,'','richtext-btn-list', false);
 				
 				var pp:Popup = new Popup( [ new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "plus.png", Options.iconSize, Options.iconSize) ], btWidth, textField.height - 1, rtItemList, styleSheet, '', 'richtext-popup', false);
-				//pp.setWidth( Options.btnSize );
 				pp.setHeight( Options.iconSize );
 				
+				
 				var i:int;
+				var k:int;
+				var L2:int;
 				var L:int = CTTools.subTemplates.length;
 				var ppi:PopupItem;
+				var nam:String;
+				var id:String;
+				var hash:Object = {};
 				
-				for(i=0; i < L; i++)
+				if( areaType == "all" )
 				{
-					if( areaSubTemplateFilter != "" ) {
-						if( CTTools.subTemplates[i].name != areaSubTemplateFilter ) continue;
+					// Show all subtemplates
+					for(i=0; i<L; i++) 
+					{
+						T = CTTools.subTemplates[i];
+						if ( T.hidden ) continue;
+						if( areaSubTemplateFilter != "" )
+						{
+							if( T.name != areaSubTemplateFilter ) continue;
+						}
+						ppi = pp.rootNode.addItem( [ new IconFromFile( CTTools.parseFilePath( T.listicon ) || (Options.iconDir + CTOptions.urlSeparator + "create.png"), Options.iconSize, Options.iconSize),Language.getKeyword( T.name )], styleSheet);
+						ppi.options.templateID = T.name;
 					}
-					ppi = pp.rootNode.addItem( [ new IconFromFile( CTTools.parseFilePath( CTTools.subTemplates[i].listicon ) || (Options.iconDir + CTOptions.urlSeparator + "create.png"), Options.iconSize, Options.iconSize),Language.getKeyword( CTTools.subTemplates[i].name )], 
-											styleSheet);
-					ppi.options.templateID = CTTools.subTemplates[i].name;
+				}
+				else
+				{
+					// currentTypes = currentArea.types.join(",");
+					var types:Array = areaType.split(",");
+					
+					// Show subtemplates of type in types array of area
+					for(i=0; i<L; i++)
+					{
+						T = CTTools.subTemplates[i];
+						if( T.hidden ) continue;
+						nam = T.name;
+						id = T.relativePath + nam;
+						
+						if( types.indexOf( T.type ) >= 0 ) 
+						{
+							// Test multiple area types
+							if( !hash[id] )
+							{ 
+								hash[id] = true;
+								ppi = pp.rootNode.addItem( [ new IconFromFile( CTTools.parseFilePath( T.listicon ) || (Options.iconDir + CTOptions.urlSeparator + "create.png"), Options.iconSize, Options.iconSize),Language.getKeyword( T.name )], styleSheet);
+								ppi.options.templateID = T.name;
+							}
+						}
+						else
+						{
+							// Test multiple types of subtemplate (set in config.xml of subtemplate)
+							L2 = T.types.length; 
+							if( L2 > 1 )
+							{
+								for (k=1; k<L2; k++ )
+								{
+									if( types.indexOf(T.types[k] ) >= 0 )
+									{
+										if( !hash[ id ] )
+										{ 
+											hash[ id ] = true;
+											ppi = pp.rootNode.addItem( [ new IconFromFile( CTTools.parseFilePath( T.listicon ) || (Options.iconDir + CTOptions.urlSeparator + "create.png"), Options.iconSize, Options.iconSize),Language.getKeyword( T.name )], styleSheet);
+											ppi.options.templateID = T.name;
+										}
+										break;
+									}
+								}
+							}
+						}
+					} // for subtemplates
 				}
 				
 				pp.addEventListener( Event.SELECT, ppNewAreaItem );
 				pp.alignV = "current";
 				pp.alignH = "right";
-								
+				
 				itemList = new ItemList(0, 0, this, styleSheet, '', 'area-container', false);
 				itemList.margin = 1;
 				
@@ -3184,7 +4053,8 @@
 				var r:Object;
 				areaItems = [];
 				
-				for(i=0; i<L; i++) {
+				for(i=0; i<L; i++)
+				{
 					r = CTTools.pageItems[i];
 					if( r && r.area && r.area == areaName ) areaItems.push(r);
 				}
@@ -3279,7 +4149,7 @@
 					}
 					
 					if(!created) {
-						pg = new Button([ "" + Language.getKeyword(r.subtemplate) + ": " + r.name, new IconMenu(ico_col) ], 0, 0, itemList, styleSheet, '', 'page-item-btn', false);
+						pg = new Button([ "" + Language.getKeyword(r.subtemplate) + ": " + r.name, new IconMenu(ico_col, Options.iconSize, Options.iconSize) ], 0, 0, itemList, styleSheet, '', 'page-item-btn', false);
 					}
 					
 					if( areaItems[i].visible == false ) {
@@ -3291,13 +4161,14 @@
 					pg.addEventListener( MouseEvent.MOUSE_DOWN, areaItemDown);
 					itemList.addItem( pg, true);
 				}
+				
 				itemList.x = cssLeft;
 				itemList.format(false);
 				itemList.init();
 			}
 			
 			// Bugfix: remove all html comments from inline areas
-			textField.text = CompactCode.removeHtmlComments( CTTools.getAreaText( areaName, areaOffset, areaLimit, areaSubTemplateFilter ) );
+			textField.text = CompactCode.removeHtmlComments( CTTools.getAreaText( areaName, areaOffset, areaLimit/*, areaSubTemplateFilter*/ ) );
 			
 			setWidth( cssSizeX );
 			setHeight( itemList.height );
@@ -3307,4 +4178,4 @@
 		}
 		
 	}
-}
+}

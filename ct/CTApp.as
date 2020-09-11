@@ -15,6 +15,7 @@
 	import agf.icons.IconFromFile;
 	import agf.tools.Application;
 	import agf.tools.Console;
+	import flash.system.Capabilities;
 	
 	public class CTApp extends MovieClip 
 	{
@@ -93,22 +94,20 @@
 			if( r.loaded == 1 )
 			{
 				appLogo = DisplayObject(r.obj);
-				var xpos:Number = int(stage.stageWidth/2 - appLogo.width/4);
-				var ypos:Number = int(stage.stageHeight/2 - appLogo.height/4);
+				var xpos:int = int(stage.stageWidth/2 - (appLogo.width* CssUtils.numericScale)/2);
+				var ypos:int = int(stage.stageHeight/2 - (appLogo.height* CssUtils.numericScale)/2);
 				
-				appLogo.x = int( Math.random() * stage.stageWidth+appLogo.width*2 ) - appLogo.width;
-				appLogo.y = int( Math.random() * stage.stageHeight+appLogo.height*2 ) - appLogo.height;
+				appLogo.x = int( Math.random() * stage.stageWidth+appLogo.width );
+				appLogo.y = int( /*Math.random() * */stage.stageHeight-appLogo.height ) ;
 				
-				appLogo.scaleX = 1.5;
-				appLogo.scaleY = 1.5;
-				appLogo.scaleX *=  CssUtils.numericScale;
-				appLogo.scaleY *=  CssUtils.numericScale;
+				appLogo.scaleX = .5;
+				appLogo.scaleY = .5;
 				
-				appLogo.alpha = 0;
+				appLogo.alpha = 0.05;
 				addChild( appLogo );
 				
 				anim.addEventListener( Event.COMPLETE, animDone );
-				anim.run( appLogo, { y:ypos, x:xpos, scaleX:0.5, scaleY:0.5, alpha:0.125 }, 1570, Strong.easeOut );
+				anim.run( appLogo, { y: ypos, x:xpos, scaleX:1 * CssUtils.numericScale, scaleY:1 * CssUtils.numericScale, alpha:{value:1, duration:1600, easeFunc:Regular.easeIn} }, 1500, Strong.easeOut );
 			}
 			else
 			{
@@ -136,7 +135,13 @@
 		
 		private function appStart (e:Event = null) :void {
 			setTimeout( fadeAppIn, 345 );
-			if( appLogo ) {
+			
+			if ( appLogo )
+			{
+				if( appLogo ) {
+					setChildIndex( appLogo, numChildren-1 );
+				}
+				
 				appLogo.alpha = 0.04;
 				appLogo.scaleX = appLogo.scaleY = 0.4;
 			}
@@ -149,7 +154,7 @@
 			}
 			if( anim ) {
 				anim.addEventListener( Event.COMPLETE, fadedIn );
-				anim.run( app, { alpha:1 }, 1357, Strong.easeOut );
+				anim.run( app, { alpha:1 }, 757, Strong.easeOut );
 			}else{
 				fadedIn();
 			}
@@ -173,7 +178,7 @@
 			if( appLogo ) {
 				appLogo.x = int(stage.stageWidth/2 - appLogo.width/2);
 				appLogo.y = int(stage.stageHeight/2 - appLogo.height/2);
-				addChild( appLogo );
+				if( !contains(appLogo) ) addChild( appLogo );
 			}
 		}
 		

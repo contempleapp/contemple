@@ -11,7 +11,7 @@
 		
 		public var valueFrom:Number = 0;
 		public var valueTo:Number = 1;
-		public var duration:Number = 2500;
+		public var duration:Number = 1000;
 		public var easeFunction:Function = null;
 		public var loop:Boolean = false;
 		

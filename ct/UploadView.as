@@ -14,6 +14,7 @@
 	import flash.events.*;
 	import flash.utils.setTimeout;
 	import agf.ui.*;
+	import agf.events.*;
 	import agf.html.CssStyleSheet;
 	import agf.html.CssSprite;
 	
@@ -21,11 +22,15 @@
 	{
 		public function UploadView () 
 		{
-			if( CTTools.activeTemplate ) {
+			if ( CTTools.activeTemplate )
+			{
 				CTUploader.forceExit = false;
+				
 				container = Application.instance.view.panel;
 				container.addEventListener(Event.RESIZE, newSize);
-				if( CTUploader.uploading ) {
+				
+				if ( CTUploader.uploading )
+				{
 					init();
 					displayFiles();
 					return;
@@ -41,7 +46,9 @@
 				upl_body = new CssSprite(w, h, upl_cont, container.styleSheet, 'div', '', 'editor upload-container', false);
 				upl_body.setWidth( w - upl_body.cssBoxX );
 				upl_body.setHeight( h - upl_body.cssBoxY );
-				if( CTOptions.animateBackground ) {
+				
+				if ( CTOptions.animateBackground )
+				{
 					HtmlEditor.dayColorClip( upl_body.bgSprite );
 				}
 				
@@ -55,13 +62,32 @@
 				startBtn.y = upl_body.cssTop + uploadText.y + uploadText.cssSizeY + startBtn.cssMarginTop;
 				startBtn.addEventListener( MouseEvent.CLICK, startBtnHandler);
 				
+				publishMenu = new Popup( [  new IconFromFile(Options.iconDir + "/administrative-tools.png",Options.iconSize, Options.iconSize), "Server Options" ],0,0,upl_body, container.styleSheet, '','publish-menu-btn',false);
+				publishMenu.x = w - ( publishMenu.cssSizeX + publishMenu.cssMarginRight + upl_body.cssPaddingRight);
+				publishMenu.y = upl_body.cssTop;
+				publishMenu.addEventListener( PopupEvent.SELECT, publishMenuHandler);
+				
+				var pi1:PopupItem = publishMenu.rootNode.addItem( [Language.getKeyword("Look For Updates"), new IconFromFile(Options.iconDir + "/netzwerk-laufwerk.png",Options.iconSize, Options.iconSize)], container.styleSheet );
+				pi1.options.cmd = "CTTools update";
+				
+				var pi2:PopupItem = publishMenu.rootNode.addItem( [ Language.getKeyword("Publish History"), new IconFromFile(Options.iconDir + "/tm.png",Options.iconSize, Options.iconSize) ], container.styleSheet );
+				pi2.options.cmd = "TemplateTools publish-history";
+				
+				publishMenu.rootNode.addItem( ["#separator"], container.styleSheet);
+				
+				var pi3:PopupItem = publishMenu.rootNode.addItem( [ Language.getKeyword("Reset Password"), new IconFromFile(Options.iconDir + "/papiermuell.png",Options.iconSize, Options.iconSize) ], container.styleSheet );
+				pi3.options.cmd = "CTTools reset-password";
+				
+				var pi4:PopupItem = publishMenu.rootNode.addItem( [ Language.getKeyword("Change Password"), new IconFromFile(Options.iconDir + "/key.png",Options.iconSize, Options.iconSize) ], container.styleSheet );
+				pi4.options.cmd = "CTTools new-password";
+				
 				infoText = new TextField();
 				infoText.embedFonts = Options.embedFonts;
 				infoText.antiAliasType = Options.antiAliasType;
 				infoText.x = upl_body.cssLeft;
 				infoText.y = startBtn.y + startBtn.cssSizeY + startBtn.cssMarginBottom;
-				infoText.width = startBtn.x - infoText.x;
-				infoText.height = h - infoText.y;
+				infoText.autoSize = TextFieldAutoSize.LEFT;
+				infoText.wordWrap = true;
 				infoText.border = false;
 				infoText.defaultTextFormat = container.styleSheet.getTextFormat( ["*", "body", ".upload-container", ".upload-text", ".upload-info"] );
 				
@@ -70,6 +96,8 @@
 				if( CTOptions.uploadScript == "" )
 				{
 					startBtn.visible = false;
+					publishMenu.visible = false;
+					
 					infoText.y = startBtn.y;
 					info += "\n"+Language.getKeyword("Upload not possible")+"\n"+Language.getKeyword("Requires Connect To Website..") + "\n";
 				}
@@ -88,7 +116,19 @@
 				
 				infoText.text = info;
 				addChild( infoText );
-				
+				newSize( null );
+			}else{
+				Application.instance.cmd( "Application view StartScreen" );
+				return;
+			}
+		}
+		
+		private function publishMenuHandler (e:PopupEvent):void
+		{
+			var curr:PopupItem = e.selectedItem;
+			
+			if( curr.options.cmd != undefined ) {
+				Application.instance.cmd( curr.options.cmd );
 			}
 		}
 		
@@ -109,7 +149,7 @@
 		private var progress:Progress;
 		private var startBtn:Button;
 		private var abortBtn:Button;
-		
+		private var publishMenu:Popup;
 		private var uploadText:Label;
 		
 		public function getProgress (  ) :Number {
@@ -146,8 +186,6 @@
 			upl_cont.init();
 			
 			upl_body = new CssSprite(w, h, upl_cont, styleSheet, 'div', '', 'editor upload-container', false);
-			upl_body.setWidth( w - upl_body.cssBoxX );
-			upl_body.setHeight( h - upl_body.cssBoxY );
 			
 			if( CTOptions.animateBackground ) {
 				HtmlEditor.dayColorClip( upl_body.bgSprite );
@@ -177,11 +215,13 @@
 			infoText.antiAliasType = Options.antiAliasType;
 			infoText.x = upl_body.cssLeft;
 			infoText.y = progress.y + rs + Math.max(progress.cssMarginBottom, abortBtn.cssMarginBottom);
-			infoText.width = w - upl_body.cssBoxX;
-			infoText.height = h - 100;
+			infoText.autoSize = TextFieldAutoSize.LEFT;
 			infoText.border = false;
 			infoText.defaultTextFormat = styleSheet.getTextFormat( ["*","body",".upload-container",".upload-text"] );
+			infoText.wordWrap = true;
 			upl_body.addChild( infoText );
+			
+			newSize( null );
 		}
 		
 		private function goExit () :void {
@@ -220,17 +260,35 @@
 		
 		public function newSize(e: Event): void {
 			var w:int = container.getWidth();
-			if( upl_body ) upl_body.setWidth( w - upl_body.cssBoxX );
-			if( upl_cont ) upl_cont.setWidth( w - upl_cont.cssBoxX );
-			if( abortBtn ) abortBtn.x = upl_body.cssRight - (abortBtn.cssSizeX + upl_body.cssBoxX);
-			if( progress ) progress.setWidth( w-(abortBtn.cssSizeX + upl_body.cssBoxX + 10) );
-			if( infoText ) {
-				infoText.width = w - upl_body.cssBoxX;
-				infoText.height = w - (infoText.y + upl_body.cssBoxX);
+			var h:int = container.getHeight();
+			
+			if( upl_cont ) {
+				upl_cont.setWidth( w );
+				upl_cont.setHeight( h  );
+			}
+			if( upl_body ) {
+				upl_body.setWidth( w );
+				upl_body.setHeight( h );
 			}
 			if( uploadText ){ 
 				uploadText.setWidth( w - uploadText.cssBoxX );
 				uploadText.setHeight( uploadText.textField.textHeight );
+			}
+			
+			if (publishMenu) {
+				publishMenu.x = w - ( publishMenu.cssSizeX + publishMenu.cssMarginRight + upl_body.cssPaddingRight);
+				publishMenu.y = upl_body.cssTop;
+				
+				if( publishMenu.x < uploadText.textField.textWidth + uploadText.x + publishMenu.cssMarginRight ) {
+					publishMenu.x = uploadText.textField.textWidth + uploadText.x + publishMenu.cssMarginRight;
+				}
+				
+			}
+			
+			if( abortBtn ) abortBtn.x = upl_body.cssRight - (abortBtn.cssSizeX + upl_body.cssBoxX);
+			if( progress ) progress.setWidth( w-(abortBtn.cssSizeX + upl_body.cssBoxX + 10) );
+			if( infoText ) {
+				infoText.width = w - upl_body.cssBoxX;
 			}
 		}
 		

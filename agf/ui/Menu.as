@@ -29,7 +29,7 @@
 			
 			// embed some icons
 			var icoFile:IconFromFile;
-			var icoLeft:IconArrowLeft;
+			//var icoLeft:IconArrowLeft;
 			var icoRight:IconArrowRight;
 			
 			if(!noInit) init();
@@ -231,7 +231,7 @@
 			{				
 				if( n[i].children().length() > 0) {
 					btico = getButtonIcons( n[i] );
-					btico.push( new IconArrowRight( iconColor ) );
+					btico.push( new IconArrowRight( iconColor, 1, Options.iconSize, Options.iconSize ) );
 					it = c.addItem( btico, styleSheet );
 					addMenuList( it, n[i].children(), itemClass );
 				}else{

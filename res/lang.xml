@@ -1,6 +1,157 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ct>
-	
+	<item name="new-template-listlabel">
+		<lang name="en" value="List Label"/>
+		<lang name="de" value="List Label"/>
+	</item>
+	<item name="new-template-properties">
+		<lang name="en" value="Properties"/>
+		<lang name="de" value="Properties"/>
+	</item>
+	<item name="new-template-hidden">
+		<lang name="en" value="Hidden"/>
+		<lang name="de" value="Versteckt"/>
+	</item>
+	<item name="new-template-nolocation">
+		<lang name="en" value="No Location"/>
+		<lang name="de" value="No Location"/>
+	</item>
+	<item name="new-template-homeareaname">
+		<lang name="en" value="Home Area Name"/>
+		<lang name="de" value="Home Area Name"/>
+	</item>
+	<item name="new-template-sortareas">
+		<lang name="en" value="Sort Areas"/>
+		<lang name="de" value="Sortiere Bereiche"/>
+	</item>
+	<item name="new-template-templatefolders">
+		<lang name="en" value="Template Folders"/>
+		<lang name="de" value="Template Ordner"/>
+	</item>
+	<item name="new-template-dbcmds">
+		<lang name="en" value="DB Command File"/>
+		<lang name="de" value="DB Command Datei"/>
+	</item>
+	<item name="new-template-help">
+		<lang name="en" value="Help File"/>
+		<lang name="de" value="Hilfe Datei"/>
+	</item>
+	<item name="new-template-version">
+		<lang name="en" value="Version"/>
+		<lang name="de" value="Version"/>
+	</item>
+	<item name="new-template-type">
+		<lang name="en" value="Type"/>
+		<lang name="de" value="Typ"/>
+	</item>
+	<item name="new-template-type-help">
+		<lang name="en" value="# The Type of the Template#br# #br## Root Templates: #br#Root Templates have to use the value 'root'#br##br## Subtemplates:#br#Sub Templates can use any string value, the type of a Subtemplate have to be supported by an Area in order to create the Subtemplate on the website."/>
+		<lang name="de" value="# Der Typ von dem Template #br# #br## Root Templates: #br# Root Templates müssen den Wert 'root' verwenden.#br# #br## Sub Templates: #br#Sub Templates können jeden String Wert verwenden, der Typ von einem Subtemplate muss von einem Bereich unterstützt werden damit das Subtemplate auf der Website erstellt werden kann."/>
+	</item>
+	<item name="new-template-index-file">
+		<lang name="en" value="Index File"/>
+		<lang name="de" value="Index Datei"/>
+	</item>
+	<item name="new-template-index-file-help">
+		<lang name="en" value="The index file of the template / website. #br#Root Templates should use the value 'index.html'. For Subtemplates, a more meaningfull name is recommended."/>
+		<lang name="de" value="Die index Datei für das Template / Website. #br#Root Templates sollten den Wert 'index.html' verwenden. Für Subtemplates wird ein aussagekräftigerer Name empfohlen."/>
+	</item>
+	<item name="new-template-files">
+		<lang name="en" value="Files"/>
+		<lang name="de" value="Dateien"/>
+	</item>
+	<item name="new-template-files-help">
+		<lang name="en" value="The Template files of the Template.#br##br#Files have to be in the Template directory only. If the file is outside the Template Directory, it will be copied into the Template directory. If the file is not available, a default file will be created."/>
+		<lang name="de" value="Die Dateien von dem Template.#br##br#Die Dateien müssen sich in dem Template Ordner befinden. Wenn eine Datei ausserhalb des Template Ordners ist wird sie in den Template Ordner kopiert. Wenn die Datei noch nicht existiert wird eine Default Datei erstellt."/>
+	</item>
+	<item name="new-template-staticfiles">
+		<lang name="en" value="Static Files"/>
+		<lang name="de" value="Statische Dateien"/>
+	</item>
+	<item name="new-template-staticfiles-help">
+		<lang name="en" value="Static files of the Template.#br##br#Static files have to be in the Template directory only."/>
+		<lang name="de" value="Statische Dateien von dem Template.#br##br#Statische Dateien müssen sich in dem Template Ordner befinden."/>
+	</item>
+	<item name="new-template-folders">
+		<lang name="en" value="Folders"/>
+		<lang name="de" value="Datei Ordner"/>
+	</item>
+	<item name="new-template-folders-help">
+		<lang name="en" value="Additional folders with static files."/>
+		<lang name="de" value="Zusätzliche Datei Ordner mit statischen Dateien."/>
+	</item>
+	<item name="new-template-hiddenareas">
+		<lang name="en" value="Hidden Areas"/>
+		<lang name="de" value="Versteckte Bereiche"/>
+	</item>
+	<item name="new-template-hiddenareas-help">
+		<lang name="en" value="Comma separated list with Area names wich should not be visible in the Area Tree"/>
+		<lang name="de" value="Komma separierte Liste mit Bereichen die im Bereichs Baum nicht sichtbar sein sollen."/>
+	</item>
+	<item name="new-template-nolocareas">
+		<lang name="en" value="No Anker Areas"/>
+		<lang name="de" value="Keine Anker Bereiche"/>
+	</item>
+	<item name="new-template-nolocareas-help">
+		<lang name="en" value="Comma separated list with Area names wich should not be have anker links inserted."/>
+		<lang name="de" value="Komma separierte Liste mit Bereichen ohne Anker Links."/>
+	</item>
+	<item name="new-template-defaultcontent">
+		<lang name="en" value="Default Content"/>
+		<lang name="de" value="Default Inhalte"/>
+	</item>
+	<item name="new-template-defaultcontent-help">
+		<lang name="en" value="Default Content of the Website. To create a content file, choose Developer / Export Content from the menu"/>
+		<lang name="de" value="Default Inhalte. Um eine inhalts Datei zu erstellen, wählen sie Developer / Inhalte Exportieren aus dem Menü"/>
+	</item>
+	<item name="new-template-sortproperties">
+		<lang name="en" value="Sort Properties"/>
+		<lang name="de" value="Sortiere Eigenschaften"/>
+	</item>
+	<item name="new-template-pagetemplates">
+		<lang name="en" value="Page Templates"/>
+		<lang name="de" value="Seiten Vorlage"/>
+	</item>
+	<item name="new-template--help">
+		<lang name="en" value="Comma separated list with Page Templates"/>
+		<lang name="de" value="Komma separierte Liste mit Seiten Vorlagen"/>
+	</item>
+	<item name="new-template-nocompress">
+		<lang name="en" value="No Compress"/>
+		<lang name="de" value="Keine Komprimierung"/>
+	</item>
+	<item name="new-template-nocompress-help">
+		<lang name="en" value="Comma separated list with files to exclude from minifiy compression"/>
+		<lang name="de" value="Komma separierte Liste mit Dateien die nicht mit minify komprimiert werden sollen"/>
+	</item>
+	<item name="new-template-tables">
+		<lang name="en" value="Table"/>
+		<lang name="de" value="Tabelle"/>
+	</item>
+	<item name="new-template-fields">
+		<lang name="en" value="Fields"/>
+		<lang name="de" value="Felder"/>
+	</item>
+	<item name="new-template-listlabel">
+		<lang name="en" value="List Label"/>
+		<lang name="de" value="Listen Bezeichner"/>
+	</item>
+	<item name="new-template-listicon">
+		<lang name="en" value="List Icon"/>
+		<lang name="de" value="Listen Icon"/>
+	</item>
+	<item name="new-template-articlepage">
+		<lang name="en" value="Article Page"/>
+		<lang name="de" value="Artikel Seite"/>
+	</item>
+	<item name="new-template-articlename">
+		<lang name="en" value="Article Name"/>
+		<lang name="de" value="Artikel Name"/>
+	</item>
+	<item name="new-template-parselistlabel">
+		<lang name="en" value="Parse List Label"/>
+		<lang name="de" value="Parse Listen Bezeichner"/>
+	</item>
 	<item name="Add New File">
 		<lang name="en" value="Add File"/>
 		<lang name="de" value="Datei Hinzufügen"/>
@@ -35,7 +186,7 @@
 	</item>
 	<item name="Clear Data">
 		<lang name="en" value="Clear Data"/>
-		<lang name="de" value="Datan Löschen"/>
+		<lang name="de" value="Daten Löschen"/>
 	</item>
 	<item name="Compact Output">
 		<lang name="en" value="Compact Output"/>
@@ -181,6 +332,10 @@
 		<lang name="en" value="Template Update"/>
 		<lang name="de" value="Template Update"/>
 	</item>
+	<item name="CT-Install-Embed-MSG">
+		<lang name="en" value="Installing embed template"/>
+		<lang name="de" value="Installiere eingebettetes Template"/>
+	</item>
 	<item name="CT-Template-Update-MSG">
 		<lang name="en" value="Template Update Available #br# #B:NAME# #BR# Version: #VERSION# #BR#Date: #DATE#"/>
 		<lang name="de" value="Template Update Verfügbar #br# #B:NAME# #BR# Version: #VERSION# #BR#Datum: #DATE#"/>
@@ -322,8 +477,8 @@
 		<lang name="de" value="Passwort Eingabe"/>
 	</item>
 	<item name="CT-Get-Password-MSG">
-		<lang name="en" value="password"/>
-		<lang name="de" value="password"/>
+		<lang name="en" value="admin"/>
+		<lang name="de" value="admin"/>
 	</item>
 	<item name="Installing Website Template">
 		<lang name="en" value="Installing Website Template"/>
@@ -730,9 +885,9 @@
 		<lang name="en" value="Cancel"/>
 		<lang name="de" value="Abbrechen"/>
 	</item>
-	<item name="Preview in Browser">
-		<lang name="en" value="Preview in Browser"/>
-		<lang name="de" value="Im Browser anzeigen"/>
+	<item name="Open in Browser">
+		<lang name="en" value="Open in Browser"/>
+		<lang name="de" value="Im Browser Öffnen"/>
 	</item>
 	<item name="New Item In">
 		<lang name="en" value="New"/>
@@ -747,8 +902,8 @@
 		<lang name="de" value="is bereits in der Datenbak. \nBitte wählen sie einen anderen Namen"/>
 	</item>
 	<item name="Set Color">
-		<lang name="en" value="Set Color"/>                   
-		<lang name="de" value="Farbe verwenden"/>
+		<lang name="en" value="Select Color"/>                   
+		<lang name="de" value="Farbe Auswählen"/>
 	</item>
 	<item name="Cancel Color">
 		<lang name="en" value="Cancel"/>                   

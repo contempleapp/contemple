@@ -35,12 +35,12 @@
 				var scx:Number=1;
 				var scy:Number=1;
 				
-				if( sp.width > bmp.width ) {
+			//	if( sp.width > bmp.width ) {
 					scx = bmp.width / sp.width;
-				}
-				if( sp.height > bmp.height ) {
+			//	}
+			//	if( sp.height > bmp.height ) {
 					scy = bmp.height / sp.height;
-				}
+			//	}
 				var s:Number = Math.min(scx,scy);
 				
 				var m:Matrix = new Matrix();

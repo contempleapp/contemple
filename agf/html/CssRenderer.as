@@ -63,7 +63,7 @@
 			var gradient:String="";
 			
 			// copy required properties to dynamic CssObject - co
-			for(k=0; k < stL/* stylesRev.length*/; k++) 
+			for(k=0; k < stL; k++) 
 			{
 				name = sta[k][0];
 				st = sta[k][1];

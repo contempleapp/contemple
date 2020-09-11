@@ -18,14 +18,6 @@
 	import agf.events.PopupEvent;
 	import net.anirudh.as3syntaxhighlight.CodePrettyPrint;
 	
-	/**
-	* TextEditor and CodeView
-	* TODO: 
-	* - add scrollbars
-	* - add goto menu for template objects, js-functions and css - classes
-	* - add some code completion functionality also for fast mobile - editing
-	* - fix bugs when changing file in the editor
-	**/
 	public class TextEditor extends Sprite
     {
 		public function TextEditor()
@@ -44,7 +36,7 @@
             }
 			
             if( styles.fontSize ) {
-                size = CssUtils.parse(styles.fontSize);
+                size = parseInt(styles.fontSize);
             }else{
                 size = Console.DEFAULT_TEXT_SIZE;
             }
@@ -104,7 +96,6 @@
 		public function historyPop () :Object {
 			var obj:Object = history.pop();
 			return obj;
-			
 		}
 		public function historyPush ( v:String, file:int=-1 ) :void {
 			history.push( {file:file == -1 ? CTTools.currFile : file, val:v} );
@@ -124,17 +115,13 @@
 				var h:int = container.getHeight();
 				var ibh: Number = ib.getHeight();
 				var sbw:int = 0;
-			
 				
 				if(scrollbar) {
 					
 					scrollbar.setHeight( h - (ibh + 8) );
-					
 					sbw = scrollbar.cssSizeX + scrollbar.cssBoxX;
-					
 					scrollbar.x = w - (sbw + 4);
 					scrollbar.y = ibh + 4;
-					
 					setScrollButtonHeight();
 					
 					if( scrollbar.value != tf.scrollV ) scrollbar.value = tf.scrollV;
@@ -255,7 +242,7 @@
             }
             
             if( styles.fontSize ) {
-                size = CssUtils.parse(styles.fontSize);
+                size = parseInt(styles.fontSize);
             }else{
                 size = Console.DEFAULT_TEXT_SIZE;
             }

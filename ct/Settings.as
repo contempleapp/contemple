@@ -1,5 +1,6 @@
 ﻿package ct
 {
+	//import agf.events.AppEvent;
 	import agf.events.PopupEvent;
 	import agf.utils.FileUtils;
 	import flash.display.*;
@@ -22,37 +23,36 @@
 	* - New with Template Folder/ZipFile
 	*/
 	
-	public class Settings extends Sprite 
+	public class Settings extends BaseScreen
 	{
-		public function Settings () 
-		{
-			container = Application.instance.view.panel;
-			container.addEventListener(Event.RESIZE, newSize);
-			create();
-		}
+		public function Settings () {}
 		
-		private function create () :void
+		protected override function create () :void
 		{
+			super.create();
+			
 			var w:int = container.getWidth();
 			var h:int = container.getHeight();
-			
-			cont = new CssSprite( w, h, null, container.styleSheet, 'body', '', '', true);
-			addChild(cont);
-			cont.init();
-			
-			body = new CssSprite(w, h, cont, container.styleSheet, 'div', '', 'editor preferences', false);
-			body.setWidth( w - body.cssBoxX );
-			body.setHeight( h - body.cssBoxY );
-			
-			scrollpane = new ScrollContainer(0, 0, body, body.styleSheet, '', '', false);
-			
-			if( CTOptions.animateBackground ) {
-				HtmlEditor.dayColorClip( body.bgSprite );
-			}
 			
 			title = new Label(0, 0, scrollpane.content, container.styleSheet, '', 'preferences-title', false);
 			title.label = Language.getKeyword( "Application Settings" );
 			title.textField.autoSize = TextFieldAutoSize.LEFT;
+			
+			previewInEditorLabel = new Label(w,20, scrollpane.content, container.styleSheet, '', 'preferences-label', false );
+			previewInEditorLabel.label = Language.getKeyword( "Preview In Editor" );
+			previewInEditorLabel.textField.autoSize = TextFieldAutoSize.LEFT;
+			
+			previewInEditorValue = new Toggle([CTOptions.previewInEditor ? "On":"Off"], 0, 0, scrollpane.content, container.styleSheet, '', 'preferences-toggle', false );
+			previewInEditorValue.value = CTOptions.previewInEditor;
+			previewInEditorValue.addEventListener( Event.CHANGE, previewInEditorClick );
+			
+			previewAlignLabel = new Label(w,20, scrollpane.content, container.styleSheet, '', 'preferences-label', false );
+			previewAlignLabel.label = Language.getKeyword( "Preview Alignment" );
+			previewAlignLabel.textField.autoSize = TextFieldAutoSize.LEFT;
+			
+			previewAlignValue = new Toggle([ !CTOptions.previewAtBottom ? "Right":"Bottom"], 0, 0, scrollpane.content, container.styleSheet, '', 'preferences-toggle', false );
+			previewAlignValue.value = !CTOptions.previewAtBottom;
+			previewAlignValue.addEventListener( Event.CHANGE, previewAlignClick );
 			
 			if ( !CTOptions.isMobile )
 			{
@@ -165,6 +165,48 @@
 			storeBooleanPref( "softKeyboard", CTOptions.softKeyboard);
 		}
 		
+		private function previewInEditorClick (e:Event) :void {
+			if( previewInEditorValue.value ) {
+				previewInEditorValue.label = "On";
+				CTOptions.previewInEditor = true;
+				if( CTOptions.previewAtBottom ) {
+					TemplateTools.editor_w = HtmlEditor.tmpEditorW = 1;
+					TemplateTools.editor_h = HtmlEditor.tmpEditorH = 0.6;
+				}else{
+					TemplateTools.editor_w = HtmlEditor.tmpEditorW = 0.6;
+					TemplateTools.editor_h = HtmlEditor.tmpEditorH = 1;
+				}
+				HtmlEditor.showPreview( true );
+				previewInEditorValue.swapState("active");
+			}else{
+				previewInEditorValue.label = "Off";
+				CTOptions.previewInEditor = false;
+				HtmlEditor.showPreview( false );
+			}
+			storeBooleanPref( "previewInEditor", CTOptions.previewInEditor);
+		}
+		
+		private function previewAlignClick (e:Event) :void {
+			//HtmlEditor.showPreview( false );
+			if( previewAlignValue.value ) {
+				previewAlignValue.label = "Right";
+				CTOptions.previewAtBottom = false;
+				previewAlignValue.swapState("active");
+				if( CTOptions.previewInEditor ) {
+					TemplateTools.editor_w = HtmlEditor.tmpEditorW = 0.6;
+					TemplateTools.editor_h = HtmlEditor.tmpEditorH = 1;
+				}
+			}else{
+				previewAlignValue.label = "Bottom";
+				CTOptions.previewAtBottom = true;
+				if( CTOptions.previewInEditor ) {
+					TemplateTools.editor_w = HtmlEditor.tmpEditorW = 1;
+					TemplateTools.editor_h = HtmlEditor.tmpEditorH = 0.6;
+				}
+			}
+			storeBooleanPref( "previewAlign", CTOptions.previewAtBottom );
+			
+		}
 		private function monitorFilesClick (e:Event) :void {
 			if ( monitorFilesValue.value ) {
 				monitorFilesValue.label = "On";
@@ -180,12 +222,13 @@
 			}
 		}
 		
-		public var cont:CssSprite;
-		public var body:CssSprite;
 		public var title:Label;
-		public var container: Panel;
-		public var scrollpane:ScrollContainer;
 		
+		public var previewInEditorLabel:Label;
+		public var previewInEditorValue:Toggle;
+		
+		public var previewAlignLabel:Label;
+		public var previewAlignValue:Toggle;
 		
 		public var monitorFilesLabel:Label;
 		public var monitorFilesValue:Toggle;
@@ -205,102 +248,110 @@
 		public var restartLabel:Label;
 		public var restartBtn:Button;
 		
-		private function newSize (e:Event) :void
+		protected override function newSize (e:Event) :void
 		{
+			super.newSize(e);
+			
 			var w:int = container.getWidth();
 			var h:int = container.getHeight();
-			
-			cont.setWidth( w );
-			cont.setHeight( h );
-			body.setWidth(w);
-			body.setHeight(h);
 			
 			var cy:int = 0;
 			var margin:int = 4;
 			var marginX:int = 16;
-			
-			if( scrollpane )
-			{
-				
-				if ( title ) {
-					title.x = Math.floor( (w - title.getWidth() ) * .5);
-					title.y = body.cssTop;
-					cy = title.y + title.height + title.cssMarginBottom;
-				}
-				
-				if ( monitorFilesLabel && monitorFilesValue )
-				{
-					monitorFilesLabel.x = body.cssLeft + monitorFilesLabel.cssMarginLeft;
-					monitorFilesLabel.y = cy;
-					cy += monitorFilesLabel.height + monitorFilesLabel.cssMarginBottom + margin;
-					
-					monitorFilesValue.x = body.cssLeft + marginX;
-					monitorFilesValue.y = cy;
-					cy += monitorFilesValue.cssSizeY + monitorFilesValue.cssMarginBottom + margin;
-				}
-				
-				if ( softKeyboardLabel && softKeyboardValue )
-				{
-					softKeyboardLabel.x = body.cssLeft + softKeyboardLabel.cssMarginLeft;
-					softKeyboardLabel.y = cy;
-					cy += softKeyboardLabel.height + softKeyboardLabel.cssMarginBottom + margin;
-					
-					softKeyboardValue.x = body.cssLeft + marginX;
-					softKeyboardValue.y = cy;
-					cy += softKeyboardValue.cssSizeY + softKeyboardValue.cssMarginBottom + margin;
-				}
-				
-				if ( autoSaveLabel && autoSaveValue )
-				{
-					autoSaveLabel.x = body.cssLeft + autoSaveLabel.cssMarginLeft;
-					autoSaveLabel.y = cy;
-					cy += autoSaveLabel.height + autoSaveLabel.cssMarginBottom;
-					
-					autoSaveValue.x = body.cssLeft + marginX;
-					autoSaveValue.y = cy;
-					cy += autoSaveValue.cssSizeY + autoSaveValue.cssMarginBottom;
-				}
-				
-				if ( debugOutLabel && debugOutValue )
-				{
-					debugOutLabel.x = body.cssLeft + debugOutLabel.cssMarginLeft;
-					debugOutLabel.y = cy;
-					cy += debugOutLabel.height + debugOutLabel.cssMarginBottom;
-					
-					debugOutValue.x = body.cssLeft + marginX;
-					debugOutValue.y = cy;
-					cy += debugOutValue.cssSizeY + debugOutValue.cssMarginBottom;
-				}
-				
-				if ( nativePreviewLabel && nativePreviewValue )
-				{
-					nativePreviewLabel.x = body.cssLeft + nativePreviewLabel.cssMarginLeft;
-					nativePreviewLabel.y = cy;
-					cy += nativePreviewLabel.height + nativePreviewLabel.cssMarginBottom;
-					
-					nativePreviewValue.x = body.cssLeft + marginX;
-					nativePreviewValue.y = cy;
-					cy += nativePreviewValue.cssSizeY + nativePreviewValue.cssMarginBottom;
-				}
-				
-				if ( restartLabel && restartBtn )
-				{
-					restartLabel.x = body.cssLeft + restartLabel.cssMarginLeft;
-					restartLabel.y = cy;
-					cy += restartLabel.height + restartLabel.cssMarginBottom;
-					
-					restartBtn.x = body.cssLeft;
-					restartBtn.y = cy + marginX;
-					cy += restartBtn.cssSizeY + restartBtn.cssMarginBottom;
-				}
-				
-				scrollpane.x = body.cssLeft;
-				scrollpane.y = body.cssTop;
-				scrollpane.setWidth( w - body.cssBoxX );
-				scrollpane.setHeight( h - body.cssBoxY );
-				scrollpane.contentHeightChange();
+		
+			if ( title ) {
+				title.x = Math.floor( (w - (title.getWidth() + body.cssBoxX) ) * .5);
+				cy = title.height + title.cssMarginBottom;
 			}
+			
+			if ( previewInEditorLabel && previewInEditorValue )
+			{
+				previewInEditorLabel.x = previewInEditorLabel.cssMarginLeft;
+				previewInEditorLabel.y = cy;
+				cy += previewInEditorLabel.height + previewInEditorLabel.cssMarginBottom + margin;
 				
+				previewInEditorValue.x = marginX;
+				previewInEditorValue.y = cy;
+				cy += previewInEditorValue.cssSizeY + previewInEditorValue.cssMarginBottom + margin;
+			}
+			
+			if ( previewAlignLabel && previewAlignValue )
+			{
+				previewAlignLabel.x = previewAlignLabel.cssMarginLeft;
+				previewAlignLabel.y = cy;
+				cy += previewAlignLabel.height + previewAlignLabel.cssMarginBottom + margin;
+				
+				previewAlignValue.x = marginX;
+				previewAlignValue.y = cy;
+				cy += previewAlignValue.cssSizeY + previewAlignValue.cssMarginBottom + margin;
+			}
+			
+			if ( monitorFilesLabel && monitorFilesValue )
+			{
+				monitorFilesLabel.x = monitorFilesLabel.cssMarginLeft;
+				monitorFilesLabel.y = cy;
+				cy += monitorFilesLabel.height + monitorFilesLabel.cssMarginBottom + margin;
+				
+				monitorFilesValue.x = marginX;
+				monitorFilesValue.y = cy;
+				cy += monitorFilesValue.cssSizeY + monitorFilesValue.cssMarginBottom + margin;
+			}
+			
+			if ( softKeyboardLabel && softKeyboardValue )
+			{
+				softKeyboardLabel.x = softKeyboardLabel.cssMarginLeft;
+				softKeyboardLabel.y = cy;
+				cy += softKeyboardLabel.height + softKeyboardLabel.cssMarginBottom + margin;
+				
+				softKeyboardValue.x = marginX;
+				softKeyboardValue.y = cy;
+				cy += softKeyboardValue.cssSizeY + softKeyboardValue.cssMarginBottom + margin;
+			}
+			
+			if ( autoSaveLabel && autoSaveValue )
+			{
+				autoSaveLabel.x =  autoSaveLabel.cssMarginLeft;
+				autoSaveLabel.y = cy;
+				cy += autoSaveLabel.height + autoSaveLabel.cssMarginBottom;
+				
+				autoSaveValue.x = marginX;
+				autoSaveValue.y = cy;
+				cy += autoSaveValue.cssSizeY + autoSaveValue.cssMarginBottom;
+			}
+			
+			if ( debugOutLabel && debugOutValue )
+			{
+				debugOutLabel.x = debugOutLabel.cssMarginLeft;
+				debugOutLabel.y = cy;
+				cy += debugOutLabel.height + debugOutLabel.cssMarginBottom;
+				
+				debugOutValue.x = marginX;
+				debugOutValue.y = cy;
+				cy += debugOutValue.cssSizeY + debugOutValue.cssMarginBottom;
+			}
+			
+			if ( nativePreviewLabel && nativePreviewValue )
+			{
+				nativePreviewLabel.x = nativePreviewLabel.cssMarginLeft;
+				nativePreviewLabel.y = cy;
+				cy += nativePreviewLabel.height + nativePreviewLabel.cssMarginBottom;
+				
+				nativePreviewValue.x = marginX;
+				nativePreviewValue.y = cy;
+				cy += nativePreviewValue.cssSizeY + nativePreviewValue.cssMarginBottom;
+			}
+			
+			if ( restartLabel && restartBtn )
+			{
+				restartLabel.x = restartLabel.cssMarginLeft;
+				restartLabel.y = cy;
+				cy += restartLabel.height + restartLabel.cssMarginBottom;
+				
+				restartBtn.x = 0;
+				restartBtn.y = cy + marginX;
+				cy += restartBtn.cssSizeY + restartBtn.cssMarginBottom;
+			}
+			
 		}
 		
 		

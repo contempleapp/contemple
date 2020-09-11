@@ -245,7 +245,10 @@
 					// if(defaultColors[v] != null) return defaultColors[v];
 					//
 					
-					if(v.charAt(0) === "#" || v.substring(0,4).toLowerCase() == "rgb(") return stringToColor(v);
+					if(v.charAt(0) === "#") return stringToColor(v);
+					
+					var str:String = v.substring(0,4).toLowerCase();
+					if(str == "rgb(" || str == "rgba" || str == "hsl(" || str=="hsla") return stringToColor(v);
 					
 					var nm:String = "";
 					var unit:String = "";
@@ -263,7 +266,7 @@
 					switch( unit ) {
 						case "px":
 						case "pt":
-							v = Number( nm );
+							v = Number( nm ) * numericScale;
 							break;
 						case "em":
 						case "rem":

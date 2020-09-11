@@ -10,11 +10,11 @@
 html { height:100%; }
 
 body {
-	background:{#Background-Color};
+	background:{#Background_Color};
 	background-size:cover;
 	background-position:center center;
 	height:100%;
-	background-image:url({#Background-Image}?{#r:random(2)});
+	background-image:url({#Background_Image}?{#r:random(2)});
 	background-repeat:repeat-x;
 	color:{#Font-Color};
 	font-family:"avenir next","Roboto Condensed","Myriad Pro","Myriad Web Pro",Avenir,Arial,Verdana;
@@ -29,13 +29,13 @@ a,a:active,a:visited,a:hover {
 	position:fixed;
 	left:{#Logo-Zoom}%;
 	top:{#Logo-Top}%;
-	width:{#Logo-Zoom@calc 100-value*2}%;
+	width:{#Logo_Zoom@calc 100-value*2}%;
 }
 .logo > img {
 	display:block;
 	width:100%;
 	height:auto;
-	opacity:{#Logo-Opacity};
+	opacity:{#Logo_Opacity};
 }
 .flares {
 	position:fixed;
@@ -43,7 +43,7 @@ a,a:active,a:visited,a:hover {
 	top:0px;
 	width:100%;
 	height:100%;
-	background:url({#Logo-Overlay}) no-repeat;
+	background:url({#Logo_Overlay}) no-repeat;
 	background-size:cover;
 	background-position:center;
 }
@@ -51,7 +51,7 @@ a,a:active,a:visited,a:hover {
 	position:fixed;
 	left:0px;
 	top:0px;
-	background:{#Background-Color};
+	background:{#Background_Color};
 	z-index:9;
 	padding:5px;
 	padding-right: 5%;
@@ -63,9 +63,9 @@ a,a:active,a:visited,a:hover {
 }
 .menu li {
 	display:inline-block; 
-	background-color:{#Menu-Background-Color}; 
-	color:{#Menu-Font-Color};
-	font-size:{#Menu-Font-Size};
+	background-color:{#Menu_Background_Color}; 
+	color:{#Menu_Font_Color};
+	font-size:{#Menu_Font_Size};
 	margin:7px;
 	
 	-webkit-transition:background-color .3s linear, color .3s linear;
@@ -76,8 +76,8 @@ a,a:active,a:visited,a:hover {
 	display: inline-block;
 }
 .menu li:hover {
-	background-color:{#Menu-Background-Color@invert};
-	color:{#Background-Color};
+	background-color:{#Menu_Background_Color@invert};
+	color:{#Background_Color};
 }
 .demo {
 	position:fixed;
@@ -98,10 +98,10 @@ a,a:active,a:visited,a:hover {
 	opacity:0.75;
 }
 .font-dark {
-	color:{#Font-Dark-Color};
+	color:{#Font_Dark_Color};
 }
 .font-light {
-	color:{#Font-Light-Color};
+	color:{#Font_Light_Color};
 }
 .text-left {
 	text-align:left;

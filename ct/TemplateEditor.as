@@ -111,6 +111,8 @@
 			if( currentEditor ) currentEditor.setHeight( h - cssBoxY );
 		}
 		
+		private static var fixAreaED:AreaEditor = null;
+		
 		public function showSection (lb:String="") :void
 		{
 			if( currentEditor ) {
@@ -128,7 +130,14 @@
 					var ped:PageEditor = PageEditor ( currentEditor );
 					currentEditor.y = currentEditor.cssTop;
 				}else if( lb == Language.getKeyword("Area") || lb == Language.getKeyword("Content") ) {
-					currentEditor = new AreaEditor( _w-8, getHeight(), this, styleSheet, '', '', 'area-editor',false);
+					
+					if( fixAreaED == null ) {
+						fixAreaED = new AreaEditor( _w-8, getHeight(), this, styleSheet, '', '', 'area-editor',false);
+					}else{
+						addChild( fixAreaED );
+						fixAreaED.createAed();
+					}
+					currentEditor = fixAreaED;
 					var aed:AreaEditor = AreaEditor ( currentEditor );
 					currentEditor.y = currentEditor.cssTop;
 				}else if( lb == Language.getKeyword("Media") ){

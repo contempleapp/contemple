@@ -37,7 +37,7 @@
 		
 		public override function setWidth (w:int) :void {
 			super.setWidth(w);
-			if(w ) {
+			if( w ) {
 				if( label ) {
 					label.setWidth( w-cssBoxX );
 				}

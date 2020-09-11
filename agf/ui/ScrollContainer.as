@@ -23,6 +23,7 @@
 		private var scrollbar:Slider;
 		public static var scrollbarWidth:Number=12;
 		public var friction:Number = 2.7;
+		//public var accel:Number = 2;
 		
 		public function get slider () :Slider { return scrollbar; }
 		
@@ -33,8 +34,8 @@
 			
 			if(scrollbar && contains(scrollbar)) removeChild(scrollbar);
 			var sld:Slider = new Slider( scrollbarWidth, cssSizeY, this, styleSheet, '', nodeClass, false);
-			sld.setScrollerHeight( 50 );
-			sld.setWidth( scrollbarWidth );
+			sld.setScrollerHeight( 50 * CssUtils.numericScale );
+			sld.setWidth( scrollbarWidth * CssUtils.numericScale );
 			sld.setHeight( cssSizeY );
 			sld.wheelScrollTarget = this;
 			sld.addEventListener( Event.CHANGE, scrollbarChange);
@@ -99,7 +100,7 @@
 			if( overflow > 0 ) {
 				scrollbar.maxValue = int(overflow);
 				var h:Number = scrollbar.getHeight();
-				scrollbar.wheelStepSize = int( (h*.32) /  Math.round( ch / h ) );
+				scrollbar.wheelStepSize = int( (h*.3) /  Math.round( ch / h ) );
 				scrollbar.visible = true;
 			}else{
 				scrollbar.maxValue = 0.0001;

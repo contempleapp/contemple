@@ -158,7 +158,7 @@
 			
 			super.setWidth(w);
 			
-			closeButton.x = cssLeft - 5;
+			closeButton.x = cssLeft - Math.ceil(5*CssUtils.numericScale);
 			
 			if( label ) {
 				label.setWidth(0);
@@ -168,7 +168,7 @@
 				if( textBox ) textBox.setWidth( w - visibleBtn.cssSizeX );
 				visibleBtn.x = w - visibleBtn.cssSizeX;
 			}
-			var yofs:int = -4;
+			var yofs:int = - Math.ceil(4*CssUtils.numericScale);
 			var ofs:int = 0;
 			var mh:int = 0;
 			
@@ -218,7 +218,27 @@
 					saveButton.y = cssTop + yofs;
 				}
 			}
-
+			
+			if ( deleteButton && deleteButtonVisible )
+			{
+				if ( minSize )
+				{
+					minSize = true;
+					deleteButton.visible = false;
+					
+					ppi = minSizePopup.rootNode.addItem( [new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "trash.png", Options.iconSize, Options.iconSize), "Delete"], styleSheet );
+					ppi.options.action = "deleteClick";
+				}
+				else
+				{
+					deleteButton.visible = true;
+					ofs += deleteButton.cssSizeX;
+					if( deleteButton.cssSizeY > mh ) mh = deleteButton.cssSizeY;
+					deleteButton.x = w - ofs;
+					deleteButton.y = cssTop + yofs;
+				}
+			}
+			
 			if ( nextButton && nextButtonVisible )
 			{
 				if ( minSize || w - (ofs + nextButton.cssSizeX) < p1 )
@@ -256,26 +276,6 @@
 					if( prevButton.cssSizeY > mh ) mh = prevButton.cssSizeY;
 					prevButton.x = w - ofs;
 					prevButton.y = cssTop + yofs;
-				}
-			}
-			
-			if ( deleteButton && deleteButtonVisible )
-			{
-				if ( minSize )
-				{
-					minSize = true;
-					deleteButton.visible = false;
-					
-					ppi = minSizePopup.rootNode.addItem( [new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "trash.png", Options.iconSize, Options.iconSize), "Delete"], styleSheet );
-					ppi.options.action = "deleteClick";
-				}
-				else
-				{
-					deleteButton.visible = true;
-					ofs += deleteButton.cssSizeX;
-					if( deleteButton.cssSizeY > mh ) mh = deleteButton.cssSizeY;
-					deleteButton.x = w - ofs;
-					deleteButton.y = cssTop + yofs;
 				}
 			}
 			

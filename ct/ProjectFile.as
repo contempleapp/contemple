@@ -39,8 +39,13 @@
 		
 		internal var compactDirty:Boolean = false;   // set after changes in content items
 		internal var templateDirty:Boolean = false;  // set after changes in the template
+		internal var propertyDirty:Boolean = false;      // set after changes in settings
 		internal var textDirty:Boolean = false;      // set after changes in content items
 		internal var compactTemplateDirty = false;   // set when template changes
+		
+		internal var hasInlineAreas:Boolean = false;
+		internal var inlineAreas:Object = {};
+		
 		
 		private var monitor:FileMonitor;
 		internal var templateSaveDirty:Boolean = false; // saveDirty have to be set to false after a file-save (from CTTools)
@@ -50,7 +55,7 @@
 		public function clear () :void
 		{
 			path = name = filename = extension = templateId = template = text = compact = compactTemplate = splitPath = pageItemName = "";
-			compactDirty = templateDirty = textDirty = compactTemplateDirty =  textSaveDirty = splits = templateSaveDirty = false;
+			compactDirty = templateDirty = propertyDirty = textDirty = compactTemplateDirty =  textSaveDirty = splits = templateSaveDirty = false;
 			templateStruct = [];
 			templateProperties = [];
 			templateAreas = new Vector.<Area>();
@@ -109,8 +114,6 @@
 		private function onFileChange( e:FileMonitorEvent ):void
 		{
 			var s:String = CTTools.readTextFile( e.file.url );
-
-			// trace("FileMonitor CHANGE: " + e.file.url);
 			
 			setTemplate( s );
 			
@@ -129,7 +132,7 @@
 				// update text editors
 				Application.instance.view.panel.src["displayFiles"]();
 			}catch(e:Error) {
-				
+				Console.log("Error: " + e);
 			}
 			
 			if(CTOptions.debugOutput ) {
@@ -140,9 +143,17 @@
 		public function allDirty () :void {
 			templateDirty = true;
 			compactTemplateDirty = true;
+			propertyDirty = true;
 			textDirty = true;
 			compactDirty = true;
 			templateSaveDirty = true;
+			textSaveDirty = true;
+		}
+		
+		public function settingDirty () :void {
+			propertyDirty = true;
+			textDirty = true;
+			compactDirty = true;
 			textSaveDirty = true;
 		}
 		public function contentDirty () :void {
@@ -152,11 +163,12 @@
 		}
 		
 		public function getTemplate () :String { return template; }
-		public function setTemplate ( str:String, stPageItemName:String="" ) :void {
+		public function setTemplate ( str:String, stPageItemName:String="", intern:Boolean=false ) :void {
 			template = str;
 			pageItemName = stPageItemName;
-			templateDirty = true;
+			if( !intern ) templateDirty = true;
 			compactTemplateDirty = true;
+			propertyDirty = true;
 			textDirty = true;
 			compactDirty = true;
 			templateSaveDirty = true;
@@ -189,8 +201,14 @@
 		{
 			if( templateDirty )
 			{
-				Template.parseFile ( this, CTTools.findTemplate(templateId, "name"), pageItemName, name );
+				AreaEditor.invalidateAreaTree();
 				templateDirty = false;
+			}
+			
+			if( propertyDirty )
+			{
+				Template.parseFile ( this, CTTools.findTemplate(templateId, "name"), pageItemName, name );
+				propertyDirty = false;
 			}
 			
 			if( textDirty )

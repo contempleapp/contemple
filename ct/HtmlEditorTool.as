@@ -29,7 +29,6 @@
 				var mn:Main = Main( agf.tools.Application.instance );
 				var cb:Object = {
 					complete: function (projectName:String) :void {
-						trace( projectName);
 						newProjectName = projectName;
 					}
 				}

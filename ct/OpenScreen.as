@@ -19,50 +19,36 @@
 	* - Open project from disk
 	* - Open previous project
 	*/
-	public class OpenScreen extends Sprite 
+	public class OpenScreen extends BaseScreen
 	{
-		public function OpenScreen () 
-		{
-			container = Application.instance.view.panel;
-			container.addEventListener(Event.RESIZE, newSize);
-			create();
-		}
+		public function OpenScreen () {}
 		
-		private function create () :void
+		protected override function create () :void
 		{
+			super.create();
+			
 			var i:int;
 			var pi:PopupItem;
 			
 			var w:int = container.getWidth();
 			var h:int = container.getHeight();
 			
-			cont = new CssSprite( w, h, null, container.styleSheet, 'body', '', '', true);
-			addChild(cont);
-			cont.init();
-			
-			body = new CssSprite(w, h, cont, container.styleSheet, 'div', '', 'editor start-screen', false);
-			body.setWidth( w - body.cssBoxX );
-			body.setHeight( h - body.cssBoxY );
-			
-			if( CTOptions.animateBackground ) {
-				HtmlEditor.dayColorClip( body.bgSprite );
-			}
-			
-			title = new Label(0, 0, body, container.styleSheet, '', 'start-screen-title', false);
+			title = new Label(0, 0, scrollpane.content, container.styleSheet, '', 'start-screen-title', false);
 			title.label = Language.getKeyword( "Open previous Project" );
 			title.textField.autoSize = TextFieldAutoSize.LEFT;
 			
-			openBtn = new Button( [ new IconFromFile( Options.iconDir + "/open.png",Options.iconSize,Options.iconSize), Language.getKeyword("Open existing Project Folder") ], 0, 0, body, container.styleSheet, '','start-screen-btn', false);
+			openBtn = new Button( [ new IconFromFile( Options.iconDir + "/open.png",Options.iconSize,Options.iconSize), Language.getKeyword("Open existing Project Folder") ], 0, 0, scrollpane.content, container.styleSheet, '','start-screen-btn', false);
 			openBtn.addEventListener( MouseEvent.CLICK, openBtnHandler);
 			
-			openText = new Label( 0, 0, body, container.styleSheet, '', 'start-screen-info', false);
+			openText = new Label( 0, 0, scrollpane.content, container.styleSheet, '', 'start-screen-info', false);
 			openText.textField.multiline = true;
 			openText.textField.wordWrap = true;
 			openText.textField.autoSize = TextFieldAutoSize.LEFT;
 			openText.label = Language.getKeyword("Open Recent Project");
 			
-			recentProjects = new Popup( [ new IconArrowDown( Application.instance.mainMenu.iconColor, 1, Options.iconSize, Options.iconSize*.5 ), Language.getKeyword("Select Recent Project") ], 0, 0, body, container.styleSheet, '','start-screen-popup', false);
+			recentProjects = new Popup( [ new IconArrowDown( Application.instance.mainMenu.iconColor, 1, Options.iconSize, Options.iconSize ), Language.getKeyword("Select Recent Project") ], 0, 0, scrollpane.content, container.styleSheet, '','start-screen-popup', false);
 			recentProjects.addEventListener( PopupEvent.SELECT, selectRecentProject );
+			recentProjects.alignH = "left";
 			
 			var ish:SharedObject = SharedObject.getLocal( CTOptions.installSharedObjectId );
 				
@@ -98,13 +84,9 @@
 		}
 		
 		public var title:Label;
-		public var container: Panel;
 		public var openText:Label;
-		private var scrollContainer:ScrollContainer;
 		private var openBtn:Button;
 		private var recentProjects:Popup;
-		private var cont:CssSprite;
-		private var body:CssSprite;
 		
 		private function openBtnHandler (e:Event) :void {
 			Main(Application.instance).cmd("CTTools openproject");
@@ -116,23 +98,21 @@
 			Main(Application.instance).cmd( "CTTools open " + curr.options.folder );
 		}
 		
-		private function newSize (e:Event) :void
+		protected override function newSize (e:Event) :void
 		{
+			super.newSize(e);
+			
 			var w:int = container.getWidth();
 			var h:int = container.getHeight();
+			
 			var w3:int = Math.floor((w - (body.cssBoxX + container.cssBoxX)) / 3);
 			
-			var cx:int = body.cssLeft;
+			var cx:int = 0;
 			var cy:int = 0;
 			
-			body.setWidth(w);
-			body.setHeight(h);
-			
 			if ( title ) {
-				title.x = Math.floor( (w - title.getWidth() ) * .5);
-				title.y = body.cssTop;
-				
-				cy = title.y + title.height + title.cssMarginBottom;
+				title.x = Math.floor( (w - (title.getWidth() + body.cssBoxX) ) * .5);
+				cy = title.height + title.cssMarginBottom;
 			}
 			
 			if ( openBtn ) {
