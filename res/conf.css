@@ -1,6 +1,6 @@
 .app-loading-wrap { background: #000000; background-alpha: 0; }
 .app-loading { border-top: 3px solid #fa0; border-alpha: 1; }
-.agf-console-textfield { font-family:"Lucida Console","Odisseia Regular","Source Code Pro"; color:#BBDDFF; font-size:14px; }
+.agf-console-textfield { font-family:"Lucida Console","Odisseia Regular","Source Code Pro"; color:#DDFFFF; font-size:14px; }
 .texteditor { font-family:"Lucida Console","Odisseia Regular","Source Code Pro","Courier New"; color:#000000; font-size:12px; background-color: #fff; }
 .textview { font-family:"Lucida Console","Odisseia Regular","Source Code Pro","Courier New"; font-size:12px; }
 
@@ -203,7 +203,7 @@ sliderbutton { background: #fff; background-alpha: 0.3; width: 16px;}
 .window-cancel-button { border-radius: 5px;  padding: 10px; margin:8px 16px; }
 
 .new-subtemplate-form { padding:  24px; }
-.new-subtemplate-form-container {  background: ##101519; }
+.new-subtemplate-form-container {  background: #101519; }
 
 textbox { background:#BBB; color: #112233; padding: 5px 2px;  }
 textboxt:active { background:#eee; }
@@ -238,7 +238,7 @@ border-alpha:0.15; padding:12px 2px; vertical-align:top; margin-bottom: 0px; fon
 
 .areaeditor-folder {}
 .constanteditor-folder:active, .areaeditor-folder:active { background:#000; background-alpha: 0.1; }
-.tabs { margin-top: 6px; margin-bottom: 4px;}
+.tabs { margin-top: 8px; margin-bottom: 0px;}
 .areaeditor-tab {  background: #FFFFFF; background-alpha:0; padding: 0px 7px; padding-top:4px; 
 	border: 1px solid #fff; border-alpha:0.15; border-bottom: none; border-top-left-radius: 7px; border-top-right-radius: 7px; }
 .areaeditor-tab:active { background-alpha:0.075; }
@@ -252,7 +252,7 @@ border-alpha:0.15; padding:12px 2px; vertical-align:top; margin-bottom: 0px; fon
 .constant-editor, .area-editor, .media-editor { padding: 10px; }
 .area-editor { padding-top: 3px; padding-left: 12px; }
 .constants-container, .area-container, .area-insert-container, .media-container { padding: 0px; }
-.constant-prop, .area-insert-prop {padding: 2px 0px; padding-bottom: 12px; }
+.constant-prop, .area-insert-prop {padding: 2px 0px; padding-bottom: 24px; }
 /*.constant-prop:active, .area-insert-prop:active { padding-top:8px; } */
 .constant-prop-label { font-family: "Myriad Pro Light"; font-size: 13px; color: #ffffff; padding-left: 2px; padding-bottom: 3px; opacity: 0.9; }
 
