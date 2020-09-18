@@ -1732,32 +1732,42 @@
 										}
 										else if( tpe == "text" || tpe == "richtext" )
 										{
-											
-											procVal = TemplateTools.obj2Text( TemplateTools.replaceNewlines(procVal), '#', template.dbProps, true, false );
-											procVal = HtmlParser.fromDBText( HtmlParser.toInputText( procVal ) );
-											
-											wrapSplit = args ? args[1].split("|") : CTOptions.defaultNewlineWrap;
-											
-											if( wrapSplit.length > 1 )
+											if( procVal != "" )
 											{
-												defWrapPre =  TemplateTools.obj2Text( wrapSplit[0], '#', template.dbProps, true, false );
-												defWrapPost = TemplateTools.obj2Text( wrapSplit[1], '#', template.dbProps, true, false );
+												procVal = TemplateTools.obj2Text( TemplateTools.replaceNewlines(procVal), '#', template.dbProps, true, false );
+												procVal = HtmlParser.fromDBText( HtmlParser.toInputText( procVal ) );
 												
-												brSplit = procVal.split("\n");
-												vecL = brSplit.length;
-												if( vecL > 0 ) {
-													vecValue = "";
-													for( vi = 0; vi < vecL; vi++) {
-														
-														if( brSplit[vi] == "" || StringUtils.isWhite( brSplit[vi] )  ) {
-															vecValue += defWrapPre +"&nbsp;" + defWrapPost;
-														}else{
-															vecValue += defWrapPre + brSplit[vi] + defWrapPost;
+												wrapSplit = args ? args[1].split("|") : CTOptions.defaultNewlineWrap;
+												
+												if( wrapSplit.length > 1 )
+												{
+													defWrapPre =  TemplateTools.obj2Text( wrapSplit[0], '#', template.dbProps, true, false );
+													defWrapPost = TemplateTools.obj2Text( wrapSplit[1], '#', template.dbProps, true, false );
+													
+													brSplit = procVal.split("\n");
+													vecL = brSplit.length;
+													if( vecL > 0 ) {
+														vecValue = "";
+														for( vi = 0; vi < vecL; vi++) {
+															
+															if( brSplit[vi] == "" || StringUtils.isWhite( brSplit[vi] )  ) {
+																vecValue += defWrapPre +"&nbsp;" + defWrapPost;
+															}else{
+																vecValue += defWrapPre + brSplit[vi] + defWrapPost;
+															}
+															
 														}
-														
+														procVal = vecValue;
+													}	
+												}
+												else if( wrapSplit.length > 0 )
+												{
+													if( brSplit[0] == "" || StringUtils.isWhite( brSplit[0] )  ) {
+														procVal = "&nbsp;";
+													}else{
+														procVal = brSplit[vi];
 													}
-													procVal = vecValue;
-												}	
+												}
 											}
 										}
 										else if( tpe == "vector" )
@@ -1877,7 +1887,7 @@
 															vecWrap = args[viStart+1].split("|");
 															if( vecWrap.length > 1 ) {
 																vecWrapPre = TemplateTools.obj2Text( vecWrap[0], "#", template.dbProps, true, false );
-																vecWrapPost =  TemplateTools.obj2Text( vecWrap[1], "#", template.dbProps, true, false );
+																vecWrapPost = TemplateTools.obj2Text( vecWrap[1], "#", template.dbProps, true, false );
 																
 															}else{
 																if( vecWrap.length > 0 ) {
@@ -1944,37 +1954,44 @@
 			var brSplit:Array;
 			var i:int;
 			var vi:int;
-			
-			procVal = TemplateTools.obj2Text( TemplateTools.replaceNewlines(procVal) , '#', template.dbProps, true, false );
-			procVal = HtmlParser.fromDBText(HtmlParser.toInputText( procVal ) );
-			
-			if( args && args.length > 1 ) 
-			{
-				// Split <BR/> and apply line wraps
+			if( procVal != "" ) {
+				procVal = TemplateTools.obj2Text( TemplateTools.replaceNewlines(procVal) , '#', template.dbProps, true, false );
+				procVal = HtmlParser.fromDBText(HtmlParser.toInputText( procVal ) );
 				
-				wrapSplit = args ? args[1].split("|") : CTOptions.defaultNewlineWrap;
-				
-				if( wrapSplit.length > 1 )
+				if( args && args.length > 1 ) 
 				{
-					defWrapPre =  TemplateTools.obj2Text( wrapSplit[0], '#', template.dbProps, true, false );
-					defWrapPost = TemplateTools.obj2Text( wrapSplit[1], '#', template.dbProps, true, false );
+					// Split <BR/> and apply line wraps
 					
-					brSplit = procVal.split("\n");
+					wrapSplit = args ? args[1].split("|") : CTOptions.defaultNewlineWrap;
 					
-					vecL = brSplit.length;
-					if( vecL > 0 ) {
-						vecValue = "";
-						for( vi = 0; vi < vecL; vi++) {
-							
-							if( brSplit[vi] == "" || StringUtils.isWhite( brSplit[vi] )  ) {
-								vecValue += defWrapPre +"&nbsp;" + defWrapPost;
-							}else{
-								vecValue += defWrapPre + brSplit[vi] + defWrapPost;
+					if( wrapSplit.length > 1 )
+					{
+						defWrapPre =  TemplateTools.obj2Text( wrapSplit[0], '#', template.dbProps, true, false );
+						defWrapPost = TemplateTools.obj2Text( wrapSplit[1], '#', template.dbProps, true, false );
+						
+						brSplit = procVal.split("\n");
+						
+						vecL = brSplit.length;
+						if( vecL > 1 ) {
+							vecValue = "";
+							for( vi = 0; vi < vecL; vi++) {
+								
+								if( brSplit[vi] == "" || StringUtils.isWhite( brSplit[vi] )  ) {
+									vecValue += defWrapPre +"&nbsp;" + defWrapPost;
+								}else{
+									vecValue += defWrapPre + brSplit[vi] + defWrapPost;
+								}
+								
 							}
-							
+							procVal = vecValue;
+						}else if( vecL > 0 ) {
+							if( brSplit[0] == "" || StringUtils.isWhite( brSplit[0] )  ) {
+								procVal = "&nbsp;";
+							}else{
+								procVal = brSplit[vi];
+							}
 						}
-						procVal = vecValue;
-					}	
+					}
 				}
 			}
 			return procVal;

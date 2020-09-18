@@ -402,6 +402,17 @@
 				pi.options.value = '{##AreaName("ico:/ufo.png"):content}';
 				pi = optionsPopup.rootNode.addItem( ["Linked Area"], container.styleSheet);
 				pi.options.value = '{##LinkAreaName("ico:/services.png","",0,3,"Another-Area","SubTemplate1","LinkSubtemplate1"):content}';
+				pi = optionsPopup.rootNode.addItem( ["Subtemplate Area"], container.styleSheet);
+				pi.options.value = '{#MyArea:Area("#itemname#","content")}';
+				pi = optionsPopup.rootNode.addItem( ["#separator"], container.styleSheet);
+				pi = optionsPopup.rootNode.addItem( ["Label"], container.styleSheet);
+				pi.options.value = '{#MyLabel:Label("text")}';
+				pi = optionsPopup.rootNode.addItem( ["Section"], container.styleSheet);
+				pi.options.value = '{#MySection:Section("text")}';
+				pi = optionsPopup.rootNode.addItem( ["Folder"], container.styleSheet);
+				pi.options.value = '{#MyFolder:Folder}';
+				pi = optionsPopup.rootNode.addItem( ["Tab"], container.styleSheet);
+				pi.options.value = '{#MyTab:Tab}';
 				pi = optionsPopup.rootNode.addItem( ["#separator"], container.styleSheet);
 				pi = optionsPopup.rootNode.addItem( ["AreaList"], container.styleSheet);
 				pi.options.value = '{#MyAreas:AreaList}';
@@ -417,6 +428,8 @@
 				pi.options.value = '{#MyInt:Integer(0,100,1)=100}';
 				pi = optionsPopup.rootNode.addItem( ["Number"], container.styleSheet);
 				pi.options.value = '{#MyNumber:Number(0,1,0.1)=1}';
+				pi = optionsPopup.rootNode.addItem( ["Plugin"], container.styleSheet);
+				pi.options.value = '{#MyPlugin:Plugin("Plugin-ID",plugin-arguments...)="default-value"}';
 				pi = optionsPopup.rootNode.addItem( ["ScreenInteger"], container.styleSheet);
 				pi.options.value = '{#MyScreenInt:ScreenInteger(0,100,1)="100px"}';
 				pi = optionsPopup.rootNode.addItem( ["ScreenNumber"], container.styleSheet);
@@ -591,8 +604,23 @@
 		
 		private function fileOptionsSelect (e:PopupEvent) :void
 		{	
-			if( CTTools.showTemplate && CTTools.currFile != -1 && CTTools.procFiles && CTTools.procFiles.length > CTTools.currFile ) {	
-				var s:String =  tf.text.substring(0, cursor1) + e.selectedItem.options.value + tf.text.substring(cursor1);
+			if ( CTTools.showTemplate && CTTools.currFile != -1 && CTTools.procFiles && CTTools.procFiles.length > CTTools.currFile )
+			{
+				var val:String = e.selectedItem.options.value;
+				
+				var ds:int = tf.text.lastIndexOf("#def:", cursor1);
+				
+				if ( ds >= 0 )
+				{
+					var de:int = tf.text.indexOf("#def;", ds);
+					if ( de >= 0 && de > cursor1 )
+					{
+						val = val.substring(2, val.length - 1) + ";\n";
+					}
+				}
+				var s:String =  tf.text.substring(0, cursor1) + val + tf.text.substring(cursor1);
+				
+				historyPush( tf.text );
 				tf.text = s;
 				ProjectFile( CTTools.procFiles[CTTools.currFile] ).setTemplate( s );
 			}

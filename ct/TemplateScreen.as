@@ -372,6 +372,8 @@
 						for(var i:int=0; i<fieldArray.length; i++ ) {
 							if ( typeof(tmpl.propertiesByName[ fieldArray[i] ]) != "undefined" ) {
 								typedFields += tmpl.propertiesByName[ fieldArray[i] ].defType + ":" +  fieldArray[i] + ",";
+							}else{
+								typedFields += "String:" +  fieldArray[i] + ",";
 							}
 						}
 					}
@@ -380,7 +382,7 @@
 					type_pc = new PropertyCtrl( Language.getKeyword("new-template-type"), "new-template-type", "listmultiple", tmpl.type, null, tmplTypes, 0, 0, itemList, styl,'','constant-prop',false);
 					index_pc = new PropertyCtrl( Language.getKeyword("new-template-index-file"), "new-template-index-file", "file", tmpl.indexFile, null, ["","","Select Index File","*.*"], 0, 0, itemList, styl,'','constant-prop',false);
 					tables_pc = new PropertyCtrl( Language.getKeyword("new-template-tables"), "new-template-tables", "string", tmpl.tables, null, null, 0, 0, itemList, styl,'','constant-prop',false);
-					fields_pc = new PropertyCtrl( Language.getKeyword("new-template-fields"), "new-template-fields", "vector", typedFields.substring(0, typedFields.length-1), null, [0,"typed","",",",true,"AreaList,Audio,Boolean,Code,Color,Directory,File,Files,Hidden,Image,Integer,Intern,List,ListAppend,ListMultiple,LabelList,Label,Name,Number,Pdf,ScreenInteger,ScreenNumber,Section,String,Richtext,Text,Vector,VectorLink,Video"], 0, 0, itemList, styl,'','constant-prop',false);
+					fields_pc = new PropertyCtrl( Language.getKeyword("new-template-fields"), "new-template-fields", "vector", typedFields.substring(0, typedFields.length-1), null, [0,"typed","",",",true,"Area,AreaList,Audio,Boolean,Code,Color,Directory,File,Files,Font,Hidden,Image,Integer,Intern,ItemList,ItemListAppend,ItemListMultiple,List,ListAppend,ListMultiple,LabelList,LabelListAppend,LabelListMultiple,Line,Name,Number,PageList,Pdf,Plugin,ScreenInteger,ScreenNumber,String,Richtext,Text,Typed,Vector,VectorLink,Video,Zip"], 0, 0, itemList, styl,'','constant-prop',false);
 					tables_pc.textBox.addEventListener( "heightChange", heightUpdate );
 					fields_pc.textBox.addEventListener( "heightChange", heightUpdate );
 					files_pc = new PropertyCtrl( Language.getKeyword("new-template-files"), "new-template-files", "vector", tmpl.files, null,  [0,"File","",",",true,"","","Select folder with static files","*.*"], 0, 0, itemList, styl,'','constant-prop',false);

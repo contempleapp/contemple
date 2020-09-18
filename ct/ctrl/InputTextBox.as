@@ -919,7 +919,7 @@
 				// Add Plugin to root template cmd.xml to load .swf plugin files
 				// Plugin interface methods: init(container:InputTextBox):Boolean, getText():String, setText(String):void, setWidth(int):void, getHeight():int
 				//
-				// {#myplug:Plugin(Plugin-ID,plugin-arguments...)=default-value}
+				//    		
 				//
 				// Example Audio WaveForm Generator
 				// plugin displays ui on init with a file selector for audio files

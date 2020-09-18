@@ -16,8 +16,8 @@
 		public static var appLogo:String = "ico/logo.png";	// Contemple start logo
 		
 		public static var appName: String = "ContempleCMS"; // Can be set to theme version name runtime
-		public static var version: String = "1.0.17"; // Can be set to theme version during runtime
-		public static const contempleVersion:String = "1.0.17";
+		public static var version: String = "1.0.18"; // Can be set to theme version during runtime
+		public static const contempleVersion:String = "1.0.18";
 		
 		public static var defaultServerStartUrl:String = "https://www.contemple.app/demo/cthub/";
 		

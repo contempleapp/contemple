@@ -1919,6 +1919,13 @@
 					
 					if( !se ) out += String.fromCharCode(cc);
 				}
+				
+				if( mdc != "" ) {
+					mdt = out.substring( mdo );
+					out = out.substring( 0, mdo) + "<"+mdc+">" + mdt + "</"+mdc+">\n";
+					mdc = "";
+				}
+				
 				return out;
 			}
 			return s;

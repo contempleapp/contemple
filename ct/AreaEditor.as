@@ -717,7 +717,7 @@
 					var s:Number = 0;
 					if( nameCtrl && nameCtrl.visible ) {
 						nameCtrl.y = cssTop;
-						s = cssTop + nameCtrl.cssSizeY + nameCtrl.cssMarginBottom;
+						s = cssTop + nameCtrl.cssSizeY + nameCtrl.cssMarginBottom - nameCtrl.cssPaddingBottom;
 						
 						if( tabs ) {
 							tabs.y = cssTop + nameCtrl.getHeight() + tabs.cssMarginTop;
@@ -966,7 +966,7 @@
 						labelText = TemplateTools.obj2Text(T.listlabel, "#", r, false, true);
 								
 						if( T.parselistlabel ) {
-							labelText = TemplateTools.obj2Text(labelText, "#", r, true, false);
+							labelText = TemplateTools.obj2Text( TemplateTools.replaceNewlines( labelText ), "#", r, true, false);
 							labelText = HtmlParser.fromDBText( labelText );
 						}
 						
@@ -1219,7 +1219,7 @@
 				
 				itemList = new ItemList(w,0,scrollpane.content,styleSheet,'','area-insert-container',true);
 				var currSprite:CssSprite;
-				itemList.margin = 10;
+				itemList.margin = 0;
 				
 				var propName:String;
 				var propType:String;
