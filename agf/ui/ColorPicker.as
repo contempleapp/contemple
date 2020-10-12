@@ -182,7 +182,7 @@
 			img2.y = imgh + img1.y;
 			addChild( img2 );
 			
-			sb.setScrollerHeight( int( h/4) );
+			sb.setScrollerHeight( int( (h/4)* CssUtils.numericScale) );
 			sb.setHeight( imgw );
 			sb.rotation = -90;
 			
@@ -211,11 +211,11 @@
 			
 			kcbox = new ScrollContainer(0,0,this,styleSheet,'','colorpicker-known-colors',false);
 			
-			var cols:Number = Math.floor( (imgw-previewWidth) / kcsize ) - 2;
-			var kch:Number = kcsize;
+			var cols:Number = Math.floor( (imgw-previewWidth) / (kcsize* CssUtils.numericScale) ) - 2;
+			var kch:Number = kcsize * CssUtils.numericScale;
 			var L:int = knownColors.length;
 			if( L > cols ) {
-				kch = Math.ceil( (L / cols ) * kcsize );
+				kch = Math.ceil( (L / cols ) * (kcsize* CssUtils.numericScale) );
 			}
 			
 			var bmd:BitmapData = new BitmapData( imgw - previewWidth, kch, true, 0x00000000);
@@ -224,17 +224,17 @@
 			kcbox.content.addChild( kcbmp );
 			
 			var col:int=0;
-			var rc:Rectangle = new Rectangle(0,0,kcsize,kcsize);
+			var rc:Rectangle = new Rectangle(0, 0, kcsize * CssUtils.numericScale, kcsize * CssUtils.numericScale);
 			
 			for(  var i:int=0; i<L; i++) {
 				if( col > cols ) {
 					col = 0;
 					rc.x = 0;
-					rc.y += kcsize;
+					rc.y += kcsize * CssUtils.numericScale;
 				}
 				
 				bmd.fillRect( rc, 0xFF << 24 | knownColors[i] );
-				rc.x += kcsize;
+				rc.x += kcsize * CssUtils.numericScale;
 				col  ++;
 			}
 			

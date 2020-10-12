@@ -49,6 +49,7 @@
 				numericScale = 1;
 			}
 			
+			trace("numericScale: " + numericScale );
 			// trace("SCREEN DPI: " +  flash.system.Capabilities.screenDPI + ", scale: " + numericScale );
 		}
 		

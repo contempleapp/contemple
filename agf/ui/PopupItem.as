@@ -102,7 +102,7 @@
 		* controls the closing behaviour
 		* if greater than 1, the popup is closed after the value in miliseconds 
 		* if 1, removes the root node immediatly from the stage in the popup close handler
-		* if 0, the popup.container have to be removed from Popup.topContain89er manually
+		* if 0, the popup.container have to be removed from Popup.topContainer manually
 		*/
 		public var remOnClose:int = 1;//167;// 357;
 		public var removing:Boolean = false; // the popup list is visible, but already closed
@@ -115,6 +115,8 @@
 			{
 				contLeft.x = 0;
 				contLeft.y = 0;
+				
+				//if( container ) w = container.width;
 				
 				for(var i:int=0; i<contLeft.numChildren; i++) 
 				{
@@ -166,7 +168,7 @@
 				var tw:Number=0;
 				
 				var gpos:Point;
-				if(this.parentList == this.popup ) {
+				if(this.parentList == this.popup && popup.alignV == "bottom" ) {
 					gpos = popup.localToGlobal( pxy0 );
 				}else{
 					gpos = this.localToGlobal( pxy0 );
@@ -295,16 +297,16 @@
 			autoSwapState = "all";
 			
 			_opened = false;
-			removing = true;
+			removing = false;
 			
 			if( remOnClose )
 			{
 				if(container && Popup.topContainer.contains(container)) {
 					
-					if( remOnClose > 1 ){
+					if ( remOnClose > 1 ){
+						removing  = true;
 						setTimeout( remClose, remOnClose );
 					}else{
-						removing = false;
 						Popup.topContainer.removeChild( container );
 					}
 				}

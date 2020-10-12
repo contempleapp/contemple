@@ -90,6 +90,7 @@
 			if(alignH == "right")  container.x = (gpos.x + width ) - container.width;
 			else if(alignH == "center") container.x = gpos.x + (width - container.width)/2;
 			else if(alignH == "mouse") container.x = (gpos.x - mouseX) - (container.width /2);
+			else  if(alignH == "left") container.x = gpos.x  - container.width; 
 			else container.x = gpos.x; 
 			
 			if( alignV == "top" ) {
@@ -159,7 +160,7 @@
 		public function selectItem (item:PopupItem) :void {
 			currentItem = item;
 			var selEv:PopupEvent = new PopupEvent( this, currentItem, Event.SELECT );
-			closeListFrom(0);
+			//closeListFrom(0);
 			close();
 			dispatchEvent(selEv);
 		}

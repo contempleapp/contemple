@@ -326,8 +326,6 @@
 					// normal click..
 					// todo hit test clickItem?
 					
-					Console.log( "Item Up: " + areaClickItem.options.result.subtemplate );
-					
 					var T:Template = CTTools.findTemplate( areaClickItem.options.result.subtemplate, "name" );
 					if( T ) {
 						updateItem = areaClickItem.options.result;

@@ -5,14 +5,14 @@
 .textview { font-family:"Lucida Console","Odisseia Regular","Source Code Pro","Courier New"; font-size:12px; }
 
 body, window, div, textbox, button, p, span { font-family: "Myriad Pro"; font-weight:normal; font-size: 16px; }
- 
+.template-screen { padding: 10px; } 
 .start-screen { padding: 24px; }
 .start-screen-title { padding-top: 0px; margin-bottom:20px; }
 .start-screen-info { color:#ffffff; margin-top:20px; font-family: "Myriad Pro Light Italic"; font-size:16px;  }
 .start-screen-btn { background: #06F; color:#FFFFFF; opacity:1; margin-top: 12px; margin-left:0px; margin-right:25px; margin-bottom:30px; padding:12px; border-radius:7px; }
 .start-screen-btn:hover { background: #202226; }
-popup.start-screen-popup { background: #333; color:#FFFFFF; opacity:1; margin-top: 10px; margin-left:0px; margin-right:25px; margin-bottom:20px; padding:12px; border-radius:7px; }
-popup.start-screen-popup:hover { background: #202226;  }
+.start-screen-popup, .start-screen-active, .start-screen-hover { background: #333; color:#FFFFFF; opacity:1; margin-top: 10px; margin-left:0px; margin-right:25px; margin-bottom:20px; padding:12px; border-radius:7px; }
+popup.start-screen-popup:hover { background: #202226; }
 popuplist.start-screen-popup { padding: 12px; }
 popupitem.start-screen-popup { padding: 6px; }
 .start-screen-new-template { background:none; color:#ffffff; margin-top:20px; margin-bottom:12px; font-family: "Myriad Pro Light"; font-size:16px; line-height: 20px; text-decoration:underline; }
@@ -37,6 +37,17 @@ h6 { font-size:10px; font-weight: bold; }
 i { font-style: italic; }
 b { font-weight: bold; }
 a { text-decoration: underline; font-weight:bold; }
+
+button, popup { background:#202226; color:#efefef; padding-left:3px; padding-right:3px; }
+popupitem { background:none; color:#efefef; }
+popuplist { background: #404246; }
+popup:active, popuplist:active { background: #404246; }
+popupitem:hover { background: #606266;  }
+popupitem:active { background: #808286; }
+
+slider { background: #def; background-alpha: 0.2; width: 16px; }
+sliderbutton { background: #fff; background-alpha: 0.3; width: 16px;}
+
 .area-sizebutton {
     width: 12px;
     background:none;
@@ -76,7 +87,7 @@ a { text-decoration: underline; font-weight:bold; }
 	background: none; padding: 0px; 
 }
 .ce-next-button:active, .ce-prev-button:active, .searchbox-button:active, .name-visible-button:active, .name-save-button:active, .name-delete-button:active, .name-close-button:active, .min-size-popup:active, .name-area-popup:active, .name-next-button:active, .name-prev-button:active, .name-save-and-close-button:active, .name-save-and-new-button:active { 
-	background:#fff; background-alpha: 0.1; 
+	background:#fff; background-alpha: 0.1;  margin-right: 4px;
 }
 .ce-prev-button, .ce-next-button, .ce-prev-button:active, .ce-next-button:active, .ce-prev-button:hover, .ce-next-button:hover { padding: 7px 3px; margin-right: 0px; }
 .name-area-popup, .article-areas-popup {
@@ -90,8 +101,8 @@ popuplist.name-area-popup:active, popuplist.min-size-popup:active { padding: 2px
 
 .media-container { margin-left: 5px; }
 
-.media-path-btn { padding: 7px 3px; font-size: 13px; border-radius: 5px; background-alpha: 0.2;   }
-.media-add-file-btn { padding: 7px 9px; margin-right: 5px; border-radius: 5px; margin-bottom: 5px; font-size: 13px; background-alpha: 0.2; }
+.media-path-btn { padding: 8px 3px; font-size: 13px; border-radius: 5px; background-alpha: 0.2; padding-top: 7px;  }
+.media-add-file-btn { padding: 7px 9px; margin-right: 5px; border-radius: 5px; margin-bottom: 5px; /* font-size: 13px;*/ background-alpha: 0.2; }
 .media-delete-file-btn { padding: 7px 9px; background-color:#600; margin-right: 16px; border-radius: 5px; }
 
 .preview-bg { background:#FFF; background-alpha: 0.025;  border-left:1px solid #fff; border-alpha:0.1; }
@@ -147,19 +158,19 @@ progressvalue {  background: #39F; height: 6px; border-radius: 3px;}
 .progress-label { font-size: 12px; color:#900000; font-family:"Myriad Pro Light"; margin-top: 4px; padding: 10px; }
 .upload-title { font-size: 20px; font-family:"Myriad Pro Light Italic";  }
 .upload-text { color:#efefef; font-size:12px; padding: 4px; text-align: left; }
-.upload-container { font-family:"Myriad Pro Light"; padding: 24px; }
+.upload-container { font-family:"Myriad Pro Light"; padding: 24px; padding-top: 13px; }
 .upload-abort { padding: 5px; background: none;  color:#efefef; }
 .upload-abort:hover { background: #603030; }
 .upload-progress { color:#efefef; margin-bottom: 22px; }
 .upload-info { font-size: 12px; font-family: "Lucida Console","Odisseia Regular","Source Code Pro","Courier New"; }
 
-.publish-start-btn { background: #202226; background-alpha: 1; color:#efefef; opacity:1; margin-top: 12px; margin-left:0px; margin-right:25px; margin-bottom:50px; padding:12px; border-radius:7px; }
+.publish-start-btn { background: #202226; background-alpha: 1; color:#efefef; opacity:1; margin-top: 12px; margin-left:0px; margin-right:25px; margin-bottom:28px; padding:12px; border-radius:7px; }
 .publish-start-btn:hover { background: #06F; }
 
-popup.publish-menu-btn { padding: 7px; background: #202428; border-radius: 7px; background-alpha: 0.4;}
+.publish-menu-btn { padding: 7px; background: #202428; border-radius: 7px; background-alpha: 0.4; }
 popup.publish-menu-btn:active { border-bottom-right-radius: 0px; border-bottom-left-radius: 0px; }
 popuplist.publish-menu-btn { padding: 5px 1px; border-bottom-left-radius: 9px; border-bottom-right-radius: 9px;  border-top-left-radius: 9px; background-alpha:1; background: #202226; }
-popupitem.publish-menu-btn { padding: 2px 7px; padding-right: 12px; vertical-align:middle; }
+popupitem.publish-menu-btn { padding: 4px 7px; padding-right: 12px; vertical-align: middle; }
 
 .install-view { background: #161616; padding: 25px; }
 .install-text { color:#afafaf; font-family:"Myriad Pro Light"; font-size:16px; padding-left: 4px; }
@@ -168,15 +179,8 @@ popupitem.publish-menu-btn { padding: 2px 7px; padding-right: 12px; vertical-ali
 .install-progress { border-top-left-radius: 3px; border-bottom-left-radius: 3px; }
 .install-value { border-bottom: 1px solid #123; border-top: 1px solid #cde;  }
 
-button, popup { background:#202226; color:#efefef; padding-left:3px; padding-right:3px; }
-popupitem { background:none; color:#efefef; }
-popuplist { background: #404246; }
-popup:active, popuplist:active { background: #404246; }
-popupitem:hover { background: #606266;  }
-popupitem:active { background: #808286; }
 
-slider { background: #def; background-alpha: 0.2; width: 16px; }
-sliderbutton { background: #fff; background-alpha: 0.3; width: 16px;}
+
 
 .color-picker-slider { width: 16px; border-radius: 0px; background:#def; background-alpha: 0.2; }
 .color-picker-slider-button {  background-alpha: 0.3; background: #fff; width:16px; }
@@ -244,20 +248,23 @@ border-alpha:0.15; padding:12px 2px; vertical-align:top; margin-bottom: 0px; fon
 .areaeditor-tab:active { background-alpha:0.075; }
 .property-folder-title { color: #FFFFFF; padding: 5px 2px;  }
 .property-label { color: #FFFFFF; padding-top:12px; padding-bottom: 4px; text-align:left; opacity: 0.8; }
-.property-section { color: #FFFFFF; padding-top: 22px; padding-bottom:7px; text-align:center; font-size: 16px; opacity: 0.8; }
+.property-section { color: #FFFFFF; padding-top: 16px; padding-bottom:4px; text-align:center; font-size: 16px; opacity: 0.8; }
 
 .media-info { margin-left:7px; text-align: right; }
 .media-info, .media-info-text { font-family: "Myriad Pro Light"; font-size: 13px; color: #F0F7FF; }
 
-.constant-editor, .area-editor, .media-editor { padding: 10px; }
-.area-editor { padding-top: 3px; padding-left: 12px; }
+.constant-editor, .area-editor, .media-editor { padding: 10px; padding-top:3px; }
+.area-editor { padding-top: 2px; padding-left: 12px; }
 .constants-container, .area-container, .area-insert-container, .media-container { padding: 0px; }
+
 .constant-prop, .area-insert-prop {padding: 2px 0px; padding-bottom: 24px; }
 /*.constant-prop:active, .area-insert-prop:active { padding-top:8px; } */
+.area-insert-scrollcontainer { padding-top: 0px; }
 .constant-prop-label { font-family: "Myriad Pro Light"; font-size: 13px; color: #ffffff; padding-left: 2px; padding-bottom: 3px; opacity: 0.9; }
 
 .constant-prop-input{ font-family:"Lucida Console","Odisseia Regular","Source Code Pro","Courier New"; font-size: 14px; background: #FFFFFF; background-alpha:0;
  color:#FFFFFF; border-bottom:1px solid #fff; border-alpha:0.15; }
+
 .constant-prop-input:active { font-family:"Lucida Console","Odisseia Regular","Source Code Pro","Courier New"; background: #000000; background-alpha: 0.1; border-alpha:0.25; }
 
 .page-item-btn, .media-item-btn, .show-page-ctrl { 
@@ -278,12 +285,13 @@ panel#console { background:#10171F; }
 panel#TextView { background:#FFFFFF; }
 
 button.mainmenu { padding: 15px 7px; vertical-align:middle; text-align: left; font-size:14px; font-weight: 200; }
-button.mainmenu:active { background:linear-gradient(top, #303539 0%, #000000 70%, #00070f 100%); }
+button.mainmenu:active { background:linear-gradient(top, #303539 0%, #000000 70%, #00070f 100%);  font-size:14px; font-weight: 200;  }
 button.secmenu { width: 24px; height:50px; vertical-align:middle; text-align: right; }
 
 popup.mainmenu, popup.secmenu { padding: 15px 7px; vertical-align:middle; text-align: center;  font-size:14px; font-weight: 200; }
 popuplist.mainmenu, popuplist.secmenu { padding: 5px 1px; border-bottom-left-radius: 9px; border-bottom-right-radius: 9px;  border-top-right-radius: 9px; background-alpha:1; }
-popupitem.mainmenu, popupitem.secmenu { padding: 5px 10px; vertical-align:middle;  }
+popupitem.mainmenu, popupitem.secmenu { padding: 5px 10px; vertical-align:middle; }
+
 popup.tmpl-editor-mode { padding: 7px;  border-radius: 0px; border-bottom-left-radius: 5px; }
 popup.tmpl-editor-mode:active { border-bottom-right-radius: 0px; border-bottom-left-radius: 0px; }
 popuplist.tmpl-editor-mode { padding: 5px 1px; border-bottom-left-radius: 9px; border-bottom-right-radius: 9px;  border-top-left-radius: 9px; background-alpha:1; }

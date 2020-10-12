@@ -20,6 +20,7 @@
 	import flash.geom.Point;
 	import ct.TemplateEditor;
 	import ct.CTOptions;
+	import ct.HtmlEditor;
 	import agf.Options;
 	import flash.utils.setTimeout;
 	
@@ -163,6 +164,8 @@
 		{
 			var menuHeight:int = Application.instance.mainMenu.cssSizeY;
 			
+			TemplateEditor.abortClickScrolling();
+			
 			var ctrlOptions:Popup = new Popup( null, 0, 0, this, styleSheet, '', 'input-help-button', false);
 			
 			var pm:Point = localToGlobal( new Point( mouseX, 0) );
@@ -218,13 +221,18 @@
 					var w2:int = int(ctrlOptions.rootNode.container.width * 0.5);
 					
 					if ( ctrlOptions.rootNode.container.x - (w2*2 + bw2) >= 0 ) {
+					//if ( ctrlOptions.rootNode.container.x >= 2 ) {
 						// position left
 						//ctrlOptions.rootNode.container.x -= (w2 + bw2);
 						ctrlOptions.rootNode.container.x = pm.x - (w2*2 + bw2);
 					}else{
 						// position right
-						//ctrlOptions.rootNode.container.x -= (w2 + bw2);
-						ctrlOptions.rootNode.container.x = pm.x + (bw2);
+						if( pm.x + bw2 + ctrlOptions.rootNode.container.width < stage.stageWidth - HtmlEditor.previewX) {
+							ctrlOptions.rootNode.container.x = pm.x + (bw2);
+						}else{
+							ctrlOptions.rootNode.container.x = 2;
+						}
+						//ctrlOptions.rootNode.container.x = 2;
 					}
 				}
 			}

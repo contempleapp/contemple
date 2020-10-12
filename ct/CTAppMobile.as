@@ -37,15 +37,16 @@
 			
 			CTOptions.isMobile = true;
 			CTOptions.mobileProjectFolderName = "ask";
+			
 			//// to embed theme for testing use: app:/theme-demo
 			//CTOptions.installTemplate = "app:/theme-demo";
 			
+			
+			CTOptions.mobileWheelMove = 12 * CssUtils.numericScale;
 			CTOptions.previewAtBottom = true;
 			
 			TemplateTools.editor_w = HtmlEditor.tmpEditorW = 1;
 			TemplateTools.editor_h = HtmlEditor.tmpEditorH = 0.6;
-			
-			
 			
 		}
 	}

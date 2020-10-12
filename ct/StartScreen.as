@@ -43,21 +43,23 @@
 			installBtn = new Button( [ new IconFromFile( Options.iconDir + "/earth.png",Options.iconSize,Options.iconSize), Language.getKeyword("Connect to website") ], 0, 0, scrollpane.content, container.styleSheet, '','start-screen-btn', false);
 			installBtn.addEventListener( MouseEvent.CLICK, installBtnHandler);
 			
-			installText = new Label( 0, 0, scrollpane.content, container.styleSheet, '', 'start-screen-info', false);
-			installText.textField.multiline = true;
-			installText.textField.wordWrap = true;
-			installText.textField.autoSize = TextFieldAutoSize.LEFT;
-			installText.label = Language.getKeyword("Connect to a Website with Contemple Hub enabled");
-			
-			newBtn = new Button( [ new IconFromFile( Options.iconDir + "/folder.png",Options.iconSize,Options.iconSize), Language.getKeyword("Install a new Template Folder") ], 0, 0, scrollpane.content, container.styleSheet, '','start-screen-btn', false);
-			newBtn.addEventListener( MouseEvent.CLICK, newBtnHandler);
-			
-			newZipBtn = new Button( [ new IconFromFile( Options.iconDir + "/file-code.png",Options.iconSize,Options.iconSize), Language.getKeyword("Install a new Template Zip") ], 0, 0, scrollpane.content, container.styleSheet, '','start-screen-btn', false);
-			newZipBtn.addEventListener( MouseEvent.CLICK, newZipBtnHandler);
+			if( !CTOptions.isMobile ) {
+				installText = new Label( 0, 0, scrollpane.content, container.styleSheet, '', 'start-screen-info', false);
+				installText.textField.multiline = true;
+				installText.textField.wordWrap = true;
+				installText.textField.autoSize = TextFieldAutoSize.LEFT;
+				installText.label = Language.getKeyword("Connect to a Website with Contemple Hub enabled");
+				
+				newBtn = new Button( [ new IconFromFile( Options.iconDir + "/folder.png",Options.iconSize,Options.iconSize), Language.getKeyword("Install a new Template Folder") ], 0, 0, scrollpane.content, container.styleSheet, '','start-screen-btn', false);
+				newBtn.addEventListener( MouseEvent.CLICK, newBtnHandler);
+				
+				newZipBtn = new Button( [ new IconFromFile( Options.iconDir + "/file-code.png",Options.iconSize,Options.iconSize), Language.getKeyword("Install a new Template Zip") ], 0, 0, scrollpane.content, container.styleSheet, '','start-screen-btn', false);
+				newZipBtn.addEventListener( MouseEvent.CLICK, newZipBtnHandler);
+			}
 			
 			installedTemplates = new Popup( [new IconArrowDown( Application.instance.mainMenu.iconColor, 1, Options.iconSize, Options.iconSize )
 			, Language.getKeyword("Select Installed Template") ], 0, 0, scrollpane.content, container.styleSheet, '','start-screen-popup', false);
-			installedTemplates.alignH = "left";
+			installedTemplates.alignH = "parent";
 			installedTemplates.addEventListener( PopupEvent.SELECT, selectInstallTemplate);
 			
 			if ( CTTools.activeTemplate ) {
@@ -83,16 +85,21 @@
 				}
 			}
 			
-			newText = new Button( [  Language.getKeyword("Select a Folder or a ZIP file with a Template") ], 0, 0, scrollpane.content, container.styleSheet, '','start-screen-new-template', false);
-			newText.addEventListener( MouseEvent.CLICK, newTextHandler);
+			if( installedTemplates && installedTemplates.rootNode && installedTemplates.rootNode.children && installedTemplates.rootNode.children.length > 0 ) {
+				newText = new Button( [  Language.getKeyword("Select a Folder or a ZIP file with a Template") ], 0, 0, scrollpane.content, container.styleSheet, '','start-screen-new-template', false);
+				newText.addEventListener( MouseEvent.CLICK, newTextHandler);
+				
+				currTmplText = new Label( 0, 0, scrollpane.content, container.styleSheet, '', 'start-screen-info', false);
+				currTmplText.textField.multiline = true;
+				currTmplText.textField.wordWrap = true;
+				currTmplText.textField.autoSize = TextFieldAutoSize.LEFT;
+				currTmplText.label = Language.getKeyword("Selected a previously used Template:");
+			}
 			
-			currTmplText = new Label( 0, 0, scrollpane.content, container.styleSheet, '', 'start-screen-info', false);
-			currTmplText.textField.multiline = true;
-			currTmplText.textField.wordWrap = true;
-			currTmplText.textField.autoSize = TextFieldAutoSize.LEFT;
-			currTmplText.label = Language.getKeyword("Selected a previously used Template:");
-			
-			newBtn.visible = newZipBtn.visible = installedTemplates.visible = currTmplText.visible = false;
+			if(newBtn) newBtn.visible = false;
+			if(newZipBtn) newZipBtn.visible = false;
+			if(installedTemplates) installedTemplates.visible = false;
+			if(currTmplText) currTmplText.visible = false;
 		}
 		
 		public var title:Label;
@@ -162,7 +169,10 @@
 		
 		private function newTextHandler (e:Event) :void {
 			showNewTmpl = !showNewTmpl;
-			newBtn.visible = newZipBtn.visible = installedTemplates.visible = currTmplText.visible = showNewTmpl;
+			if(newBtn) newBtn.visible = showNewTmpl;
+			if(newZipBtn) newZipBtn.visible = showNewTmpl;
+			if(installedTemplates) installedTemplates.visible = showNewTmpl;
+			if(currTmplText) currTmplText.visible = showNewTmpl;
 		}
 		
 		private function selectInstallTemplate (e:PopupEvent) :void
@@ -184,7 +194,6 @@
 					if( CTOptions.debugOutput || CTOptions.verboseMode ) Console.log( "Install Template ID: " + curr.options.instid );
 					if ( sh.data.installTemplates[curr.options.instid].src  )
 					{
-						
 						CTOptions.uploadScript = "";
 						CTMain.overrideInstallOptions(null, true);
 						Main(Application.instance).cmd( "TemplateTools install-template " + sh.data.installTemplates[curr.options.instid].src );
@@ -193,7 +202,7 @@
 			}
 		}
 		
-		protected override function newSize (e:Event) :void
+		protected override function newSize (e:Event=null) :void
 		{
 			super.newSize(e);
 			
@@ -231,7 +240,7 @@
 				newBtn.x = cx;
 				newBtn.y = cy + newBtn.cssMarginTop;
 			}
-			if ( newZipBtn ) {
+			if ( newZipBtn && newBtn ) {
 				newZipBtn.x = cx + newBtn.cssSizeX + newBtn.cssMarginRight;
 				newZipBtn.y =  newBtn.y;
 				cy += newZipBtn.cssSizeY + newZipBtn.cssMarginY;
@@ -243,7 +252,7 @@
 				currTmplText.init();
 				cy += currTmplText.height + 4;
 			}
-			if ( installedTemplates ) {
+			if ( installedTemplates && newText ) {
 				installedTemplates.x = cx;
 				installedTemplates.y = cy + installedTemplates.cssMarginTop;
 				cy += installedTemplates.cssSizeY + newText.cssMarginY;

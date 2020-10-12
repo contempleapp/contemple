@@ -137,6 +137,8 @@
 					list[i].y = Math.floor( (mh-list[i].height) * .5 );
 				}
 				
+				adresBar.y += 3;
+				
 				container.addChild( adresBar );
 			}
 			

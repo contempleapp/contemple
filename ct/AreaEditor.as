@@ -4,6 +4,7 @@
 	import agf.events.*;
 	import agf.utils.FileInfo;
 	import agf.utils.FileUtils;
+	import agf.utils.NumberUtils;
 	import agf.utils.StringMath;
 	import flash.events.*;
 	import agf.icons.*;
@@ -95,18 +96,44 @@
 		
 		private var tabs:ItemBar;
 		private var tabsPP:Popup;
+		private var ltFramePos:Number;
 		
 		private static var areaTreeDirty:Boolean = true;
 		public static function invalidateAreaTree () :void {
 			areaTreeDirty = true;
 		}
 		
-		protected function btnUp (event:MouseEvent) :void {
-			stage.removeEventListener( MouseEvent.MOUSE_MOVE, btnMove );
-			stage.removeEventListener( MouseEvent.MOUSE_UP, btnUp );
+		private var shooting:Boolean = false;
+		
+		protected function shootHandler (event:Event) :void
+		{
+			if ( Math.abs(ltFramePos) > 1.05 ) {
+				scrollpane.slider.value -= ltFramePos;
+				scrollpane.scrollbarChange(null);
+				ltFramePos /= 1.25;
+			}else{
+				removeEventListener( Event.ENTER_FRAME, shootHandler );
+				shooting = false;
+			}
 		}
-		protected function btnMove (event:MouseEvent) :void {
+		
+		protected function btnUp (event:MouseEvent) :void
+		{
+			removeEventListener( Event.ENTER_FRAME, btnMove );
+			stage.removeEventListener( MouseEvent.MOUSE_UP, btnUp );
+			
+			if ( ltFramePos > 15 || ltFramePos < -15 )
+			{
+				shooting = true;
+				addEventListener( Event.ENTER_FRAME, shootHandler );
+			}
+		}
+		
+		protected function btnMove (event:Event) :void
+		{
 			var dy:Number = mouseY - clickY;
+			
+			ltFramePos = dy * 8;
 			
 			if( ! clickScrolling ) {
 				if( Math.abs(dy) > CTOptions.mobileWheelMove ) {
@@ -119,11 +146,22 @@
 				clickY = mouseY;
 			}
 		}
-		protected function btnDown (event:MouseEvent) :void {
-			stage.addEventListener( MouseEvent.MOUSE_MOVE, btnMove );
-			stage.addEventListener( MouseEvent.MOUSE_UP, btnUp );
-			clickScrolling = false;
-			clickY = mouseY;
+		
+		protected function btnDown (event:MouseEvent) :void
+		{
+			ltFramePos = 0;
+			
+			if ( shooting ) {
+				removeEventListener( Event.ENTER_FRAME, shootHandler );
+				shooting = false;
+			}
+			
+		//	setTimeout( function () {
+				addEventListener( Event.ENTER_FRAME, btnMove );
+				stage.addEventListener( MouseEvent.MOUSE_UP, btnUp );
+				clickScrolling = false;
+				clickY = mouseY;
+		//	}, 0);
 		}
 		
 		public static function get clickScrolling () : Boolean {
@@ -136,6 +174,7 @@
 		private static var _clickScrolling:Boolean = false;
 			
 		public function abortClickScrolling () :void {
+			ltFramePos = 0;
 			btnUp(null);
 			clickScrolling=false;
 		}
@@ -613,12 +652,9 @@
 							//itemList.items[i].setWidth( w - (itemList.items[i].cssBoxX + cssBoxX + sbw) );
 							if( itemList.items[i].visible ) {
 								if( ! (itemList.items[i] is PropertyCtrl) ) {
-									
 									itemList.items[i].y = int(yp);
 									yp += itemList.items[i].cssSizeY + itemList.margin;
 								}else{
-									
-									
 									itemList.items[i].y = int(yp);
 									yp += PropertyCtrl(itemList.items[i]).textBox.cssSizeY +  PropertyCtrl(itemList.items[i]).textBox.y + PropertyCtrl(itemList.items[i]).cssBoxY + itemList.margin;
 								}
@@ -748,10 +784,12 @@
 					var nam:String = pc.name;
 					var it:PropertyCtrl;
 					for( var i:int=0; i<L; i++) {
-						it = PropertyCtrl( ch[i] );
-						if( it.textBox._supertype == "vectorlink" && it.textBox.args && it.textBox.args[0] == nam) {
-							it.textBox.vectorCurrent = e.val;
-							it.textBox.vectorMinusClick(null);
+						if( ch[i] is PropertyCtrl ) {
+							it = PropertyCtrl( ch[i] );
+							if( it.textBox._supertype == "vectorlink" && it.textBox.args && it.textBox.args[0] == nam) {
+								it.textBox.vectorCurrent = e.val;
+								it.textBox.vectorMinusClick(null);
+							}
 						}
 					}
 				}
@@ -767,10 +805,12 @@
 					var nam:String = pc.name;
 					var it:PropertyCtrl;
 					for( var i:int=0; i<L; i++) {
-						it = PropertyCtrl( ch[i] );
-						if( it.textBox._supertype == "vectorlink" && it.textBox.args && it.textBox.args[0] == nam) {
-							it.textBox.vectorCurrent = e.val;
-							it.textBox.vectorPlusClick(null);
+						if( ch[i] is PropertyCtrl ) {
+							it = PropertyCtrl( ch[i] );
+							if( it.textBox._supertype == "vectorlink" && it.textBox.args && it.textBox.args[0] == nam) {
+								it.textBox.vectorCurrent = e.val;
+								it.textBox.vectorPlusClick(null);
+							}
 						}
 					}
 				}
@@ -791,17 +831,19 @@
 					var kL:int;
 					
 					for( var i:int=0; i<L; i++)  {
-						it = PropertyCtrl( ch[i] );
-						if( it.textBox._supertype == "vectorlink" && it.textBox.args && it.textBox.args[0] == nam){
-							kL =  it.textBox.vectorTextFields.length;
-							
-							if( kL < sL ) {
-								for(k = kL; k < sL; k++) {
-									it.textBox.vectorPlusClick(null);
-								}
-							}else if ( kL > sL ) {
-								for(k = sL; k>=sL; k--) {
-									it.textBox.vectorMinusClick(null);
+						if( ch[i] is PropertyCtrl ) {
+							it = PropertyCtrl( ch[i] );
+							if( it.textBox._supertype == "vectorlink" && it.textBox.args && it.textBox.args[0] == nam){
+								kL =  it.textBox.vectorTextFields.length;
+								
+								if( kL < sL ) {
+									for(k = kL; k < sL; k++) {
+										it.textBox.vectorPlusClick(null);
+									}
+								}else if ( kL > sL ) {
+									for(k = sL; k>=sL; k--) {
+										it.textBox.vectorMinusClick(null);
+									}
 								}
 							}
 						}
@@ -813,8 +855,6 @@
 		public override function showAreaItems () :void
 		{
 			updateItem = null;
-			
-			Console.log( "Aed.ShowAreaItems");
 			
 			// Area changed...
 			if( multiSelectMenu != null ) {
@@ -1214,7 +1254,7 @@
 				if( scrollpane && contains( scrollpane) ) removeChild( scrollpane );
 				
 				var w:Number = getWidth();
-				scrollpane = new ScrollContainer(w, 0, this, styleSheet, '', '',false);
+				scrollpane = new ScrollContainer(w, 0, this, styleSheet, '', 'area-insert-scrollcontainer',false);
 				scrollpane.content.addEventListener( MouseEvent.MOUSE_DOWN, btnDown );
 				
 				itemList = new ItemList(w,0,scrollpane.content,styleSheet,'','area-insert-container',true);
@@ -1288,6 +1328,9 @@
 					}
 					
 				}, 0);
+				
+				var mt:CssSprite = new CssSprite(0,int(16 * CssUtils.numericScale),itemList,styleSheet,'mt','','',false);
+				itemList.addItem(mt, true);
 				
 				var lbl:Label;
 				var backbtn:Button;
@@ -1386,7 +1429,6 @@
 				
 				if( !forceLevel ) {
 					ict.addEventListener( PropertyCtrl.ENTER, ictChange );
-					
 					ict.addEventListener( "save", updatePageItem);
 					ict.addEventListener( "saveInline", inlineSaveClick );
 					ict.addEventListener( "delete", deletePageItem );
@@ -1405,7 +1447,6 @@
 							nm.visibleStatus = true;
 						}
 						
-							
 						if( currentTemplate.articlepage != "" )					 
 						{
 							// create article page with db fields
@@ -1611,20 +1652,23 @@
 		
 		private function folderClick (e:Event):void
 		{
-			if( clickScrolling )
+			/*if( clickScrolling )
 			{
 				clickScrolling = false;
 			}
 			else
-			{
+			{*/
+			abortClickScrolling();
+			
 				if( currentTemplate )
 				{
 					var scr:Number = scrollpane.slider.value;
-					if ( !prevCat ) rtScroll = scr;			
+					if ( !prevCat ) rtScroll = scr;
+					
 					displayInsertForm ( currentTemplate, updateItem != null, _subform, _inlineArea, areaItems, e.currentTarget.options.folder, scr, e.currentTarget.options.isTab ? 3 : 1, true );
 					setWidth( cssSizeX-cssBoxX );
 				}
-			}
+			//}
 		}
 		
 		private function storeCurrentItemValues () :void
@@ -2832,6 +2876,7 @@
 			
 			var f1:String = CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderMinified + CTOptions.urlSeparator + newname ;
 			var f2:String = CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderRaw + CTOptions.urlSeparator + newname;
+			
 			ResourceMgr.getInstance().clearResourceCache( f1 );
 			ResourceMgr.getInstance().clearResourceCache( f2 );
 			
@@ -2848,7 +2893,6 @@
 			
 			// Rewrite textbox to new name
 			pc_textBox.value = newname;
-			
 		}
 		
 		private function ictChange ( e:Event ) :void {
@@ -2923,7 +2967,6 @@
 				}
 			}
 		}
-		
 		
 	}
 }

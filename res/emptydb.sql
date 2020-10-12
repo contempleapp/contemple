@@ -1,5 +1,4 @@
 # Templates and Subtemplates are stored in the template table
-# indexfile is the filename of the normally "index-file.xml"
 CREATE TABLE IF NOT EXISTS template (
 	uid INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 	name TEXT,
@@ -36,11 +35,11 @@ CREATE TABLE IF NOT EXISTS pageitem (
     subtemplate TEXT,
     crdate DATE NOT NULL
 );
-CREATE TABLE IF NOT EXISTS plugin {
-    uid INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    name TEXT,
-    file TEXT,
-    type TEXT,
-    sortid INTEGER,
-    crdate DATE NOT NULL
-}
+#CREATE TABLE IF NOT EXISTS plugin {
+#    uid INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+#    name TEXT,
+#    file TEXT,
+#    type TEXT,
+#    sortid INTEGER,
+#    crdate DATE NOT NULL
+#}

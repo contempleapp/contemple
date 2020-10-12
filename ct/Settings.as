@@ -1,6 +1,5 @@
 ﻿package ct
 {
-	//import agf.events.AppEvent;
 	import agf.events.PopupEvent;
 	import agf.utils.FileUtils;
 	import flash.display.*;
@@ -14,14 +13,6 @@
 	import agf.html.*;
 	import agf.tools.*;
 	import agf.icons.IconFromFile;
-	
-	/**
-	* StartScreen provides three options to intall a website/template
-	*
-	* - Open existing Project
-	* - Connect to Website (Install website)
-	* - New with Template Folder/ZipFile
-	*/
 	
 	public class Settings extends BaseScreen
 	{
@@ -187,7 +178,6 @@
 		}
 		
 		private function previewAlignClick (e:Event) :void {
-			//HtmlEditor.showPreview( false );
 			if( previewAlignValue.value ) {
 				previewAlignValue.label = "Right";
 				CTOptions.previewAtBottom = false;
@@ -205,8 +195,8 @@
 				}
 			}
 			storeBooleanPref( "previewAlign", CTOptions.previewAtBottom );
-			
 		}
+		
 		private function monitorFilesClick (e:Event) :void {
 			if ( monitorFilesValue.value ) {
 				monitorFilesValue.label = "On";
@@ -248,7 +238,7 @@
 		public var restartLabel:Label;
 		public var restartBtn:Button;
 		
-		protected override function newSize (e:Event) :void
+		protected override function newSize (e:Event=null) :void
 		{
 			super.newSize(e);
 			
@@ -351,9 +341,7 @@
 				restartBtn.y = cy + marginX;
 				cy += restartBtn.cssSizeY + restartBtn.cssMarginBottom;
 			}
-			
 		}
-		
 		
 		private function storeBooleanPref ( name:String, value:Boolean ) :void {
 			var sh:SharedObject = SharedObject.getLocal( CTOptions.installSharedObjectId );

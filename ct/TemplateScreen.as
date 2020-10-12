@@ -27,7 +27,7 @@
 	* - Edit Template Property Definitions (#def: .. #def;)
 	* - Create new Root- and Sub- Templates
 	*/
-	public class TemplateScreen extends Sprite 
+	public class TemplateScreen extends BaseScreen 
 	{
 		public function TemplateScreen () 
 		{
@@ -38,12 +38,12 @@
 			InputTextBox.disableFileSearch = true;
 		}
 			
-		private function removePanel (e:Event) :void {
+		protected override function removePanel (e:Event) :void {
+			super.removePanel(e);
 			InputTextBox.disableFileSearch = false;
-			Main(Application.instance).view.removeEventListener( AppEvent.VIEW_CHANGE, removePanel );
 		}
 		
-		private function create () :void
+		protected override function create () :void
 		{
 			var i:int;
 			var pi:PopupItem;
@@ -55,7 +55,7 @@
 			addChild(cont);
 			cont.init();
 			
-			body = new CssSprite(w, h, cont, container.styleSheet, 'div', '', 'editor start-screen', false);
+			body = new CssSprite(w, h, cont, container.styleSheet, 'div', '', 'editor template-screen', false);
 			body.setWidth( w - body.cssBoxX );
 			body.setHeight( h - body.cssBoxY );
 			
@@ -71,12 +71,7 @@
 		}
 		
 		public var title:Label;
-		public var container: Panel;
-		private var cont:CssSprite;
-		private var body:CssSprite;
-		private var scrollpane:ScrollContainer;
 		private var itemList:ItemList;
-		private var clickY:int;
 		private var newTmpl:Button;
 		
 		private var index_pc:PropertyCtrl;
@@ -112,7 +107,7 @@
 		private var articlename_pc:PropertyCtrl;
 		private var parselistlabel_pc:PropertyCtrl;
 		
-		private function newSize (e:Event=null) :void
+		protected override function newSize (e:Event=null) :void
 		{
 			var w:int = container.getWidth();
 			var h:int = container.getHeight();
@@ -340,7 +335,6 @@
 				else
 				{
 					// articlepage, articlename, fields, files, folders, help, index, listlabel, listicon, parselistlabel, nolocation, staticfiles, tables, type(s), version
-				//	nm.addEventListener( "delete", deleteTemplateHandler );
 					nm.label.label = Language.getKeyword("Sub Template");
 					
 					var tmplTypes:Array = [",","content"];
@@ -478,7 +472,7 @@
 			nm.showNextButton(false);
 			nm.showPrevButton(false);
 			nm.showSaveButton(false);
-			nm.showSaveButton(false);
+			nm.showDeleteButton(false);
 			nameCtrl = nm;
 			
 			var styl:CssStyleSheet = container.styleSheet;
@@ -516,6 +510,7 @@
 			help_pc = new PropertyCtrl( Language.getKeyword("new-template-help"), "new-template-help", "file", "help.xml", null, ["","","Select Content File","*.xml"], 0, 0, itemList, styl,'','constant-prop',false);
 			templatefolders_pc = new PropertyCtrl( Language.getKeyword("new-template-templatefolders"), "new-template-templatefolders", "vector", "", null, [0,"File","",",",true,"","","Select static file","*.*"], 0, 0, itemList, styl,'','constant-prop',false);
 			listlabel_pc = new PropertyCtrl( Language.getKeyword("new-template-listLabel"), "new-template-listLabel", "string", "", null, null, 0, 0, itemList, styl,'','constant-prop',false);
+			
 			listicon_pc = new PropertyCtrl( Language.getKeyword("new-template-listicon"), "new-template-listicon", "list", "", null, 
 			[[new IconFromFile(Options.iconDir+"/activity-feed.png",Options.iconSize,Options.iconSize),"ico:/activity-feed.png"],
 			[new IconFromFile(Options.iconDir+"/audio-book.png",Options.iconSize,Options.iconSize),"ico:/audio-book.png"],
@@ -774,8 +769,6 @@
 							sortareas = sortareas_pc.textBox.value;
 							version = version_pc.textBox.value;
 							homeAreaName = homeAreaName_pc.textBox.value;
-							
-							// var atb:XMLList = xo.template.attributes();
 							
 							new_cfg = '<?xml version="1.0" encoding="utf-8" ?>\n<ct>\n  <template name="' +nameCtrl.textBox.value+ '" type="root" \n   version="' + version + '" \n   index="'+indexFileName+'" \n   files="'+files+'" \n   folders="'+folders+'"';
 							
@@ -1044,7 +1037,6 @@
 			if( !path ) return "";
 			
 			var fileInfo:FileInfo;
-			//var tmp:String;
 			var tmp2:String;
 			var tmpArr:Array;
 			var file:File;
@@ -1132,46 +1124,9 @@
 			showTemplates();
 		}
 			
-		protected function deleteTemplateHandler (event:Event) :void {
+		//protected function deleteTemplateHandler (event:Event) :void {
 			// trace("Delete Template..");
-		}
-		protected function btnUp (event:MouseEvent) :void {
-			stage.removeEventListener( MouseEvent.MOUSE_MOVE, btnMove );
-			stage.removeEventListener( MouseEvent.MOUSE_UP, btnUp );
-		}
-		protected function btnMove (event:MouseEvent) :void {
-			var dy:Number = mouseY - clickY;
-			
-			if( ! clickScrolling ) {
-				if( Math.abs(dy) > CTOptions.mobileWheelMove ) {
-					clickScrolling = true;
-				}
-			}else{
-				// scroll
-				scrollpane.slider.value -= dy;
-				scrollpane.scrollbarChange(null);
-				clickY = mouseY;
-			}
-		}
-		protected function btnDown (event:MouseEvent) :void {
-			stage.addEventListener( MouseEvent.MOUSE_MOVE, btnMove );
-			stage.addEventListener( MouseEvent.MOUSE_UP, btnUp );
-			clickScrolling = false;
-			clickY = mouseY;
-		}
-		
-		public static function get clickScrolling () : Boolean {
-			return _clickScrolling;
-		}
-		public static function set clickScrolling (v:Boolean) :void {
-			_clickScrolling = v;
-		}
-		private static var _clickScrolling:Boolean = false;
-			
-		public function abortClickScrolling () :void {
-			btnUp(null);
-			clickScrolling=false;
-		}
+		//}
 		
 	}
 }

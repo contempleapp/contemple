@@ -49,7 +49,7 @@
 		
 		// Change interface if splitpaths changes
 		private var tmplSplitPaths:String;
-		private var currCat:String=""; // category for property folding
+		public static var currCat:String=""; // category for property folding
 		private var prevCat:Array=null;
 		private var rtScroll:Number=0;
 		
@@ -128,10 +128,6 @@
 				nameCtrl.x = int(cssLeft);
 			}
 			
-			if( nextButton && nextButton ) {
-				nextButton.x = (w) - (nextButton.getWidth() + nextButton.cssMarginRight);
-				prevButton.x = nextButton.x - (prevButton.getWidth() + prevButton.cssMarginRight);
-			}
 			
 			if( searchBox ) {
 				searchBox.setWidth( w );
@@ -144,6 +140,12 @@
 					folderLabel.x = int(folderBackBtn.x + folderBackBtn.cssSizeX + 4);
 				}
 			}
+			
+			if( nextButton && prevButton && scrollpane ) {
+				nextButton.x = int((w - cssLeft) - (Options.btnSize + nextButton.cssMarginRight));
+				prevButton.x = int(nextButton.x - (Options.btnSize + prevButton.cssMarginRight));
+			}
+			
 			if(scrollpane) scrollpane.setWidth( w - cssBoxX );
 		}
 		
@@ -152,8 +154,8 @@
 			
 			if(scrollpane) {
 				if( folderBackBtn && folderLabel ) {
-					scrollpane.y = int(cssTop + 16 + Math.max( folderBackBtn.cssSizeY, folderLabel.cssSizeY ));
-					scrollpane.setHeight( int( h-(Math.max(folderBackBtn.cssSizeY, folderLabel.cssSizeY) + cssBoxY + 32) ) ); 
+					scrollpane.y = int(cssTop*2 /*+ 16 */+ Math.max( folderBackBtn.cssSizeY, folderLabel.cssSizeY ));
+					scrollpane.setHeight( int( h-(Math.max(folderBackBtn.cssSizeY, folderLabel.cssSizeY) + cssBoxY + cssTop/* + 32*/) ) ); 
 				}else{
 					if( searchBox ) {
 						scrollpane.setHeight(h - (cssBoxY + searchBox.cssSizeY + searchBox.cssBoxY) );
@@ -621,15 +623,16 @@
 		}
 		
 		private function folderClick (e:Event):void {
-			if( clickScrolling ) {
-				clickScrolling = false;
-			}else{
-				if( currentTemplate ) {
-					var scr:Number = scrollpane.slider.value;
-					if( !prevCat ) rtScroll = scr;
-					displayTemplateProps( currentTemplate, e.currentTarget.options.folder, scr, 1, false );
-					setWidth( cssSizeX-cssBoxX );
-				}
+			if( currentTemplate ) {
+				var scr:Number = scrollpane.slider.value;
+				if( !prevCat ) rtScroll = scr;
+				
+				displayTemplateProps( currentTemplate, e.currentTarget.options.folder, scr, 1, false );
+				setWidth( cssSizeX-cssBoxX );
+			
+				setTimeout( function() {
+						abortClickScrolling();
+				}, 0);
 			}
 		}
 		

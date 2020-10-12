@@ -1,20 +1,28 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ct>
-	<item name="new-template-listlabel">
-		<lang name="en" value="List Label"/>
-		<lang name="de" value="List Label"/>
-	</item>
 	<item name="new-template-properties">
-		<lang name="en" value="Properties"/>
-		<lang name="de" value="Properties"/>
+		<lang name="en" value="Sort Properties"/>
+		<lang name="de" value="Sortiere Properties"/>
+	</item>
+	<item name="new-template-properties-help">
+		<lang name="en" value="Controls the ordering of Template Properties in the Editor"/>
+		<lang name="de" value="Kontrolliert die Reihenfolge von Template Properties im Editor"/>
 	</item>
 	<item name="new-template-hidden">
 		<lang name="en" value="Hidden"/>
 		<lang name="de" value="Versteckt"/>
 	</item>
+	<item name="new-template-hidden-help">
+		<lang name="en" value="Hide the Subtemplate in the Editor. Hidden Subtemplates can not be created by an Editor"/>
+		<lang name="de" value="Versteckt das Subtemplate im Editor. Versteckte Subtemplates können nicht von einem Editor erstellt werden"/>
+	</item>
 	<item name="new-template-nolocation">
 		<lang name="en" value="No Location"/>
 		<lang name="de" value="No Location"/>
+	</item>
+	<item name="new-template-nolocation-help">
+		<lang name="en" value="If No-Location is true, Subtemplate items will not have anker links inserted in the page"/>
+		<lang name="de" value="Wenn No-Location auf den Wert true gestellt ist, werden für Subtemplate items kein Anker Links in die Seite eingefügt"/>
 	</item>
 	<item name="new-template-homeareaname">
 		<lang name="en" value="Home Area Name"/>
@@ -24,9 +32,21 @@
 		<lang name="en" value="Sort Areas"/>
 		<lang name="de" value="Sortiere Bereiche"/>
 	</item>
+	<item name="new-template-sortareas-help">
+		<lang name="en" value="Controls the ordering of Areas in the Area Tree"/>
+		<lang name="de" value="Kontrolliert die Reihenfolge der Bereiche im Area Tree"/>
+	</item>
 	<item name="new-template-templatefolders">
 		<lang name="en" value="Template Folders"/>
 		<lang name="de" value="Template Ordner"/>
+	</item>
+	<item name="new-template-templatefolders-help">
+		<lang name="en" value="Template Folders are added to the template folder in the project directory: project-dir/tmpl"/>
+		<lang name="de" value="Template Ordner werden in den template Ordner im Projekt Verzeichniss kopiert"/>
+	</item>
+	<item name="new-template-dbcmds">
+		<lang name="en" value="DB Command File"/>
+		<lang name="de" value="DB Command Datei"/>
 	</item>
 	<item name="new-template-dbcmds">
 		<lang name="en" value="DB Command File"/>
@@ -39,6 +59,10 @@
 	<item name="new-template-version">
 		<lang name="en" value="Version"/>
 		<lang name="de" value="Version"/>
+	</item>
+	<item name="new-template-version-help">
+		<lang name="en" value="The version of the Root- or Sub-template"/>
+		<lang name="de" value="Die Version von dem Root- oder Sub-template"/>
 	</item>
 	<item name="new-template-type">
 		<lang name="en" value="Type"/>
@@ -112,13 +136,17 @@
 		<lang name="en" value="Page Templates"/>
 		<lang name="de" value="Seiten Vorlage"/>
 	</item>
-	<item name="new-template--help">
+	<item name="new-template-help">
 		<lang name="en" value="Comma separated list with Page Templates"/>
 		<lang name="de" value="Komma separierte Liste mit Seiten Vorlagen"/>
 	</item>
 	<item name="new-template-nocompress">
 		<lang name="en" value="No Compress"/>
 		<lang name="de" value="Keine Komprimierung"/>
+	</item>
+	<item name="new-template-nocompress-help">
+		<lang name="en" value="Comma separated list of template files wich schould not be compressed with minify compression"/>
+		<lang name="de" value="Komma separierte Liste mit Template Dateien die nicht mit Minify Komprimiert werden sollen"/>
 	</item>
 	<item name="new-template-nocompress-help">
 		<lang name="en" value="Comma separated list with files to exclude from minifiy compression"/>
@@ -128,29 +156,57 @@
 		<lang name="en" value="Table"/>
 		<lang name="de" value="Tabelle"/>
 	</item>
+	<item name="new-template-tables-help">
+		<lang name="en" value="Table name of the Subtemplate"/>
+		<lang name="de" value="Tabellen Name von dem Subtemplate"/>
+	</item>
 	<item name="new-template-fields">
 		<lang name="en" value="Fields"/>
 		<lang name="de" value="Felder"/>
+	</item>
+	<item name="new-template-fields-help">
+		<lang name="en" value="Comma separated list with the database Fields of the Subtemplate"/>
+		<lang name="de" value="Komma separierte Liste mit den Datenbank Feldern von einem Subtemplate"/>
 	</item>
 	<item name="new-template-listlabel">
 		<lang name="en" value="List Label"/>
 		<lang name="de" value="Listen Bezeichner"/>
 	</item>
+	<item name="new-template-listlabel-help">
+		<lang name="en" value="List Label, sets what infos are displayed in the Area List for a Subtemplate item. Use #db-field-name# to access a database field from the item." />
+		<lang name="de" value="Listen Bezeichner. Gibt an was für Informationen in der Area Liste für einen Subtemplate Eintrag angezeigt werden sollen."/>
+	</item>
 	<item name="new-template-listicon">
 		<lang name="en" value="List Icon"/>
 		<lang name="de" value="Listen Icon"/>
+	</item>
+	<item name="new-template-listicon-help">
+		<lang name="en" value="List icon for Subtemplates. Use ico:/ to access the default icons. Or template:/ to access files from the template directory"/>
+		<lang name="de" value="Listen Icon für Subtemplates. Verwende ico:/ um ein Default Icon anzugeben. Oder template:/ um eine Datei aus dem Template Verzeichniss zu verwenden"/>
 	</item>
 	<item name="new-template-articlepage">
 		<lang name="en" value="Article Page"/>
 		<lang name="de" value="Artikel Seite"/>
 	</item>
+	<item name="new-template-articlepage-help">
+		<lang name="en" value="Article Page can be set to a page template file relative to the Subtemplate directory."/>
+		<lang name="de" value="Artikel Page kann ein page template zugewiesen werden. Die Datei ist relativ zum Subtemplate Verzeichnis"/>
+	</item>
 	<item name="new-template-articlename">
 		<lang name="en" value="Article Name"/>
 		<lang name="de" value="Artikel Name"/>
 	</item>
+	<item name="new-template-articlename-help">
+		<lang name="en" value="The name of the article page. #itemname# returns the name of the item in the Area List"/>
+		<lang name="de" value="Der Name der Artikel Seite. #itemname# gibt den Namen des Eintrags in der Area Liste zurück"/>
+	</item>
 	<item name="new-template-parselistlabel">
 		<lang name="en" value="Parse List Label"/>
 		<lang name="de" value="Parse Listen Bezeichner"/>
+	</item>
+	<item name="new-template-parselistlabel-help">
+		<lang name="en" value="Parse List Label in Area Editor List Display with markup and some HTML"/>
+		<lang name="de" value="Parse Listen Bezeichner in der Area Editor Listen Anzeige mit Markup und HTML"/>
 	</item>
 	<item name="Add New File">
 		<lang name="en" value="Add File"/>

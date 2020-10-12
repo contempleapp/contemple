@@ -23,7 +23,8 @@
 		private var scrollbar:Slider;
 		public static var scrollbarWidth:Number=12;
 		public var friction:Number = 2.7;
-		//public var accel:Number = 2;
+		public var accel:Number = 2;
+		private var speed:Number = 0;
 		
 		public function get slider () :Slider { return scrollbar; }
 		
@@ -39,6 +40,8 @@
 			sld.setHeight( cssSizeY );
 			sld.wheelScrollTarget = this;
 			sld.addEventListener( Event.CHANGE, scrollbarChange);
+			//sld.addEventListener( "begin", scrollbarStart );
+			//sld.addEventListener( MouseEvent.MOUSE_UP, scrollbarEnd);
 			scrollbar = sld;
 		}
 		
@@ -76,15 +79,69 @@
 			scrollRect = new Rectangle( cssLeft, cssTop, getWidth(), getHeight() );
 		}
 		
+		/*
+		private var startPos:Number = 0;
+		private var ended:Boolean = false;
+		
+		public function scrollbarStart (e:Event = null) :void
+		{
+			if ( friction > 1 )
+			{
+				startPos = mouseY;
+				speed = 0;
+				ended = false;
+				addEventListener( Event.ENTER_FRAME, scrollbarFrame);
+				slider.removeEventListener( Event.CHANGE, scrollbarChange);
+			}
+			
+		}
+		
+		public function scrollbarFrame (e:Event = null) :void
+		{
+			toY = -scrollbar.value;
+			
+			var d:Number = (mouseY - startPos) / scrollbar.height;
+			
+			if ( ended )
+			{
+				if( Math.abs(toY-content.y) > 0 ) {
+					content.y = int( content.y + (toY-content.y)/friction );
+				}else{
+					content.y = toY;
+					removeEventListener( Event.ENTER_FRAME, scrollbarFrame);
+					slider.addEventListener( Event.CHANGE, scrollbarChange);
+				}
+			}
+			else
+			{
+				content.y = int( content.y + (toY-content.y)/friction );
+			}
+		}
+		
+		public function scrollbarEnd (e:Event = null) :void
+		{
+			//removeEventListener( MouseEvent.MOUSE_MOVE, scrollbarMove);
+			
+			if ( friction <= 1 )
+			{
+				content.y = toY;
+				
+			}
+
+			ended = true;
+		}
+		*/
 		private var toY:int;
 		private function animPos (e:Event) :void {
 			if( Math.abs(toY-content.y) > 0 ) {
 				content.y = int( content.y + (toY-content.y)/friction );
 			}else{
 				content.y = toY;
+				//ended = true;
 				removeEventListener( Event.ENTER_FRAME, animPos);
 			}
 		}
+		
 		public function scrollbarChange (e:Event=null) :void {
 			if( friction <= 1 ) {
 				content.y = int(-scrollbar.value);

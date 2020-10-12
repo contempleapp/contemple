@@ -23,6 +23,11 @@
 	{
 		public function OpenScreen () {}
 		
+		public var title:Label;
+		public var openText:Label;
+		private var openBtn:Button;
+		private var recentProjects:Popup;
+		
 		protected override function create () :void
 		{
 			super.create();
@@ -48,7 +53,7 @@
 			
 			recentProjects = new Popup( [ new IconArrowDown( Application.instance.mainMenu.iconColor, 1, Options.iconSize, Options.iconSize ), Language.getKeyword("Select Recent Project") ], 0, 0, scrollpane.content, container.styleSheet, '','start-screen-popup', false);
 			recentProjects.addEventListener( PopupEvent.SELECT, selectRecentProject );
-			recentProjects.alignH = "left";
+			recentProjects.alignH = "parent";
 			
 			var ish:SharedObject = SharedObject.getLocal( CTOptions.installSharedObjectId );
 				
@@ -83,22 +88,16 @@
 			}
 		}
 		
-		public var title:Label;
-		public var openText:Label;
-		private var openBtn:Button;
-		private var recentProjects:Popup;
-		
 		private function openBtnHandler (e:Event) :void {
 			Main(Application.instance).cmd("CTTools openproject");
 		}
 		
-		private function selectRecentProject (e:PopupEvent) :void
-		{
+		private function selectRecentProject (e:PopupEvent) :void {
 			var curr:PopupItem = e.selectedItem;
 			Main(Application.instance).cmd( "CTTools open " + curr.options.folder );
 		}
 		
-		protected override function newSize (e:Event) :void
+		protected override function newSize (e:Event=null) :void
 		{
 			super.newSize(e);
 			

@@ -596,11 +596,13 @@
 		{
 			displayMode = mode;
 			colorValue = 0xFF << 24 | color;
+			textEnter();
 		}
 		
 		public function setCurrentDate () :void
 		{
 			enterDate( new Date() );
+			textEnter();
 		}
 		
 		public function setVal ( val:String ) :void
@@ -612,17 +614,20 @@
 			else
 			{
 				value = val;
+				textEnter();
 			}
 		}
 		
 		public function setMin () :void
 		{
 			value = String(min);
+			textEnter();
 		}
 		
 		public function setMax () :void
 		{
 			value = String(max);
+			textEnter();
 		}
 		
 		private var dateFormat:String="d. m. y";
@@ -1483,8 +1488,9 @@
 						}						
 						btnpp = new Popup( icons, 0,0,rtItemList, cssStyleSheet,'','richtext-popup' + (i==0?" richtext-popup-first" : (i==richTextButtons.length-1 ? " richtext-popup-last":"") ),false);
 						btnpp.alignH = "left";
-						btnpp.textAlign = "right";
-						btnpp.alignV = "bottom";
+						btnpp.rootNode.alignH = "left";
+						btnpp.textAlign = "left";
+						btnpp.alignV = "auto";
 						
 						for(s=1; s < richTextButtons[i].length; s++)
 						{
@@ -1538,8 +1544,9 @@
 						
 						btnpp = new Popup( icons,0,0,rtItemList, cssStyleSheet,'','richtext-popup' + (i==0?" richtext-popup-first" : (i==richTextButtons.length-1 ? " richtext-popup-last":"") ),false);
 						btnpp.alignH = "left";
-						btnpp.textAlign = "right";
-						btnpp.alignV = "bottom";
+						btnpp.rootNode.alignH = "left";
+						btnpp.textAlign = "left";
+						btnpp.alignV = "auto";
 						
 						for( n in richTextButtons[i] )
 						{
@@ -1709,45 +1716,49 @@
 							
 							for(i=0; i < L; i++)
 							{
-								ta_str = spa[i];
-									
-								if( ta_str.charAt(0) == "#" && ( ta_str != "#separator" ) )
-								{
-									if( CTTools.templateConstants && CTTools.templateConstants[ ta_str.substring(1) ] != undefined )
+								if( spa[i] is Array ) {
+									pc.uiCmds.push(new UICmd(spa[i],'',setVal,spa[i][1]));
+								}else{
+									ta_str = spa[i];
+								
+									if( ta_str.charAt(0) == "#" && ( ta_str != "#separator" ) )
 									{
-										ta_arr = CTTools.templateConstants[ ta_str.substring(1) ].split(",");
-										
-									}
-									if( !ta_arr ) {
-										try {
-											ta_str2 = String( Application.instance.strval( ta_str.substring(1), true ) );
-											if( ta_str2 != "{*"+ta_str.substring(1)+"}" ) {
-												ta_arr = ta_str2.split(",");
-											}
-										}catch(e:Error) {
+										if( CTTools.templateConstants && CTTools.templateConstants[ ta_str.substring(1) ] != undefined )
+										{
+											ta_arr = CTTools.templateConstants[ ta_str.substring(1) ].split(",");
 											
 										}
-									}
-									
-									if( ta_arr )
-									{
-										for( ta_i=0; ta_i < ta_arr.length; ta_i++)
-										{
-											s2 = TemplateTools.obj2Text(ta_arr[ta_i], "#", propObj, false, false );
-											pc.uiCmds.push(new UICmd([s2],'',setVal,[s2]))
+										if( !ta_arr ) {
+											try {
+												ta_str2 = String( Application.instance.strval( ta_str.substring(1), true ) );
+												if( ta_str2 != "{*"+ta_str.substring(1)+"}" ) {
+													ta_arr = ta_str2.split(",");
+												}
+											}catch(e:Error) {
+												
+											}
 										}
 										
-										continue;
+										if( ta_arr )
+										{
+											for( ta_i=0; ta_i < ta_arr.length; ta_i++)
+											{
+												s2 = TemplateTools.obj2Text(ta_arr[ta_i], "#", propObj, false, false );
+												pc.uiCmds.push(new UICmd([s2],'',setVal,[s2]))
+											}
+											
+											continue;
+										}
+										else
+										{
+											Console.log("Identifier Not Found: " + ta_str);
+										}
 									}
-									else
-									{
-										Console.log("Identifier Not Found: " + ta_str);
-									}
+									
+									s2 = TemplateTools.obj2Text( ta_str, "#", propObj, false, false );
+									
+									pc.uiCmds.push(new UICmd([s2],'',setVal,[s2]));
 								}
-								
-								s2 = TemplateTools.obj2Text( ta_str, "#", propObj, false, false );
-								
-								pc.uiCmds.push(new UICmd([s2],'',setVal,[s2]));
 							}
 						}
 						else
@@ -3633,6 +3644,7 @@
 				swapState( "active" );
 			}
 			setTimeout( TemplateEditor.abortClickScrolling, 0);
+			
 		}
 		
 		protected function onBoolDeactivate (e:Event) :void

@@ -63,7 +63,7 @@
 			super.setWidth(w);
 			var sbw:int = 0;
 			if( scrollpane && scrollpane.slider.visible ) sbw = scrollpane.slider.cssSizeX + 4;
-			if( addFileBtn ) addFileBtn.x = w - (addFileBtn.cssSizeX + addFileBtn.cssMarginRight);
+			if( addFileBtn ) addFileBtn.x = (w - cssLeft) - (addFileBtn.cssSizeX + addFileBtn.cssMarginRight);
 			if( itemList) {
 				if(itemList.items) {
 					for( var i:int=0; i < itemList.items.length; i++) {

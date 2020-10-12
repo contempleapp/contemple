@@ -43,6 +43,10 @@
 				}else if ( currentEditor is PageEditor ) {
 					return PageEditor.clickScrolling;
 				}
+			}else{
+				if( Application.instance.view.panel.src is BaseScreen ) {
+					return BaseScreen.clickScrolling;
+				}
 			}
 			return false;
 		}
@@ -60,6 +64,11 @@
 					MediaEditor( currentEditor ).abortClickScrolling();
 				}else if ( currentEditor is PageEditor ) {
 					PageEditor( currentEditor ).abortClickScrolling();
+				
+				}
+			}else{
+				if( Application.instance.view.panel.src is BaseScreen ) {
+					BaseScreen( Application.instance.view.panel.src ).abortClickScrolling();
 				}
 			}
 		}
@@ -96,6 +105,11 @@
 					MediaEditor.clickScrolling = true;
 				}else if ( currentEditor is PageEditor ) {
 					PageEditor.clickScrolling = true;
+				
+				}
+			}else{
+				if( Application.instance.view.panel.src is BaseScreen ) {
+					BaseScreen.clickScrolling = true;
 				}
 			}
 		}
@@ -123,7 +137,7 @@
 				if( lb == Language.getKeyword("Template") || lb == Language.getKeyword("Options") ) {
 					currentEditor = new ConstantsEditor( _w-8, getHeight(), this, styleSheet, '', '', 'constant-editor',false);
 					var cte1:ConstantsEditor = ConstantsEditor( currentEditor );
-					cte1.displayTemplateProps( CTTools.activeTemplate, "", 0, 2 );
+					cte1.displayTemplateProps( CTTools.activeTemplate, ConstantsEditor.currCat, 0, 2 );
 					cte1.y = cssTop;
 				}else if( lb == Language.getKeyword("Pages") ) {
 					currentEditor = new PageEditor( _w-8, getHeight(), this, styleSheet, '', '', 'page-editor',false);
