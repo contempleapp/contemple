@@ -598,7 +598,15 @@
 				var articlename:String = articlename_pc ? articlename_pc.textBox.value : "";
 				var parselistlabel:String = parselistlabel_pc ? parselistlabel_pc.textBox.value : "";
 				
+				if( tables == "" ) {
+					tables = CTTools.convertName( name );
+				}
+				if( fields == "" ) {
+					fields = "name";
+				}
 				var rv:Boolean = TemplateTools.createTemplate ( name, type, index, files, folders, tables, fields, sortproperties, label, icon, articlepage, articlename, CssUtils.stringToBool(parselistlabel) );
+				
+				showTemplates();
 			}
 			else
 			{
@@ -877,6 +885,14 @@
 					parselistlabel = parselistlabel_pc.textBox.value;
 					sortproperties = sortproperties_pc.textBox.value;
 					tables = tables_pc.textBox.value;
+					
+					if( tables == "" ) {
+						tables = CTTools.convertName( nameCtrl.textBox.value );
+					}
+					
+					if( fields == "" ) {
+						fields = "name";
+					}
 					
 					version = version_pc.textBox.value;
 					nolocation = nolocation_pc.textBox.value;

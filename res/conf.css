@@ -26,6 +26,7 @@ popupitem.start-screen-popup { padding: 6px; }
 .preferences-button { background: #06F; color:#FFFFFF; opacity:1; margin-top: 12px; margin-left:0px; margin-right:25px; margin-bottom:40px; padding:12px; border-radius:7px; }
 .preferences-button:hover { background: #202226; }
 
+
 areaview {  background:#fff; background-alpha: 0.04; }
 
 h1 { font-size:20px; font-weight:bold; }
@@ -42,11 +43,11 @@ button, popup { background:#202226; color:#efefef; padding-left:3px; padding-rig
 popupitem { background:none; color:#efefef; }
 popuplist { background: #404246; }
 popup:active, popuplist:active { background: #404246; }
-popupitem:hover { background: #606266;  }
+popupitem:hover { background: #606266; }
 popupitem:active { background: #808286; }
 
-slider { background: #def; background-alpha: 0.2; width: 16px; }
-sliderbutton { background: #fff; background-alpha: 0.3; width: 16px;}
+slider { background: #def; background-alpha: 0.05; width: 16px; }
+sliderbutton { background: #fff; background-alpha: 0.2; width: 16px;}
 
 .area-sizebutton {
     width: 12px;
@@ -87,11 +88,11 @@ sliderbutton { background: #fff; background-alpha: 0.3; width: 16px;}
 	background: none; padding: 0px; 
 }
 .ce-next-button:active, .ce-prev-button:active, .searchbox-button:active, .name-visible-button:active, .name-save-button:active, .name-delete-button:active, .name-close-button:active, .min-size-popup:active, .name-area-popup:active, .name-next-button:active, .name-prev-button:active, .name-save-and-close-button:active, .name-save-and-new-button:active { 
-	background:#fff; background-alpha: 0.1;  margin-right: 4px;
+	background:#fff; background-alpha: 0.1;  margin-right: 1px;
 }
 .ce-prev-button, .ce-next-button, .ce-prev-button:active, .ce-next-button:active, .ce-prev-button:hover, .ce-next-button:hover { padding: 7px 3px; margin-right: 0px; }
 .name-area-popup, .article-areas-popup {
-	padding: 5px;
+	padding: 3px;
 }
 
 popuplist.name-area-popup, popuplist.min-size-popup { padding: 9px 5px; background-alpha:1; background: #202226; border-radius: 7px; }
@@ -238,7 +239,7 @@ popupitem.input-help-button { padding: 2px; }
 .back-button:active  { background:#000; background-alpha: 0.1; }
 
 .constanteditor-folder, .areaeditor-folder  {  font-family: "Myriad Pro Light"; background:none; border-bottom:1px solid #fff; 
-border-alpha:0.15; padding:12px 2px; vertical-align:top; margin-bottom: 0px; font-size:16px; }
+border-alpha:0.1; padding:12px 2px; vertical-align:top; margin-bottom: 0px; font-size:16px; }
 
 .areaeditor-folder {}
 .constanteditor-folder:active, .areaeditor-folder:active { background:#000; background-alpha: 0.1; }
@@ -246,7 +247,8 @@ border-alpha:0.15; padding:12px 2px; vertical-align:top; margin-bottom: 0px; fon
 .areaeditor-tab {  background: #FFFFFF; background-alpha:0; padding: 0px 7px; padding-top:4px; 
 	border: 1px solid #fff; border-alpha:0.15; border-bottom: none; border-top-left-radius: 7px; border-top-right-radius: 7px; }
 .areaeditor-tab:active { background-alpha:0.075; }
-.property-folder-title { color: #FFFFFF; padding: 5px 2px;  }
+
+.property-folder-title { color: #FFFFFF; font-size: 13px; padding: 5px 2px; margin-top: 2px; }
 .property-label { color: #FFFFFF; padding-top:12px; padding-bottom: 4px; text-align:left; opacity: 0.8; }
 .property-section { color: #FFFFFF; padding-top: 16px; padding-bottom:4px; text-align:center; font-size: 16px; opacity: 0.8; }
 
@@ -263,7 +265,7 @@ border-alpha:0.15; padding:12px 2px; vertical-align:top; margin-bottom: 0px; fon
 .constant-prop-label { font-family: "Myriad Pro Light"; font-size: 13px; color: #ffffff; padding-left: 2px; padding-bottom: 3px; opacity: 0.9; }
 
 .constant-prop-input{ font-family:"Lucida Console","Odisseia Regular","Source Code Pro","Courier New"; font-size: 14px; background: #FFFFFF; background-alpha:0;
- color:#FFFFFF; border-bottom:1px solid #fff; border-alpha:0.15; }
+ color:#FFFFFF; border-bottom:1px solid #fff; border-alpha:0.1; }
 
 .constant-prop-input:active { font-family:"Lucida Console","Odisseia Regular","Source Code Pro","Courier New"; background: #000000; background-alpha: 0.1; border-alpha:0.25; }
 
@@ -280,6 +282,7 @@ border-alpha:0.15; padding:12px 2px; vertical-align:top; margin-bottom: 0px; fon
 
 viewcontainer { background:#131313; border-top: 2px solid #202428; }
 
+.mainmenu { font-size: 14px; font-weight: 200; }
 menu.mainmenu, menu.secmenu { background: #202226; }
 panel#console { background:#10171F; }
 panel#TextView { background:#FFFFFF; }
@@ -310,9 +313,9 @@ popuplist.textbox-popup, popuplist.textbox-typed, popuplist.const-sibling-popup 
 popupitem.textbox-popup, popupitem.textbox-typed, popupitem.const-sibling-popup { padding: 2px 7px; font-size:10px; padding-right: 12px; vertical-align:middle; }
 popupitem.const-sibling-popup { text-align:center; }
 
-.textbox-slider { padding: 0px; width: 16px; background:#d0d4d8; background-alpha:0.12; }
-.textbox-slider-button { background:#e0e4e8; background-alpha: 0.5; width:16px; }
-.textbox-slider-button:hover { background-alpha: 0.9; }
+.textbox-slider { padding: 0px; width: 16px; background:#def; background-alpha:0.05; }
+.textbox-slider-button { background:#e0e4e8; background-alpha: 0.3; width:16px; }
+.textbox-slider-button:hover { background-alpha: 0.8; }
 .textbox-slider-button:active { background-alpha: 1; }
 .input-vector-container { background-color: #357;}
 

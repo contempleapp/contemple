@@ -462,7 +462,7 @@
 					
 					setHeight( Math.max( sp.height, mediaInfo.textHeight + (tfBtn ? tfBtn.cssSizeY : 4 )) + textField.textHeight + 8 );
 					
-					setWidth( /*cssSizeX*/ getWidth() );
+					setWidth( getWidth() );
 					setTimeout( function(){
 						dispatchEvent( new Event("heightChange") );
 					},123);
@@ -607,6 +607,8 @@
 		
 		public function setVal ( val:String ) :void
 		{
+			if( val == "" ) activateValue = " ";
+			
 			if( _supertype == "listmultiple" || _supertype == "labellistmultiple" || _supertype == "listappend" ||  _supertype == "labellistappend" || _supertype == "itemlistmultiple" )
 			{
 				listAppend( val );
@@ -675,6 +677,7 @@
 			
 			var i:int;
 			var L:int;
+			var k2:int;
 			var s2:String;
 			var tfh:int;
 			var ta_str:String;
@@ -916,6 +919,17 @@
 				{
 					boolValue = true;
 				}
+				
+				if(pc)
+				{
+					if(!pc.uiCmds ) pc.uiCmds = new Vector.<UICmd>();
+					if( boolValue ) {
+						pc.uiCmds.push( new UICmd( [Language.getKeyword("Disable")],'',setVal,["false"]) );
+					}else{
+						pc.uiCmds.push( new UICmd( [Language.getKeyword("Enable")],'',setVal,["true"]) );
+					}
+				}
+				
 				
 				setHeight( textField.height + 2 );
 			}
@@ -1389,9 +1403,10 @@
 					pc.uiCmds.push(new UICmd([Language.getKeyword('Convert to') + ' RGB'],'',convertColorTo,['rgb']));
 					pc.uiCmds.push(new UICmd([Language.getKeyword('Convert to') + ' RGBA'],'',convertColorTo,['rgba']));
 					pc.uiCmds.push(new UICmd(['#separator']));
-					pc.uiCmds.push(new UICmd([Language.getKeyword('Convert to') + ' HSL'],'',convertColorTo,['hsl']));
-					pc.uiCmds.push(new UICmd([Language.getKeyword('Convert to') + ' HSLA'],'',convertColorTo,['hsla']));
-					pc.uiCmds.push(new UICmd(['#separator']));
+					// TODO: fix hsl to rgb conversion..
+					//pc.uiCmds.push(new UICmd([Language.getKeyword('Convert to') + ' HSL'],'',convertColorTo,['hsl']));
+					//pc.uiCmds.push(new UICmd([Language.getKeyword('Convert to') + ' HSLA'],'',convertColorTo,['hsla']));
+					//pc.uiCmds.push(new UICmd(['#separator']));
 					pc.uiCmds.push(new UICmd([Language.getKeyword('Convert to') + ' HEX'],'',convertColorTo,['hex']));
 				}
 				drawCurrentColor();
@@ -1700,7 +1715,7 @@
 						pc.uiCmds.push(new UICmd([Language.getKeyword('None')],'',setVal,['']));
 						pc.uiCmds.push(new UICmd(['#separator']));
 						
-						if( args.length == 1 )
+						/*if( args.length == 1 )
 						{
 							var spa:Array;
 							if( args[0] is Array )
@@ -1762,12 +1777,21 @@
 							}
 						}
 						else
-						{
+						{*/
+							
 							L = args.length;
+							
 							for(i=0; i < L; i++)
 							{
-								if( args[i] is Array ) {
-									pc.uiCmds.push(new UICmd([args[i]],'',setVal,[args[i]]));
+								if( args[i] is Array )								
+								{
+									for( k2=0; k2 < args[i].length; k2++)
+									{
+										if( typeof( args[i][k2] ) == "string" ) {
+											pc.uiCmds.push(new UICmd(args[i],'',setVal,[ args[i][k2] ]));
+											break;
+										}
+									}
 									continue;
 								}else{
 									ta_str = args[i];
@@ -1811,7 +1835,7 @@
 								pc.uiCmds.push(new UICmd([s2],'',setVal,[s2]));
 							}
 								
-						}
+						//}
 					}
 					
 					tfIcon.addEventListener( MouseEvent.CLICK, iconListSelect );
@@ -2770,6 +2794,27 @@
 			_boolValue = v;
 			boolIcon(v);
 			value = _boolValue ? boolYes : boolNo;
+			
+			var pc:PropertyCtrl;
+			
+			try {
+				pc = PropertyCtrl( parent );
+			}catch( e:Error) {
+				pc = null;
+			}
+			
+			if(pc)
+			{
+				if(!pc.uiCmds ) pc.uiCmds = new Vector.<UICmd>();
+				else pc.uiCmds.pop();
+				
+				if( v ) {
+					pc.uiCmds.push( new UICmd( [Language.getKeyword("Disable")],'',setVal,["false"]) );
+				}else{
+					pc.uiCmds.push( new UICmd( [Language.getKeyword("Enable")],'',setVal,["true"]) );
+				}
+			}
+			
 		}
 		
 		public function get boolValue ():Boolean
@@ -3045,6 +3090,7 @@
 			if ( lb == "" )
 			{
 				value = "";
+				textEnter();
 				return;
 			}
 			

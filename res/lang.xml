@@ -22,7 +22,7 @@
 	</item>
 	<item name="new-template-nolocation-help">
 		<lang name="en" value="If No-Location is true, Subtemplate items will not have anker links inserted in the page"/>
-		<lang name="de" value="Wenn No-Location auf den Wert true gestellt ist, werden für Subtemplate items kein Anker Links in die Seite eingefügt"/>
+		<lang name="de" value="Wenn No-Location auf den Wert true gestellt ist, werden für Subtemplate items keine Anker Links in die Seite eingefügt"/>
 	</item>
 	<item name="new-template-homeareaname">
 		<lang name="en" value="Home Area Name"/>
@@ -69,8 +69,8 @@
 		<lang name="de" value="Typ"/>
 	</item>
 	<item name="new-template-type-help">
-		<lang name="en" value="# The Type of the Template#br# #br## Root Templates: #br#Root Templates have to use the value 'root'#br##br## Subtemplates:#br#Sub Templates can use any string value, the type of a Subtemplate have to be supported by an Area in order to create the Subtemplate on the website."/>
-		<lang name="de" value="# Der Typ von dem Template #br# #br## Root Templates: #br# Root Templates müssen den Wert 'root' verwenden.#br# #br## Sub Templates: #br#Sub Templates können jeden String Wert verwenden, der Typ von einem Subtemplate muss von einem Bereich unterstützt werden damit das Subtemplate auf der Website erstellt werden kann."/>
+		<lang name="en" value="Template Type#br# #br## Root Templates: #br#Root Templates have to use the value 'root'#br##br## Subtemplates:#br#Sub Templates can use any string value, the type of a Subtemplate have to be supported by an Area in order to create the Subtemplate on the website. Subtemplates support multiple types separated with a colon"/>
+		<lang name="de" value="Template Typ#br# #br## Root Templates: #br# Root Templates müssen den Wert 'root' verwenden.#br# #br## Sub Templates: #br#Sub Templates können jeden String Wert verwenden, der Typ von einem Subtemplate muss von einem Bereich unterstützt werden damit das Subtemplate auf der Website erstellt werden kann. Für Subtemplates können mittels Beistrich mehrere Template Typen angegeben werden"/>
 	</item>
 	<item name="new-template-index-file">
 		<lang name="en" value="Index File"/>
@@ -136,7 +136,7 @@
 		<lang name="en" value="Page Templates"/>
 		<lang name="de" value="Seiten Vorlage"/>
 	</item>
-	<item name="new-template-help">
+	<item name="new-template-pagetemplates-help">
 		<lang name="en" value="Comma separated list with Page Templates"/>
 		<lang name="de" value="Komma separierte Liste mit Seiten Vorlagen"/>
 	</item>
@@ -148,17 +148,13 @@
 		<lang name="en" value="Comma separated list of template files wich schould not be compressed with minify compression"/>
 		<lang name="de" value="Komma separierte Liste mit Template Dateien die nicht mit Minify Komprimiert werden sollen"/>
 	</item>
-	<item name="new-template-nocompress-help">
-		<lang name="en" value="Comma separated list with files to exclude from minifiy compression"/>
-		<lang name="de" value="Komma separierte Liste mit Dateien die nicht mit minify komprimiert werden sollen"/>
-	</item>
 	<item name="new-template-tables">
 		<lang name="en" value="Table"/>
 		<lang name="de" value="Tabelle"/>
 	</item>
 	<item name="new-template-tables-help">
-		<lang name="en" value="Table name of the Subtemplate"/>
-		<lang name="de" value="Tabellen Name von dem Subtemplate"/>
+		<lang name="en" value="The name of the sqlite table for the Subtemplate"/>
+		<lang name="de" value="Der Name der sqlite Tabelle für das Subtemplate"/>
 	</item>
 	<item name="new-template-fields">
 		<lang name="en" value="Fields"/>
@@ -173,8 +169,8 @@
 		<lang name="de" value="Listen Bezeichner"/>
 	</item>
 	<item name="new-template-listlabel-help">
-		<lang name="en" value="List Label, sets what infos are displayed in the Area List for a Subtemplate item. Use #db-field-name# to access a database field from the item." />
-		<lang name="de" value="Listen Bezeichner. Gibt an was für Informationen in der Area Liste für einen Subtemplate Eintrag angezeigt werden sollen."/>
+		<lang name="en" value="List Label, controls wich information is displayed in the Area List for. Use #hashtag#db-field-name#hashtag# to access a database field from the item." />
+		<lang name="de" value="Listen Bezeichner. Gibt an welche Informationen in der Area Liste für einen Subtemplate Eintrag angezeigt werden sollen. Mit #hashtag#db-field-name#hashtag# können Datenbank Felder von Einträgen angezeigt werden"/>
 	</item>
 	<item name="new-template-listicon">
 		<lang name="en" value="List Icon"/>
@@ -197,15 +193,15 @@
 		<lang name="de" value="Artikel Name"/>
 	</item>
 	<item name="new-template-articlename-help">
-		<lang name="en" value="The name of the article page. #itemname# returns the name of the item in the Area List"/>
-		<lang name="de" value="Der Name der Artikel Seite. #itemname# gibt den Namen des Eintrags in der Area Liste zurück"/>
+		<lang name="en" value="The name of the article page. #hashtag#itemname#hashtag# returns the name of the item in the Area List"/>
+		<lang name="de" value="Der Name der Artikel Seite. #hashtag#itemname#hashtag# gibt den Namen des Eintrags in der Area Liste zurück"/>
 	</item>
 	<item name="new-template-parselistlabel">
 		<lang name="en" value="Parse List Label"/>
 		<lang name="de" value="Parse Listen Bezeichner"/>
 	</item>
 	<item name="new-template-parselistlabel-help">
-		<lang name="en" value="Parse List Label in Area Editor List Display with markup and some HTML"/>
+		<lang name="en" value="Parse List Label in Area Editor List Display with markup and HTML"/>
 		<lang name="de" value="Parse Listen Bezeichner in der Area Editor Listen Anzeige mit Markup und HTML"/>
 	</item>
 	<item name="Add New File">
@@ -224,9 +220,73 @@
 		<lang name="en" value="Template Kickstarter"/>
 		<lang name="de" value="Template Kickstarter"/>
 	</item>
+	<item name="Select File">
+		<lang name="en" value="Select File"/>
+		<lang name="de" value="Datei Auswählen"/>
+	</item>
 	<item name="Help">
 		<lang name="en" value="Help"/>
 		<lang name="de" value="Hilfe"/>
+	</item>
+	<item name="None">
+		<lang name="en" value="None"/>
+		<lang name="de" value="Leer"/>
+	</item>
+	<item name="Minimum">
+		<lang name="en" value="Min"/>
+		<lang name="de" value="Min"/>
+	</item>
+	<item name="Maximum">
+		<lang name="en" value="Max"/>
+		<lang name="de" value="Max"/>
+	</item>
+	<item name="Convert to RGB">
+		<lang name="en" value="Convert to RGB"/>
+		<lang name="de" value="Konvertiere nach RGB"/>
+	</item>
+	<item name="Convert to RGBA">
+		<lang name="en" value="Convert to RGBA"/>
+		<lang name="de" value="Konvertiere nach RGBA"/>
+	</item>
+	<item name="Convert to HEX">
+		<lang name="en" value="Convert to HEX"/>
+		<lang name="de" value="Konvertiere nach HEX"/>
+	</item>
+	<item name="Convert to HSL">
+		<lang name="en" value="Convert to HSL"/>
+		<lang name="de" value="Konvertiere nach HSL"/>
+	</item>
+	<item name="Convert to HSLA">
+		<lang name="en" value="Convert to HSLA"/>
+		<lang name="de" value="Konvertiere nach HSLA"/>
+	</item>
+	<item name="Convert to REM">
+		<lang name="en" value="Convert to REM"/>
+		<lang name="de" value="Konvertiere nach REM"/>
+	</item>
+	<item name="Convert to EM">
+		<lang name="en" value="Convert to EM"/>
+		<lang name="de" value="Konvertiere nach EM"/>
+	</item>
+	<item name="Convert to PX">
+		<lang name="en" value="Convert to PX"/>
+		<lang name="de" value="Konvertiere nach PX"/>
+	</item>
+	<item name="Convert to %">
+		<lang name="en" value="Convert to %"/>
+		<lang name="de" value="Konvertiere nach %"/>
+	</item>
+	<item name="Convert to VW">
+		<lang name="en" value="Convert to VW"/>
+		<lang name="de" value="Konvertiere nach VW"/>
+	</item>
+	<item name="Convert to VH">
+		<lang name="en" value="Convert to VH"/>
+		<lang name="de" value="Konvertiere nach VH"/>
+	</item>
+	<item name="Publish">
+		<lang name="en" value="Publish"/>
+		<lang name="de" value="Veröffentlichen"/>
 	</item>
 	<item name="Commands">
 		<lang name="en" value="Commands"/>
@@ -541,8 +601,8 @@
 		<lang name="de" value="Das Template der Webseite wird installiert"/>
 	</item>
 	<item name="Revert to Default Value">
-		<lang name="en" value="Revert to Default Value"/>
-		<lang name="de" value="Auf Default Wert Zurücksetzen"/>
+		<lang name="en" value="Default"/>
+		<lang name="de" value="Default"/>
 	</item>
 	<item name="Show Help">
 		<lang name="en" value="Show Help"/>

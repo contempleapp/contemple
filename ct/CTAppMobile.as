@@ -1,6 +1,8 @@
 ﻿package ct
 {
 	import agf.Options;
+	import agf.tools.Console;
+	import agf.html.CssStyleSheet;
 	import agf.html.CssUtils;
 	
 	public class CTAppMobile extends CTApp 
@@ -15,19 +17,19 @@
 			// Set default config options
 			if( CssUtils.numericScale > 1 )
 			{
-				if( CssUtils.numericScale > 3.5 )
+				if( CssUtils.numericScale > 2.8 )
 				{
 					// 400 DPI
 					Options.iconSize = 48;
 					Options.btnSize = 96;
 				}
-				else if( CssUtils.numericScale > 2.5 )
+				else if( CssUtils.numericScale > 2 )
 				{
 					// 300 DPI
-					Options.iconSize = 48;
-					Options.btnSize = 96;
+					Options.iconSize = 36;
+					Options.btnSize = 64;
 				}
-				else if( CssUtils.numericScale > 1.25 )
+				else if( CssUtils.numericScale > 1.2 )
 				{
 					// 200 DPI
 					Options.iconSize = 24;
@@ -42,6 +44,14 @@
 			//CTOptions.installTemplate = "app:/theme-demo";
 			
 			
+			Console.log( "NumScale: " + CssUtils.numericScale );
+			Console.log( "IconSize: " + Options.iconSize);
+			Console.log( "BtnSize: " + Options.btnSize);
+			
+			Console.log( "ScaleFonts: " + CssStyleSheet.scaleFonts);
+			Console.log( "FontScale: " + CssStyleSheet.fontSizeScale);
+		
+		
 			CTOptions.mobileWheelMove = 12 * CssUtils.numericScale;
 			CTOptions.previewAtBottom = true;
 			

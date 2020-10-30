@@ -174,7 +174,7 @@
 			ctrlOptions.x = mouseX;
 			
 			var p:Point = ctrlOptions.globalToLocal( new Point( 0, menuHeight ) );
-			ctrlOptions.y = p.y;
+			ctrlOptions.y = menuHeight;//p.y;
 			
 			ctrlOptions.alignV = "center";
 			ctrlOptions.alignH = "center";
@@ -210,7 +210,7 @@
 			{
 				ny2 = Popup.topContainer.mouseY + (h + bw2);
 				
-				if ( ny2 + h < Popup.topContainer.getHeight() )
+				if ( ny2 + h < (Popup.topContainer.getHeight() - menuHeight) )
 				{
 					// position bottom
 					ny = ny2 - h;
@@ -220,25 +220,22 @@
 					ny = menuHeight + 4;
 					var w2:int = int(ctrlOptions.rootNode.container.width * 0.5);
 					
-					if ( ctrlOptions.rootNode.container.x - (w2*2 + bw2) >= 0 ) {
-					//if ( ctrlOptions.rootNode.container.x >= 2 ) {
-						// position left
-						//ctrlOptions.rootNode.container.x -= (w2 + bw2);
+					//if ( ctrlOptions.rootNode.container.x - (w2*2 + bw2) >= 0 ) {
+					if ( ctrlOptions.rootNode.container.x /*- (w2*2 + bw2)*/ >= 0 ) {
 						ctrlOptions.rootNode.container.x = pm.x - (w2*2 + bw2);
 					}else{
 						// position right
 						if( pm.x + bw2 + ctrlOptions.rootNode.container.width < stage.stageWidth - HtmlEditor.previewX) {
 							ctrlOptions.rootNode.container.x = pm.x + (bw2);
-						}else{
-							ctrlOptions.rootNode.container.x = 2;
 						}
-						//ctrlOptions.rootNode.container.x = 2;
 					}
 				}
 			}
 			
+			if( ctrlOptions.rootNode.container.x < 0 ) {
+				ctrlOptions.rootNode.container.x = 2;
+			}
 			ctrlOptions.rootNode.container.y = ny;
-			
 		}
 		
 		public function showHelp () :void

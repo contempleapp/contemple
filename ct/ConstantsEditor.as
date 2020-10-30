@@ -71,8 +71,10 @@
 			Main(Application.instance).view.removeEventListener( AppEvent.VIEW_CHANGE, removePanel );
 		}
 		
-		public override function setWidth( w:int) :void {
+		public override function setWidth( w:int) :void
+		{
 			super.setWidth(w);
+			
 			var sbw:int = 0;
 			if( scrollpane ) {
 				scrollpane.x = int(cssLeft);
@@ -134,15 +136,15 @@
 			}
 			
 			if( folderBackBtn && folderLabel ) {
-				folderLabel.x = int(( w - (folderLabel.textField.textWidth+cssLeft*2+sbw) ) * .5);
+				folderLabel.x = int(( w - (folderLabel.textField.textWidth + 4 /*+ cssLeft*2 + sbw*/) ) * .5);
 				
-				if( folderLabel.x < folderBackBtn.x + folderBackBtn.cssSizeX + 4 ) {
-					folderLabel.x = int(folderBackBtn.x + folderBackBtn.cssSizeX + 4);
+				if( folderLabel.x < folderBackBtn.x + folderBackBtn.cssSizeX + 2 ) {
+					folderLabel.x = int(folderBackBtn.x + folderBackBtn.cssSizeX + 2);
 				}
 			}
 			
 			if( nextButton && prevButton && scrollpane ) {
-				nextButton.x = int((w - cssLeft) - (Options.btnSize + nextButton.cssMarginRight));
+				nextButton.x = int((w /*- cssLeft*/) - (Options.btnSize + nextButton.cssMarginRight));
 				prevButton.x = int(nextButton.x - (Options.btnSize + prevButton.cssMarginRight));
 			}
 			
@@ -257,6 +259,7 @@
 					}
 				}, 0);
 				
+				
 				if( !forceLevel ) {
 					if( cat != "" )
 					{
@@ -313,7 +316,7 @@
 				}else{
 					currCat = cat;
 					folderLabel.label = Language.getKeyword( cat );
-					folderLabel.setWidth( folderLabel.textField.textWidth + (4*CssUtils.numericScale) );
+					folderLabel.setWidth( Math.floor( folderLabel.textField.textWidth + (4*CssUtils.numericScale) ) );
 				}
 				
 				for(i = 0; i<L; i++)
@@ -473,7 +476,8 @@
 				
 				scrollpane.x = int(cssLeft);
 				
-				setWidth( cssSizeX - cssBoxX );
+				//setWidth( cssSizeX - cssBoxX );
+				setWidth( getWidth() );
 				
 				itemList.setHeight(1);
 				setHeight(getHeight());
@@ -481,7 +485,9 @@
 				scrollpane.contentHeightChange();
 				
 				setTimeout( function () {
-					setWidth( cssSizeX - cssBoxX );
+					// setWidth( cssSizeX - cssBoxX );
+					setWidth( getWidth() );
+					
 				}, 550 );
 			}
 		}
@@ -530,8 +536,8 @@
 				var pp:Popup = new Popup ([""], 0, 0, this, styleSheet, '', 'const-sibling-popup', true);
 				pp.alignH = "center";
 				
-				pp.x = int(folderLabel.x + folderLabel.textField.textWidth / 2);
-				pp.y = folderLabel.y + folderLabel.cssSizeY;
+				pp.x = int(folderLabel.x + (folderLabel.textField.textWidth+4) / 2);
+				pp.y = int(folderLabel.y + folderLabel.cssSizeY);
 				
 				siblingsPP = pp;
 				

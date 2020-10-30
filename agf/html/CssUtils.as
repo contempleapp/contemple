@@ -40,6 +40,8 @@
 			// 72 DPI = 1
 			// 240 DPI = 1.6
 			// 320 DPI = 2.5
+			Console.log("ScreenDPI: " + flash.system.Capabilities.screenDPI );
+			
 			if( flash.system.Capabilities.screenDPI > 96 )
 			{
 				numericScale = flash.system.Capabilities.screenDPI / 72 / 2;
@@ -48,9 +50,6 @@
 			{
 				numericScale = 1;
 			}
-			
-			trace("numericScale: " + numericScale );
-			// trace("SCREEN DPI: " +  flash.system.Capabilities.screenDPI + ", scale: " + numericScale );
 		}
 		
 		// trim whitespace from the beginning, end, and duplicate whitespace of a string

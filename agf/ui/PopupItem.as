@@ -174,6 +174,8 @@
 					gpos = this.localToGlobal( pxy0 );
 				}
 				
+			//	gpos.y = 0;
+				
 				var _alignV:String = alignV;
 				var _alignH:String = alignH;
 				var item_h:int;
@@ -194,7 +196,7 @@
 						it = items[i];
 						tw = Math.floor( it.getWidth() );
 						item_h = Math.floor(it.getHeight());
-						if( yp + item_h * 2 + container.cssTop + gpos.y >= srch ) {
+						if( yp + item_h * 3 + container.cssTop /*+ gpos.y*/ > srch ) {
 							iwa[iwid] = iw;
 							iw = 0;
 							iwid++;
@@ -224,7 +226,7 @@
 					}
 					
 					item_h = Math.floor( it.getHeight() );
-					if( yp + item_h * 2 + container.cssTop + gpos.y > srch ) {
+					if( yp + item_h * 3 + container.cssTop /*+ gpos.y */> srch ) {
 						iwid++;
 						yp = 0;
 						xp += iw;
@@ -270,6 +272,16 @@
 				
 				if( container.y < 0 ) {
 					container.y = 0;
+				}
+				if( container.x < 0 ) {
+					container.x = 0;
+				}
+				
+				if( container.x + container.width > srcw ) {
+					container.x = srcw - container.width;
+				}
+				if( container.y + container.height > srch ) {
+					container.y = srch - container.height;
 				}
 				
 				container.x = Math.floor( container.x );

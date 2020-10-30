@@ -4375,6 +4375,34 @@
 				binaryWriteComplete[ r.udfData.dst_url ] = null;
 			}
 		}
+		
+		// convret strings to script names (a-z, A-Z, 0-9, _$)
+		public static function convertName ( n:String ) :String
+		{
+			if( !n) return n;
+			
+			var L:int = n.length;
+			var rv:String = "";
+			var cc:int;
+			
+			for( var i:int=0; i<L; i++)
+			{
+				cc = n.charCodeAt(i);
+				if( cc <= 32 || cc == 46 || cc == 45  || cc == 44 || cc == 47  || cc == 58 || cc == 59 ) { // .-,/
+					if( rv.charAt( rv.length-1) != "_" ) {
+						rv += "_";
+					}
+				}else if( cc == 36 || cc == 95 ) {
+					rv += n.charAt(i);
+				}else if( (cc >= 48 && cc <= 57) || (cc >= 65 && cc <= 90) || (cc >= 97 && cc <= 122) ) {
+					rv += n.charAt(i);
+				}
+			}
+			
+			return rv;
+		}
+		
+		
 		public static function fileExists ( src_url:String ) :Boolean
 		{
 			var f:File = new File( src_url );
@@ -4383,6 +4411,8 @@
 		
 		public static function copyFile ( src_url:String, dst_url:String, complete:Function=null ) :Boolean
 		{
+			if( src_url == dst_url ) return true;
+			
 			if( src_url.substring(0,7) == "http://" || src_url.substring(0,8)=="https://" ) {
 				var rm:ResourceMgr = ResourceMgr.getInstance();
 				var rid:int = rm.loadResource( src_url, onLoadHttpFile, true, true);

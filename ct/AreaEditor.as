@@ -133,7 +133,7 @@
 		{
 			var dy:Number = mouseY - clickY;
 			
-			ltFramePos = dy * 8;
+			ltFramePos = dy * 4;
 			
 			if( ! clickScrolling ) {
 				if( Math.abs(dy) > CTOptions.mobileWheelMove ) {
@@ -156,12 +156,10 @@
 				shooting = false;
 			}
 			
-		//	setTimeout( function () {
-				addEventListener( Event.ENTER_FRAME, btnMove );
-				stage.addEventListener( MouseEvent.MOUSE_UP, btnUp );
-				clickScrolling = false;
-				clickY = mouseY;
-		//	}, 0);
+			addEventListener( Event.ENTER_FRAME, btnMove );
+			stage.addEventListener( MouseEvent.MOUSE_UP, btnUp );
+			clickScrolling = false;
+			clickY = mouseY;
 		}
 		
 		public static function get clickScrolling () : Boolean {
