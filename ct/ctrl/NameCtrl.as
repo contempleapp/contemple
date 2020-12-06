@@ -1,11 +1,15 @@
 ﻿package ct.ctrl
 {
 	import agf.html.*;
+	import agf.animation.Animation;
+	import agf.events.AppEvent;
 	import agf.icons.IconArrowDown;
+	import agf.icons.IconBoolean;
 	import agf.icons.IconDot;
 	import agf.icons.IconFromFile;
 	import agf.Options;
 	import agf.tools.*;
+	import agf.utils.NumberUtils;
 	import ct.CTOptions;
 	import ct.TemplateTools;
 	import ct.ctrl.InputTextBox;
@@ -17,6 +21,9 @@
 	import agf.events.PopupEvent;
 	import flash.events.MouseEvent;
 	import flash.events.Event;
+	import flash.utils.setTimeout;
+	import fl.transitions.easing.Regular;
+	import fl.transitions.easing.Strong;
 	
 	public class NameCtrl extends PropertyCtrl
 	{
@@ -51,6 +58,13 @@
 				visibleBtn.clips = [ new IconFromFile(  (v ? Options.iconDir + CTOptions.urlSeparator + "eye-btn.png" : Options.iconDir + CTOptions.urlSeparator + "hide-btn.png"), Options.btnSize, Options.btnSize) ];
 			}
 		}
+		public override function getHeight () :int {
+			if ( textBox ) {
+				return int( Math.floor(textBox.y + textBox.cssSizeY + label.cssSizeY) );
+			}else{
+				return super.getHeight();
+			}
+		}
 		
 		public function showSaveAndCloseButton (val:Boolean) :void {
 			saveAndCloseButtonVisible = saveAndCloseButton.visible = val;
@@ -68,8 +82,15 @@
 			prevButtonVisible = prevButton.visible = val;
 		}
 		
+		public function toggleMinHeight (e:Event) :void {
+			if( minHeight ) {
+				showMaxHeight();
+			}
+		}
 		public override function create (alabel:String= "", aname:String="", atype:String="", avalue:String="", propObj:Object=null, args:Array=null) :void
 		{
+			addEventListener( MouseEvent.CLICK, toggleMinHeight);
+			
 			_type = atype;
 			_name = aname;
 			_propObj = propObj;
@@ -117,7 +138,7 @@
 			
 			setWidth( getWidth() );
 			setHeight( Math.max( textBox.cssSizeY+textBox.cssMarginTop, visibleBtn.cssSizeY+visibleBtn.cssMarginTop) + Math.max( deleteButton.cssSizeY, closeButton.cssSizeY, nextButton.cssSizeY, prevButton.cssSizeY, saveButton.cssSizeY, saveAndCloseButton.cssSizeY) );
-		
+			
 		}
 		protected function closeClick (e:MouseEvent) :void {
 			dispatchEvent( new Event("close") );
@@ -150,6 +171,76 @@
 			}
 		}
 		
+		public var minHeight:Boolean = false;
+		private var heightAnim:Animation = null;
+		
+		public function showMaxHeight () :void
+		{
+			if(minHeight)
+			{
+				minHeight = false;
+				
+				if ( heightAnim ) {
+					heightAnim.stop();
+					if ( contains( heightAnim )) removeChild( heightAnim );
+				}
+				
+				heightAnim = new Animation();
+				addChild( heightAnim );
+				heightAnim.addEventListener( Event.COMPLETE, maxSizeComplete );
+				
+				heightAnim.run( label, { y: int(closeButton.y + (closeButton.cssSizeY)), alpha: 1}, 450, Regular.easeOut, 0 );
+				
+				addEventListener( Event.ENTER_FRAME, sizeFrameHandler );
+				
+			}
+		}
+		
+		public function showMinHeight () :void
+		{
+			if(!minHeight)
+			{
+				setWidth( getWidth() );
+				
+				minHeight = true;
+				
+				if ( heightAnim ) {
+					heightAnim.stop();
+					if ( contains( heightAnim )) removeChild( heightAnim );
+				}
+				
+				heightAnim = new Animation();
+				addChild( heightAnim );
+				heightAnim.addEventListener( Event.COMPLETE, minSizeComplete );
+				heightAnim.run( label, {y: -label.cssSizeY, alpha: 0}, 450, Regular.easeOut, 0 );
+				addEventListener( Event.ENTER_FRAME, sizeFrameHandler );
+				
+			}
+		}
+		
+		private function sizeFrameHandler (e:Event) :void {
+			var mh:Number =  label.y;
+			
+			textBox.y =  mh + visibleBtn.cssMarginTop + cssTop + label.cssSizeY;
+			visibleBtn.y = mh + cssTop + visibleBtn.cssMarginTop + (textBox.cssSizeY-visibleBtn.cssSizeY)+ label.cssSizeY;
+			textBox.alpha = visibleBtn.alpha = label.alpha;
+			dispatchEvent(new Event("size"));
+		}
+		
+		private function maxSizeComplete (e:Event) :void {
+			removeEventListener( Event.ENTER_FRAME, sizeFrameHandler );
+			if ( contains( heightAnim ) ) removeChild( heightAnim );
+			heightAnim = null;
+			dispatchEvent(new Event("size"));
+		}
+		
+		private function minSizeComplete (e:Event) :void {
+			removeEventListener( Event.ENTER_FRAME, sizeFrameHandler );
+			if ( contains( heightAnim ) ) removeChild( heightAnim );
+			heightAnim = null;
+			dispatchEvent(new Event("size"));
+		}
+		
 		public override function setWidth (w:int) :void
 		{
 			//  bug fix for input-height-change event from AreaEditor.displayInsertForm resize bug and name field
@@ -158,7 +249,7 @@
 			
 			super.setWidth(w);
 			
-			closeButton.x = cssLeft - Math.ceil(5*CssUtils.numericScale);
+			closeButton.x = cssLeft - Math.ceil(6*CssUtils.numericScale);
 			
 			if( label ) {
 				label.setWidth(0);
@@ -175,8 +266,11 @@
 			minSizePopup.rootNode.removeItems();
 			
 			var minSize:Boolean = false;
-			var spc:Number = w - (label.getWidth() + label.x );
-			var p1:Number = label.getWidth() + minSizePopup.cssSizeX + closeButton.cssSizeX;
+			//var spc:Number = w - (label.getWidth() + label.x );
+			//var p1:Number = label.getWidth() + minSizePopup.cssSizeX + closeButton.cssSizeX;
+			var spc:Number = w - (closeButton.getWidth() + closeButton.x );
+			var p1:Number = closeButton.getWidth() + minSizePopup.cssSizeX;
+			
 			var ppi:PopupItem;
 			
 			if ( saveAndCloseButton && saveAndCloseButtonVisible )
@@ -306,20 +400,28 @@
 				minSizePopup.visible = false;
 			}
 			
-			if ( textBox )
+			if ( !minHeight && textBox )
 			{
-				textBox.y = mh + visibleBtn.cssMarginTop + cssTop;
+				textBox.y = mh + visibleBtn.cssMarginTop + cssTop + label.cssSizeY;
 			
 				if ( visibleBtn )
 				{
-					visibleBtn.y = mh + cssTop + visibleBtn.cssMarginTop + (textBox.cssSizeY-visibleBtn.cssSizeY);
+					visibleBtn.y = mh + cssTop + visibleBtn.cssMarginTop + (textBox.cssSizeY-visibleBtn.cssSizeY)+ label.cssSizeY;
 				}
 			}
 			
 			if( label ) {
-				label.x = int((w-(ofs+closeButton.cssSizeX)-label.getWidth())/2 + closeButton.x + closeButton.cssSizeX);
-				label.y = int(closeButton.y + (closeButton.cssSizeY - label.getHeight())/2);
+				//label.x = int((w-(ofs+closeButton.cssSizeX)-label.getWidth())/2 + closeButton.x + closeButton.cssSizeX);
+				label.x = cssLeft;// int((w - (ofs + closeButton.cssSizeX) - label.getWidth()) / 2 + closeButton.x + closeButton.cssSizeX);
+				//label.y = int(closeButton.y + (closeButton.cssSizeY - label.getHeight())/2);
+				if( !minHeight ) {
+					label.y = int(closeButton.y + (closeButton.cssSizeY + (4 * CssUtils.numericScale)) + yofs);
+				}
 			}
+			
+			
+			bgSprite.graphics.clear();
+			
 		}
 		
 	}

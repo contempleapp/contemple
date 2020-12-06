@@ -41,15 +41,17 @@
 			CTOptions.mobileProjectFolderName = "ask";
 			
 			//// to embed theme for testing use: app:/theme-demo
-			CTOptions.installTemplate = "app:/template-grinberg-v3";
+			//CTOptions.installTemplate = "app:/theme-demo";
+			CTOptions.installTemplate = "";
 			
+			/*
 			Console.log( "NumScale: " + CssUtils.numericScale );
 			Console.log( "IconSize: " + Options.iconSize);
 			Console.log( "BtnSize: " + Options.btnSize);
 			
 			Console.log( "ScaleFonts: " + CssStyleSheet.scaleFonts);
 			Console.log( "FontScale: " + CssStyleSheet.fontSizeScale);
-		
+			*/
 		
 			CTOptions.mobileWheelMove = 12 * CssUtils.numericScale;
 			CTOptions.previewAtBottom = true;

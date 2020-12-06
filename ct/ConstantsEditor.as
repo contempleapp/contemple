@@ -136,15 +136,15 @@
 			}
 			
 			if( folderBackBtn && folderLabel ) {
-				folderLabel.x = int(( w - (folderLabel.textField.textWidth + 4 /*+ cssLeft*2 + sbw*/) ) * .5);
+				folderLabel.x = int(( w - (folderLabel.textField.textWidth + (4*CssUtils.numericScale)) ) * .5);
 				
-				if( folderLabel.x < folderBackBtn.x + folderBackBtn.cssSizeX + 2 ) {
-					folderLabel.x = int(folderBackBtn.x + folderBackBtn.cssSizeX + 2);
+				if( folderLabel.x < folderBackBtn.x + folderBackBtn.cssSizeX + (2*CssUtils.numericScale) ) {
+					folderLabel.x = int(folderBackBtn.x + folderBackBtn.cssSizeX + (2*CssUtils.numericScale));
 				}
 			}
 			
 			if( nextButton && prevButton && scrollpane ) {
-				nextButton.x = int((w /*- cssLeft*/) - (Options.btnSize + nextButton.cssMarginRight));
+				nextButton.x = int(w - (Options.btnSize + nextButton.cssMarginRight));
 				prevButton.x = int(nextButton.x - (Options.btnSize + prevButton.cssMarginRight));
 			}
 			
@@ -156,8 +156,8 @@
 			
 			if(scrollpane) {
 				if( folderBackBtn && folderLabel ) {
-					scrollpane.y = int(cssTop*2 /*+ 16 */+ Math.max( folderBackBtn.cssSizeY, folderLabel.cssSizeY ));
-					scrollpane.setHeight( int( h-(Math.max(folderBackBtn.cssSizeY, folderLabel.cssSizeY) + cssBoxY + cssTop/* + 32*/) ) ); 
+					scrollpane.y = int(cssTop*2 + Math.max( folderBackBtn.cssSizeY, folderLabel.cssSizeY ));
+					scrollpane.setHeight( int( h-(Math.max(folderBackBtn.cssSizeY, folderLabel.cssSizeY) + cssBoxY + cssTop) ) ); 
 				}else{
 					if( searchBox ) {
 						scrollpane.setHeight(h - (cssBoxY + searchBox.cssSizeY + searchBox.cssBoxY) );

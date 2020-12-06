@@ -4,6 +4,7 @@
 	import flash.display.Sprite;
 	import agf.html.CssSprite;
 	import agf.html.CssStyleSheet;
+	import agf.html.CssUtils;
 	 
 	public class ItemBar extends CssSprite
 	{
@@ -78,7 +79,7 @@
 				var i:int;
 				var maxH:Number=0;
 				var hgt:Number;
-				
+				var m:Number = margin * CssUtils.numericScale;
 				tmp = DisplayObject( items[0] );
 				
 				if(!contains(tmp)) addChild(tmp);
@@ -94,7 +95,7 @@
 						if ( !it.visible ) {
 							it.x = 0;
 						}else{
-							it.x = tmp.x + tmp.width + margin;
+							it.x = tmp.x + tmp.width + m;
 							hgt = Math.floor( tmp.height );
 							if(hgt > maxH) maxH = hgt;
 							tmp = it;

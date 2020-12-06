@@ -84,11 +84,11 @@
 					}
 				}
 			}
+		
+			newText = new Button( [  Language.getKeyword("Select a Folder or a ZIP file with a Template") ], 0, 0, scrollpane.content, container.styleSheet, '','start-screen-new-template', false);
+			newText.addEventListener( MouseEvent.CLICK, newTextHandler);
 			
 			if( installedTemplates && installedTemplates.rootNode && installedTemplates.rootNode.children && installedTemplates.rootNode.children.length > 0 ) {
-				newText = new Button( [  Language.getKeyword("Select a Folder or a ZIP file with a Template") ], 0, 0, scrollpane.content, container.styleSheet, '','start-screen-new-template', false);
-				newText.addEventListener( MouseEvent.CLICK, newTextHandler);
-				
 				currTmplText = new Label( 0, 0, scrollpane.content, container.styleSheet, '', 'start-screen-info', false);
 				currTmplText.textField.multiline = true;
 				currTmplText.textField.wordWrap = true;
@@ -171,7 +171,7 @@
 			showNewTmpl = !showNewTmpl;
 			if(newBtn) newBtn.visible = showNewTmpl;
 			if(newZipBtn) newZipBtn.visible = showNewTmpl;
-			if(installedTemplates) installedTemplates.visible = showNewTmpl;
+			if(installedTemplates && installedTemplates.rootNode.children && installedTemplates.rootNode.children.length > 0) installedTemplates.visible = showNewTmpl;
 			if(currTmplText) currTmplText.visible = showNewTmpl;
 		}
 		

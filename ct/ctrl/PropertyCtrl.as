@@ -105,7 +105,6 @@
 		protected function labelFrame ( e:Event ) :void
 		{
 			if( abortLongClick ) {
-				//longClick = false;
 				labelUp();
 				return;
 			}
@@ -220,8 +219,7 @@
 					ny = menuHeight + 4;
 					var w2:int = int(ctrlOptions.rootNode.container.width * 0.5);
 					
-					//if ( ctrlOptions.rootNode.container.x - (w2*2 + bw2) >= 0 ) {
-					if ( ctrlOptions.rootNode.container.x /*- (w2*2 + bw2)*/ >= 0 ) {
+					if ( ctrlOptions.rootNode.container.x >= 0 ) {
 						ctrlOptions.rootNode.container.x = pm.x - (w2*2 + bw2);
 					}else{
 						// position right

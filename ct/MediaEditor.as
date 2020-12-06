@@ -62,7 +62,7 @@
 		public override function setWidth( w:int) :void {
 			super.setWidth(w);
 			var sbw:int = 0;
-			if( scrollpane && scrollpane.slider.visible ) sbw = scrollpane.slider.cssSizeX + 4;
+			if( scrollpane && scrollpane.slider.visible ) sbw = scrollpane.slider.cssSizeX + (4*CssUtils.numericScale);
 			if( addFileBtn ) addFileBtn.x = (w - cssLeft) - (addFileBtn.cssSizeX + addFileBtn.cssMarginRight);
 			if( itemList) {
 				if(itemList.items) {
@@ -385,17 +385,41 @@
 			clickScrolling=false;
 		}
 		
-		private function btnUp (event:MouseEvent) :void {
-			stage.removeEventListener( MouseEvent.MOUSE_MOVE, btnMove );
-			stage.removeEventListener( MouseEvent.MOUSE_UP, btnUp );
+		private var ltFramePos:Number;
+		private var shooting:Boolean = false;
+		
+		protected function shootHandler (event:Event) :void
+		{
+			if ( Math.abs(ltFramePos) > 1.05 ) {
+				scrollpane.slider.value -= ltFramePos;
+				scrollpane.scrollbarChange(null);
+				ltFramePos /= 1.15;
+			}else{
+				removeEventListener( Event.ENTER_FRAME, shootHandler );
+				shooting = false;
+			}
 		}
-		private function btnMove (event:MouseEvent) :void {
+		
+		protected function btnUp (event:MouseEvent) :void
+		{
+			removeEventListener( Event.ENTER_FRAME, btnMove );
+			stage.removeEventListener( MouseEvent.MOUSE_UP, btnUp );
+			
+			if ( ltFramePos > 9 || ltFramePos < -9 )
+			{
+				shooting = true;
+				addEventListener( Event.ENTER_FRAME, shootHandler );
+			}
+		}
+		
+		protected function btnMove (event:Event) :void
+		{
 			var dy:Number = mouseY - clickY;
 			
-			if( ! clickScrolling )
-			{
-				if( Math.abs(dy) > CTOptions.mobileWheelMove )
-				{
+			ltFramePos = dy * 3;
+			
+			if( ! clickScrolling ) {
+				if( Math.abs(dy) > CTOptions.mobileWheelMove ) {
 					clickScrolling = true;
 				}
 			}else{
@@ -405,8 +429,17 @@
 				clickY = mouseY;
 			}
 		}
-		private function btnDown (event:MouseEvent) :void {
-			stage.addEventListener( MouseEvent.MOUSE_MOVE, btnMove );
+		
+		protected function btnDown (event:MouseEvent) :void
+		{
+			ltFramePos = 0;
+			
+			if ( shooting ) {
+				removeEventListener( Event.ENTER_FRAME, shootHandler );
+				shooting = false;
+			}
+			
+			addEventListener( Event.ENTER_FRAME, btnMove );
 			stage.addEventListener( MouseEvent.MOUSE_UP, btnUp );
 			clickScrolling = false;
 			clickY = mouseY;

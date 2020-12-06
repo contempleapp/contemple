@@ -463,9 +463,9 @@
 					setHeight( Math.max( sp.height, mediaInfo.textHeight + (tfBtn ? tfBtn.cssSizeY : 4 )) + textField.textHeight + 8 );
 					
 					setWidth( getWidth() );
-					setTimeout( function(){
+					//setTimeout( function(){
 						dispatchEvent( new Event("heightChange") );
-					},123);
+					//},123);
 				}
 			}
 			else
@@ -506,17 +506,19 @@
 		
 		private function largeImagePreview (e:MouseEvent = null) :void
 		{
-			if( HtmlEditor.isPreviewOpen )
+			if( !HtmlEditor.isPreviewOpen )
 			{
-				try {
-					var he:HtmlEditor = HtmlEditor( Application.instance.view.panel.src );
-					if( he ) {
-						var imgpath:String = CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderRaw + CTOptions.urlSeparator + value;
-						he.loadWebURL( imgpath );
-					}
-				}catch(e:Error) {
-					Console.log("Error: " + e);
+				HtmlEditor.showPreview(true);
+			}
+			
+			try {
+				var he:HtmlEditor = HtmlEditor( Application.instance.view.panel.src );
+				if( he ) {
+					var imgpath:String = CTTools.projectDir + CTOptions.urlSeparator + CTOptions.projectFolderRaw + CTOptions.urlSeparator + value;
+					he.loadWebURL( imgpath );
 				}
+			}catch(e:Error) {
+				Console.log("Error: " + e);
 			}
 		}
 		
@@ -732,7 +734,7 @@
 				value = HtmlParser.toInputText( value );
 			}
 			
-			if( tp == "directory" || tp == "file"  ||  tp == "files" || tp == "image" || tp=="video" || tp=="audio" || tp=="pdf" || tp=="font" || tp == "zip")
+			if( tp == "directory" || tp == "file" || tp == "files" || tp == "image" || tp=="video" || tp=="audio" || tp=="pdf" || tp=="font" || tp == "zip")
 			{
 				var icoPath:String;
 				if( tp == "image" ) {
@@ -1352,6 +1354,7 @@
 				textField.wordWrap = true;
 				
 				rtItemList = new ItemList(0, 0, this, this.styleSheet, '', 'richtext-btn-list', false);
+				rtItemList.vert = true;
 				
 				btn = new Button([new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "undo.png",Options.iconSize,Options.iconSize)],0,0,rtItemList,this.styleSheet,'','richtext-btn richtext-btn-first',false);
 				btn.options.originalLabel = ".Undo";
@@ -1474,6 +1477,7 @@
 									new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "redo.png",Options.iconSize, Options.iconSize)  ];
 				
 				rtItemList = new ItemList(0,0,this,this.styleSheet,'','richtext-btn-list', false);
+				rtItemList.vert = true;
 				
 				var btnpp:Popup;
 				var s:int;
@@ -1534,7 +1538,7 @@
 						
 						btn = new Button(icons,0,0,rtItemList,this.styleSheet,'','richtext-btn'+ (i==0?" richtext-btn-first" : (i==richTextButtons.length-1?" richtext-btn-last":"")),false);
 						btn.options.originalLabel = richTextButtons[i];
-						btn.addEventListener(MouseEvent.MOUSE_DOWN, richtTextBtnHandler);
+						btn.addEventListener(MouseEvent.MOUSE_UP, richtTextBtnHandler);
 						rtItemList.addItem(btn, true);
 					
 					}
@@ -2861,8 +2865,7 @@
 				blocker.addEventListener( MouseEvent.MOUSE_DOWN, blockHandler );
 				if( ! tc.contains( blocker) ) tc.addChild( blocker );
 				
-				// hardcode padding: 16px
-				colorPicker = new ColorPicker( pw, (panel.cssSizeY/*getHeight()*/ * TemplateTools.editor_h) - mmh, tc, styleSheet, '', 'editor input-color-picker', false);
+				colorPicker = new ColorPicker( pw, (panel.cssSizeY * TemplateTools.editor_h) - mmh, tc, styleSheet, '', 'editor input-color-picker', false);
 				
 				colorPicker.name = "color_picker";
 				colorPicker.setLabel( labelText );
@@ -3236,7 +3239,7 @@
 				}
 				else
 				{
-					rtItemList.x = cssLeft;
+					rtItemList.x =  w - (rtItemList.width + rtItemList.cssBoxX + 8);
 					rtItemList.y = -rtItemList.height;
 				}
 				var H:int = textField.height;
@@ -3652,7 +3655,10 @@
 		{
 			if( textField )
 			{
-				addEventListener( MouseEvent.MOUSE_DOWN, tfDown );
+				setTimeout( function() {
+					addEventListener( MouseEvent.MOUSE_DOWN, tfDown );
+				}
+				, 123);
 				
 				if( _supertype == "screennumber" || _supertype == "screeninteger" )
 				{
@@ -3689,7 +3695,7 @@
 				}
 				swapState( "active" );
 			}
-			setTimeout( TemplateEditor.abortClickScrolling, 0);
+			//setTimeout( TemplateEditor.abortClickScrolling, 0);
 			
 		}
 		

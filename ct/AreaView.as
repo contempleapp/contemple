@@ -13,7 +13,7 @@
 	 
 	public class AreaView extends CssSprite
 	{
-		public function AreaView(w:Number=0, h:Number=0, parentCS:CssSprite=null, style:CssStyleSheet=null, name:String='', id:String="", classes:String="", noInit:Boolean=false)  {
+		public function AreaView(w:Number=0, h:Number=0, parentCS:CssSprite=null, style:CssStyleSheet=null, name:String='', id:String="", classes:String="", noInit:Boolean=false) {
 			super( w,h,parentCS,style,name,id,classes,noInit);
 			clickScrolling = false;
 			create();
@@ -36,6 +36,9 @@
 		private var currItemName:String="";
 		private var newItemDrag:Boolean=false;
 		private var viewSizeStartY:Number=0;
+		
+		public var backBtn:Button;
+		public var branchTitle:Label;
 		
 		internal static var clickScrolling:Boolean=false;
 		private var clickTime:Number=0;
@@ -78,6 +81,12 @@
 			sizeButton = new Button ([],0,0,this,styleSheet,'','area-sizebutton-v',false);
 			sizeButton.addEventListener( MouseEvent.MOUSE_DOWN, viewSizeDown );
 			
+			branchTitle = new Label(0,0,this,styleSheet,'','areaview-branch-title',false);
+			
+			backBtn = new Button( [ new IconFromFile(Options.iconDir+CTOptions.urlSeparator+"navi-left-btn.png", Options.iconSize, Options.iconSize) ], 0, 0, this, styleSheet, '', 'areaview-backbtn', false );
+			backBtn.autoSwapState = "";
+			backBtn.visible = false;
+			
 			setWidth( getWidth() );
 			setHeight(getHeight());
 		}
@@ -96,30 +105,16 @@
 		{
 			var btn:Button;
 			if( icon != "" ) {
-				btn = new Button([new IconFromFile(icon, Options.iconSize, Options.iconSize), Language.getKeyword(nameLabel), new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "forward-btn.png",Options.iconSize,Options.iconSize)], 0, 0, itemList2, styleSheet, '', 'areaview-item-btn', false);
+				btn = new Button([new IconFromFile(icon, Options.iconSize, Options.iconSize), Language.getKeyword(nameLabel)], 0, 0, itemList2, styleSheet, '', 'areaview-item-btn', false);
 			}else{
-				btn = new Button([Language.getKeyword(nameLabel), new IconFromFile(Options.iconDir + CTOptions.urlSeparator + "neu-anordnen.png",Options.iconSize,Options.iconSize)], 0, 0, itemList2, styleSheet, '', 'areaview-item-btn', false);
+				btn = new Button([Language.getKeyword(nameLabel)], 0, 0, itemList2, styleSheet, '', 'areaview-item-btn', false);
 			}
 			itemList2.addItem( btn );
 			btn.options.intid = itemList2.numItems-1;
 			btn.options.templateId = nameLabel;
 			btn.addEventListener( MouseEvent.MOUSE_DOWN, newItemDown );
-			btn.addEventListener( MouseEvent.CLICK, newItemClick );
 		}
 		
-		private function newItemClick (e:MouseEvent) :void {
-			if( e ) {
-				e.stopImmediatePropagation();
-				e.preventDefault();
-			}
-			if( clickScrolling ) {
-				clickScrolling = false;
-			}
-			else
-			{
-				editor.newItem( currItemId, currItemName );
-			}
-		}
 		private function newItemUp (e:MouseEvent) :void
 		{
 			if( e ) {
@@ -131,7 +126,10 @@
 			if( newItemDrag ) {
 				newItemDrag = false;
 			}else{
-				stage.removeEventListener( MouseEvent.MOUSE_MOVE, newItemMove );
+				if ( !clickScrolling && !longClick ) {
+					editor.newItem( currItemId, currItemName );
+				}
+				removeEventListener( Event.ENTER_FRAME, newItemMove );
 				setTimeout( function () {
 					clickScrolling = false;
 				}, 77);
@@ -140,7 +138,7 @@
 		
 		private var longClick:Boolean=false;
 		
-		private function newItemMove (e:MouseEvent) :void
+		private function newItemMove (e:Event) :void
 		{
 			var dy:Number = mouseY - clickY;
 			if( !clickScrolling )
@@ -154,9 +152,15 @@
 				if( !clickScrolling ) {
 					if( getTimer() - clickTime > CTOptions.longClickTime ) {
 						longClick = true;
+						
+						removeEventListener( Event.ENTER_FRAME, newItemMove );
+						stage.removeEventListener( MouseEvent.MOUSE_UP, newItemUp );
+						
+						newItemDrag = true;
+						editor.startDragNewItem( currItemId, currItemName );
 					}
 				}
-			}else{
+			}else{ 
 				scrollpane2.slider.value -= dy;
 				scrollpane2.scrollbarChange(null);
 				clickY = mouseY;
@@ -179,16 +183,9 @@
 			newItemDrag = false;
 			longClick = false;
 			
-			if( currItem.mouseX > currItem.contRight.x - currItem.clipSpacing ) {
-				newItemDrag = true;
-				editor.startDragNewItem( currItemId, currItemName );
-			} 
-			else 
-			{
-				clickTime = getTimer();
-				clickY = mouseY;
-				stage.addEventListener( MouseEvent.MOUSE_MOVE, newItemMove );
-			}
+			clickTime = getTimer();
+			clickY = mouseY;
+			addEventListener( Event.ENTER_FRAME, newItemMove );
 		}
 		
 		public override function setWidth (w:int) :void { 
@@ -200,9 +197,19 @@
 			var itm:CssSprite;
 			var btn:Button;
 			
+			if ( backBtn ) {
+				backBtn.setWidth( w );
+			}
+			
+			if ( branchTitle ) {
+				branchTitle.x = Options.iconSize + (8 * CssUtils.numericScale);
+				branchTitle.setWidth( w - Options.btnSize );
+				branchTitle.setHeight( branchTitle.textField.textHeight + (8 * CssUtils.numericScale));
+			}
+			
 			if( scrollpane1 ) {
 				sbw = 0;
-				if( scrollpane1.slider.visible ) sbw = 10;
+				if( scrollpane1.slider.visible ) sbw = (8*CssUtils.numericScale);
 				
 				scrollpane1.setWidth ( w );
 				
@@ -216,7 +223,7 @@
 			}
 			if( scrollpane2 ) {
 				sbw = 0;
-				if( scrollpane2.slider.visible ) sbw = 10;
+				if( scrollpane2.slider.visible ) sbw = (8*CssUtils.numericScale);
 				
 				scrollpane2.setWidth( w );
 				
@@ -238,6 +245,14 @@
 		public override function setHeight (h:int) :void { 
 			super.setHeight(h);
 			
+			if ( backBtn && backBtn.visible ) {
+				backBtn.y = itemList1.cssTop;
+				h -= backBtn.cssSizeY + backBtn.cssMarginBottom;
+			}
+			
+			if ( branchTitle ) {
+				branchTitle.y = itemList1.cssTop;
+			}
 			var h1:Number = Math.floor( h - sizeH );
 			if( h1 < minH ) {
 				h1 = minH;
@@ -247,36 +262,65 @@
 			if( h2 < minH ) {
 				h2 = minH;
 			}
+			
 			if( scrollpane1 ) {
 				scrollpane1.setHeight ( h1 );
 				scrollpane1.contentHeightChange();
+				if ( backBtn && backBtn.visible ) {
+					scrollpane1.y = cssTop + backBtn.cssSizeY + backBtn.cssMarginBottom;
+				}else{
+					scrollpane1.y = cssTop;
+				}
 			}
 			if( scrollpane2 ) {
-				scrollpane2.y = cssTop + h1 + newItemLabel.cssSizeY + cssTop + 2;
+				scrollpane2.y = scrollpane1.y + cssTop + h1 + newItemLabel.cssSizeY + (2*CssUtils.numericScale);
 				scrollpane2.setHeight ( h2 - newItemLabel.height );
 				scrollpane2.contentHeightChange();
 			}
 			if(newItemLabel) {
-				newItemLabel.y = cssTop + h1;
+				newItemLabel.y = scrollpane1.y + cssTop + h1;
 				scrollpane2.y += scrollpane2.cssTop + newItemLabel.cssSizeY + newItemLabel.cssMarginBottom;
 			}
 			if( sizeButton ) {
-				sizeButton.y = cssTop + h1;
+				sizeButton.y = scrollpane1.y + cssTop + h1;
+			}
+		}
+		
+		private var shooting:Boolean = false;
+		private var ltFramePos:Number;
+		
+		private function shootHandler (event:Event) :void
+		{
+			if ( Math.abs(ltFramePos) > 1.05 ) {
+				scrollpane1.slider.value -= ltFramePos;
+				scrollpane1.scrollbarChange(null);
+				ltFramePos /= 1.15;
+			}else{
+				removeEventListener( Event.ENTER_FRAME, shootHandler );
+				shooting = false;
 			}
 		}
 		
 		// area tree click
 		private function btnUp (event:MouseEvent) :void
 		{
-			if( event ) {
+			/*if( event ) {
 				event.stopImmediatePropagation();
 				event.preventDefault();
-			}
+			}*/
 			stage.removeEventListener( MouseEvent.MOUSE_MOVE, btnMove );
 			stage.removeEventListener( MouseEvent.MOUSE_UP, btnUp );
+			
+			if ( ltFramePos > 9 || ltFramePos < -9 )
+			{
+				shooting = true;
+				addEventListener( Event.ENTER_FRAME, shootHandler );
+			}
 		}
 		private function btnMove (event:MouseEvent) :void {
 			var dy:Number = mouseY - clickY;
+			
+			ltFramePos = dy * 3;
 			
 			if( ! clickScrolling )
 			{
@@ -292,10 +336,17 @@
 			}
 		}
 		private function btnDown (event:MouseEvent) :void {
-			if( event ) {
+		/*	if( event ) {
 				event.stopImmediatePropagation();
 				event.preventDefault();
+			}*/
+			ltFramePos = 0;
+			
+			if ( shooting ) {
+				removeEventListener( Event.ENTER_FRAME, shootHandler );
+				shooting = false;
 			}
+			
 			stage.addEventListener( MouseEvent.MOUSE_MOVE, btnMove );
 			stage.addEventListener( MouseEvent.MOUSE_UP, btnUp );
 			clickScrolling = false;

@@ -302,12 +302,6 @@
 				appContent.setWidth( w );
 				appContent.setHeight( h );
 				
-				view.setWidth( w );
-				view.setHeight( h );
-				view.y = mainMenu.getHeight();
-				view.cssHeight -= mainMenu.getHeight();
-				view.resize(w, h);
-				
 				if(mainMenu) {
 					var sw:int = 0;
 					if( secMenu ) {
@@ -318,6 +312,14 @@
 					mainMenu.format();
 					mainMenu.init();
 				}
+				
+				view.setWidth( w );
+				view.setHeight( h );
+				view.y = mainMenu.getHeight();
+				view.cssHeight -= mainMenu.getHeight();
+				view.resize(w, h);
+				
+				
 			}
 			if(loadSprite) setLoadingSize(w,h);
 		}

@@ -62,6 +62,9 @@ sliderbutton { background: #fff; background-alpha: 0.2; width: 16px;}
 
 .areaview-scroll-container { }
 
+.areaview-branch-title {  font-family: "Myriad Pro"; font-size:13px; background:none; padding: 4px 8px; }
+.areaview-backbtn { font-family: "Myriad Pro"; font-size:16px; background:none; padding: 4px 10px; margin-bottom: 6px; }
+
 .text-scrollbar { width: 16px; background: #333; opacity: 0.7; }
 .text-scrollbar-button { background: #123; }
 .code-scrollbar { background: #202226; opacity:1; background-alpha: 0.3; border-radius: 5px; }
@@ -75,11 +78,10 @@ sliderbutton { background: #fff; background-alpha: 0.2; width: 16px;}
 .multisel-cancel-button { background:#202226; border-top-right-radius: 7px; border-bottom-right-radius:7px; border-left:none; background-alpha: 0.2; }
 .multisel-undo-button { background:#202226; border-top-left-radius: 7px; border-bottom-left-radius:7px; background-alpha: 0.2;  }
 .multisel-delete-button { background:#202226; border-radius: 7px; margin: 0px 12px; background-alpha: 0.2; }
-
 .name-visible-button {
 	border-bottom:1px solid #efefef; border-alpha:0.15; margin-top: 0px;
 }
-.name-label {  font-family: "Myriad Pro"; font-size:16px; font-weight:bold; }
+.name-label {  font-family: "Myriad Pro"; font-size:13px; font-weight:normal; }
 
 .searchbox-textfield { padding:5px; margin-left: 24px; margin-top: 8px; border: 2px solid #fff; border-radius: 18px; border-alpha: 0.5; color:#FFFFFF; }
 .searchbox-textfield:active { background: #000; background-alpha: 0.1;  }
@@ -243,7 +245,7 @@ border-alpha:0.1; padding:12px 2px; vertical-align:top; margin-bottom: 0px; font
 
 .areaeditor-folder {}
 .constanteditor-folder:active, .areaeditor-folder:active { background:#000; background-alpha: 0.1; }
-.tabs { margin-top: 8px; margin-bottom: 0px;}
+.tabs { margin-top: 12px; margin-bottom: 4px;}
 .areaeditor-tab {  background: #FFFFFF; background-alpha:0; padding: 0px 7px; padding-top:4px; 
 	border: 1px solid #fff; border-alpha:0.15; border-bottom: none; border-top-left-radius: 7px; border-top-right-radius: 7px; }
 .areaeditor-tab:active { background-alpha:0.075; }
@@ -255,7 +257,7 @@ border-alpha:0.1; padding:12px 2px; vertical-align:top; margin-bottom: 0px; font
 .media-info { margin-left:7px; text-align: right; }
 .media-info, .media-info-text { font-family: "Myriad Pro Light"; font-size: 13px; color: #F0F7FF; }
 
-.constant-editor, .area-editor, .media-editor { padding: 10px; padding-top:3px; }
+.constant-editor, .area-editor, .media-editor { padding: 8px; padding-top:3px; }
 .area-editor { padding-top: 2px; padding-left: 12px; }
 .constants-container, .area-container, .area-insert-container, .media-container { padding: 0px; }
 
@@ -282,11 +284,12 @@ border-alpha:0.1; padding:12px 2px; vertical-align:top; margin-bottom: 0px; font
 
 viewcontainer { background:#131313; border-top: 2px solid #202428; }
 
-.mainmenu { font-size: 14px; font-weight: 200; }
-menu.mainmenu, menu.secmenu { background: #202226; }
+
 panel#console { background:#10171F; }
 panel#TextView { background:#FFFFFF; }
 
+.mainmenu { font-size: 14px; font-weight: 200; }
+menu.mainmenu, menu.secmenu { background: #202226; }
 button.mainmenu { padding: 15px 7px; vertical-align:middle; text-align: left; font-size:14px; font-weight: 200; }
 button.mainmenu:active { background:linear-gradient(top, #303539 0%, #000000 70%, #00070f 100%);  font-size:14px; font-weight: 200;  }
 button.secmenu { width: 24px; height:50px; vertical-align:middle; text-align: right; }

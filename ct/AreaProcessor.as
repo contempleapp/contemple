@@ -64,6 +64,9 @@
 		
 		protected var delTables:Array;
 		
+		protected var shooting:Boolean = false;
+		protected var ltFramePos:Number;
+		
 		protected function invalidateCurrArea ( testST:Boolean=false ) :void
 		{
 			if( !currentArea ) return;
@@ -224,8 +227,16 @@
 			
 			areaClickItem = Ctrl( Sprite(e.currentTarget) );
 			areaClickTime = getTimer();
-			areaClickY = mouseY;  
+			areaClickY = mouseY;
+			
 			TemplateEditor.endClickScrolling();
+			
+			ltFramePos = 0;
+			
+			if ( shooting ) {
+				removeEventListener( Event.ENTER_FRAME, shootHandler2 );
+				shooting = false;
+			}
 			
 			if( !longClick ) 
 			{
@@ -279,13 +290,16 @@
 			e.stopImmediatePropagation();
 			
 			var dy:Number = mouseY - areaClickY;
+			ltFramePos = dy * 3;
+			
 			var sd:Slider;
 			if( scrollpane ) sd = scrollpane.slider;
 			
 			if( TemplateEditor.clickScrolling )
 			{
 				if(sd) sd.value -= dy;
-				if( scrollpane ) scrollpane.scrollbarChange(null);
+				if ( scrollpane ) scrollpane.scrollbarChange(null);
+				
 				areaClickY = mouseY;
 			}
 			else
@@ -332,6 +346,26 @@
 						displayInsertForm( T, true, _subform, _inlineArea, null, '', 0, ( _subform ? 5 : 2) );
 					}else Console.log("ERROR: Can Not Find Template '" + areaClickItem.options.result.subtemplate + "' For Page Item: " +  areaClickItem.options.result.name);
 				}
+			}else{
+				if ( ltFramePos > 15 || ltFramePos < -15 )
+				{
+					shooting = true;
+					addEventListener( Event.ENTER_FRAME, shootHandler2 );
+				}
+			}
+		}
+		
+		private function shootHandler2 (event:Event) :void
+		{
+			if ( Math.abs(ltFramePos) > 1.05 ) {
+				
+				scrollpane.slider.value -= ltFramePos;
+				scrollpane.scrollbarChange(null);
+				//insertScrollChange(null);
+				ltFramePos /= 1.15;
+			}else{
+				removeEventListener( Event.ENTER_FRAME, shootHandler2 );
+				shooting = false;
 			}
 		}
 		
@@ -645,7 +679,6 @@
 			if( currentTemplate && currentTemplate.numAreas > 0 ) {
 				createAed();
 			}
-			
 			
 			Application.instance.hideLoading();
 			

@@ -10,6 +10,8 @@
 	{
 		public function Animation () {}
 		
+		public var loop:Boolean = false;
+		
 		public function stop () :void
 		{
 			removeEventListener( Event.ENTER_FRAME, frameHandler );
@@ -100,9 +102,6 @@
 				addEventListener( Event.ENTER_FRAME, frameHandler );
 			}
 		}
-		
-		
-		public var loop:Boolean = false;
 		
 		private var _target:Object;
 		private var _args:Object;

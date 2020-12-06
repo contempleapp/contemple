@@ -2,7 +2,7 @@
 {
 	import flash.display.DisplayObject;
 	import flash.display.Sprite;
-	
+	import agf.html.CssUtils;
 	import agf.html.CssSprite;
 	import agf.html.CssStyleSheet;
 	import flash.utils.setTimeout;
@@ -30,7 +30,8 @@
 				{
 					var i:int;
 					var it:CssSprite;
-					var pos:int = cssTop + margin;
+					var m:Number = margin * CssUtils.numericScale;
+					var pos:int = cssTop + m;
 					var mw:Number=0;
 					var w:int;
 					
@@ -47,7 +48,7 @@
 								it.y = 0;
 							}else{
 								it.y = pos;
-								pos += it.cssSizeY + margin;
+								pos += it.cssSizeY + m;
 							}
 						}
 					}

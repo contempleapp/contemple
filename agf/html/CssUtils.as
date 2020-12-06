@@ -44,7 +44,7 @@
 			
 			if( flash.system.Capabilities.screenDPI > 96 )
 			{
-				numericScale = flash.system.Capabilities.screenDPI / 72 / 2;
+				numericScale = flash.system.Capabilities.screenDPI / 127;
 			}
 			else
 			{

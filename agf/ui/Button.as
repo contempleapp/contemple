@@ -181,6 +181,7 @@
 			
 			var l:int = cssLeft;
 			var r:int = cssRight;
+			var t:Number;
 			
 			if( contLeft ) {
 				l += contLeft.width + margin;
@@ -192,10 +193,20 @@
 			}
 			if( _label ) {
 				
-				if( contRight ) {
-					_label.setWidth( r - _label.x );
+				if ( contRight ) {
+					t = r - _label.x;
+					if( t > 0 ) {
+						_label.setWidth( t );
+					}else{
+						_label.setWidth( 1 );
+					}
 				}else{
-					_label.setWidth( cssRight - _label.x );
+					t = cssRight - _label.x;
+					if( t > 0 ) {
+						_label.setWidth( t );
+					}else{
+						_label.setWidth( 1 );
+					}
 				}
 				
 				if( autoHideLabel && _label && _label.textField ) {

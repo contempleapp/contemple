@@ -438,7 +438,7 @@
 			var dv:Boolean = db.deleteQuery (delSTHandler, "template", "name=:nam", pms)
 			
 			if(!dv) {
-				Console.log("Error: Can not delete subtemplate: " + reloadSubTName );
+				Console.log("Error: Can Not Delete Subtemplate: " + reloadSubTName );
 				delSTHandler(null);
 			}
 		}
@@ -472,50 +472,44 @@
 					if( CTTools.internDBCreateCmds || CTOptions.debugOutput ) Console.log("Load Subtemplate " + nam );
 				
 				}else{
-					//if(saveAsFirst) {
-						// reload and delete sql tables from subtemplate
-						if( st.tables != "" )
+					// reload and delete sql tables from subtemplate
+					if( st.tables != "" )
+					{
+						reloadSubTName = nam;
+						reloadSubTPath = path;
+						reloadSubTCompleteHandler = completeHandler;
+						var stid:int = CTTools.subTemplates.indexOf(st);
+						
+						if( stid >= 0 ) {
+							CTTools.subTemplates.splice(stid, 1);
+						}
+						
+						reloadSubTItems = null;
+						
+						var tmp:Object;
+						
+						if( pageItems && pageItems.length > 0 )
 						{
-							reloadSubTName = nam;
-							reloadSubTPath = path;
-							reloadSubTCompleteHandler = completeHandler;
-							var stid:int = CTTools.subTemplates.indexOf(st);
-							
-							if( stid >= 0 ) {
-								CTTools.subTemplates.splice(stid, 1);
-							}
-							
-							reloadSubTItems = null;
-							
-							var tmp:Object;
-							
-							if( pageItems && pageItems.length > 0 )
+							reloadSubTItems = [];
+							for( var i:int = pageItems.length-1; i>=0; i-- )
 							{
-								reloadSubTItems = [];
-								for( var i:int = pageItems.length-1; i>=0; i-- )
-								{
-									if( pageItems[i].subtemplate == nam ) {
-										tmp = pageItems[i];
-										pageItems.splice( i, 1);
-										reloadSubTItems.push( tmp );
-									}
+								if( pageItems[i].subtemplate == nam ) {
+									tmp = pageItems[i];
+									pageItems.splice( i, 1);
+									reloadSubTItems.push( tmp );
 								}
 							}
-							
-							var dv:Boolean = db.query( delTblHandler, "DROP TABLE " + st.tables, {});
-							
-							if(!dv) {
-								if( CTTools.internDBCreateCmds || CTOptions.debugOutput ) Console.log( "Error: No subtemplate table found " + nam  + ": " + st.tables );
-								loadSubTemplate( reloadSubTPath, reloadSubTCompleteHandler);
-							}else{
-								if( CTTools.internDBCreateCmds || CTOptions.debugOutput ) Console.log("Subtemplate " + nam  + " cleared");
-							}
 						}
-				/*	}else{
-						trace("ST already loaded...");
-						if( CTTools.internDBCreateCmds || CTOptions.debugOutput ) Console.log("Subtemplate '" + nam  + "' Already Loaded" );
-						if( completeHandler != null ) completeHandler();
-					}*/
+						
+						var dv:Boolean = db.query( delTblHandler, "DROP TABLE " + st.tables, {});
+						
+						if(!dv) {
+							if( CTTools.internDBCreateCmds || CTOptions.debugOutput ) Console.log( "Error: No subtemplate table found " + nam  + ": " + st.tables );
+							loadSubTemplate( reloadSubTPath, reloadSubTCompleteHandler);
+						}else{
+							if( CTTools.internDBCreateCmds || CTOptions.debugOutput ) Console.log("Subtemplate " + nam  + " cleared");
+						}
+					}
 					return;
 				}
 				 
@@ -738,7 +732,7 @@
 							if( !writeTextFile( projectDir + CTOptions.urlSeparator + CTOptions.projectFolderTemplate + CTOptions.urlSeparator + CTOptions.subtemplateFolder + CTOptions.urlSeparator + internSubTempl.name + CTOptions.urlSeparator + xo.template.@initquery.toString(),
 												sql )) 
 							{
-								Console.log("Error: Subtemplate initquery write error " + xo.template.@initquery.toString() );
+								Console.log("Error: Subtemplate Initquery Write error " + xo.template.@initquery.toString() );
 							}else{
 								execSql(sql, onInsertSubTQuery);
 								return;
@@ -802,7 +796,7 @@
 						if( !writeTextFile( projectDir + CTOptions.urlSeparator + CTOptions.projectFolderTemplate + CTOptions.urlSeparator + CTOptions.subtemplateFolder + CTOptions.urlSeparator + internSubTempl.name + CTOptions.urlSeparator + xo.template.@defaultquery.toString(),
 											sql )) 
 						{
-							Console.log("Error: Subtemplate defaultquery write error " + xo.template.@defaultquery.toString() );
+							Console.log("Error: Subtemplate Defaultquery Write Error " + xo.template.@defaultquery.toString() );
 						}else{
 							execSql(sql, onInsertSubTQuery2);
 							return;
@@ -4190,14 +4184,6 @@
 							}
 						}
 					}
-					/*
-					if( pf.hasInlineAreas ) {
-						trace("PF w inline Areas: " + pf.name );
-						if( typeof(pf.inlineAreas[ name ]) != "undefined") {
-							trace("Invalidate inline Area: " + name);
-							pf.contentDirty();
-						}
-					}*/
 					
 				}
 			}

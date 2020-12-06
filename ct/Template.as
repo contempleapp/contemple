@@ -48,7 +48,7 @@
 		public var tables:String="";             // DB Table name
 		public var fields:String="";             // DB Field names, comma separated
 		
-		public var section:String="";			// TODO: Subtemple section for subtemplate organisation: section = "folder.folder";
+		public var section:String="";			// Subtemple section
 		
 		public var defaultcontent:String="";  // XML File with default content wich can be installed as an option with the Theme. To generate the XML File, Run the following Command in Contemple: 'TemplateTools export-all' and copy the XML from the Console (MainMenu / Developer / Process Command )
 		
@@ -822,8 +822,6 @@
 										if( nam.indexOf(".") >= 0 ) {
 											sections = nam.split(".");
 											namL = sections.length;
-										//	nam = sections[sections.length-1];
-										//	sections.splice( sections.length-1, 1);
 											nam = sections.pop();
 											if( sections.length > 0 && !isNaN(Number(sections[sections.length-1])) ) {
 												prio = parseInt( sections[sections.length-1] );

@@ -96,21 +96,19 @@
 		
 		private var tabs:ItemBar;
 		private var tabsPP:Popup;
-		private var ltFramePos:Number;
 		
 		private static var areaTreeDirty:Boolean = true;
 		public static function invalidateAreaTree () :void {
 			areaTreeDirty = true;
 		}
 		
-		private var shooting:Boolean = false;
-		
 		protected function shootHandler (event:Event) :void
 		{
 			if ( Math.abs(ltFramePos) > 1.05 ) {
 				scrollpane.slider.value -= ltFramePos;
 				scrollpane.scrollbarChange(null);
-				ltFramePos /= 1.25;
+				insertScrollChange(null);
+				ltFramePos /= 1.15;
 			}else{
 				removeEventListener( Event.ENTER_FRAME, shootHandler );
 				shooting = false;
@@ -122,7 +120,7 @@
 			removeEventListener( Event.ENTER_FRAME, btnMove );
 			stage.removeEventListener( MouseEvent.MOUSE_UP, btnUp );
 			
-			if ( ltFramePos > 15 || ltFramePos < -15 )
+			if ( ltFramePos > 9 || ltFramePos < -9 )
 			{
 				shooting = true;
 				addEventListener( Event.ENTER_FRAME, shootHandler );
@@ -133,7 +131,7 @@
 		{
 			var dy:Number = mouseY - clickY;
 			
-			ltFramePos = dy * 4;
+			ltFramePos = dy * 3;
 			
 			if( ! clickScrolling ) {
 				if( Math.abs(dy) > CTOptions.mobileWheelMove ) {
@@ -143,6 +141,7 @@
 				// scroll
 				scrollpane.slider.value -= dy;
 				scrollpane.scrollbarChange(null);
+				insertScrollChange(null);
 				clickY = mouseY;
 			}
 		}
@@ -205,7 +204,7 @@
 						
 						var f:int;
 						var areas:Vector.<Area>;
-						var all:String = CTTools.activeTemplate.files;
+						var all:String = CTTools.activeTemplate.indexFile + "," + CTTools.activeTemplate.files;
 						
 						if( CTTools.pages && CTTools.pages.length > 0 ) {
 							for(f=0;f<CTTools.pages.length; f++) {
@@ -214,7 +213,6 @@
 						}					
 						
 						var tFiles:Array = all.split(",");
-						tFiles.splice(0, 0, CTTools.activeTemplate.indexFile);
 						
 						var L:int;
 						var nam:String;
@@ -260,12 +258,31 @@
 						if( CTOptions.reverseAreasPopup )
 							areapp.rootNode.children.reverse();
 						
-						dpth = 0;
-						cloneAreas( areapp.rootNode, areaView.rootNode );
-						areaView.rootNode.format(false);
-						
-						areaView.rootNode.addEventListener( "animationFrame", areaAnimFrame);
-						areaView.rootNode.addEventListener( "animationComplete", areaAnimComplete);
+						if ( CTOptions.showAreaTree )
+						{
+							dpth = 0;
+							cloneAreas( areapp.rootNode, areaView.rootNode );
+							areaView.rootNode.format(false);
+							
+							areaView.rootNode.addEventListener( "animationFrame", areaAnimFrame);
+							areaView.rootNode.addEventListener( "animationComplete", areaAnimComplete);
+						}
+						else
+						{
+							addChild( treeNodeAnim );
+							addChild( treeNodeAnim2 );
+							addChild( backBtnAnim );
+							addChild( branchTitleAnim );
+							
+							areaView.backBtn.addEventListener(MouseEvent.CLICK, areaBackClick);
+							
+							if ( currTreeNodes && currTreeNodes.length > 1 ) {
+								showTreeBranch( currTreeNodes.pop() );
+							}else{
+								showTreeBranch( areapp.rootNode );
+							}
+							areaView.rootNode.format(false);
+						}
 					}
 				}
 				
@@ -304,6 +321,143 @@
 			showAreaItems();
 			if( CTOptions.previewInEditor && CTTools.procFiles ) {
 				setCurrPF();
+			}
+		}
+		
+		private function areaBackClick ( e:MouseEvent ) :void
+		{
+			if ( currTreeNodes )
+			{
+				// go back
+				currTreeNodes.pop();
+				
+				if (currTreeNodes.length > 0) {
+					areaView.scrollpane1.content.alpha = 0;
+					areaView.scrollpane1.content.x = -areaView.cssSizeX;
+					treeNodeAnim.run( areaView.scrollpane1.content, { x: 0 }, 345, Strong.easeOut );
+					treeNodeAnim2.run( areaView.scrollpane1.content, { alpha: 1 }, 900, Strong.easeOut );
+					
+					showTreeBranch( currTreeNodes.pop() );
+					return;
+				}
+			}
+			
+			// go to root
+			areaView.scrollpane1.alpha = 0;
+			areaView.scrollpane1.y = areaView.backBtn.cssSizeY + areaView.backBtn.y;
+			treeNodeAnim.run( areaView.scrollpane1, { y: areaView.cssTop }, 345, Strong.easeOut );
+			treeNodeAnim2.run( areaView.scrollpane1, { alpha: 1 }, 900, Strong.easeOut );
+			
+			showTreeBranch( areapp.rootNode );
+		}
+		
+		private static var currTreeNodes:Vector.<PopupItem> = new Vector.<PopupItem>();
+		
+		private function showTreeBranch ( node:PopupItem ) :void
+		{
+			areaView.scrollpane1.contentHeightChange();
+			
+			var treeNode:ItemTree = areaView.itemList1;
+			treeNode.clearAllItems();
+			
+			areaView.scrollpane1.applyScrollValue( areaView.scrollpane1.slider.minValue );
+			areaView.scrollpane1.content.y = 0;
+			
+			var bt:Button;
+			var i:int;
+			
+			if ( node != areapp.rootNode )
+			{
+				if( areaView.backBtn.visible == false ) {
+					// fade back button in
+					areaView.backBtn.alpha = 0;
+					areaView.backBtn.x = -areaView.cssSizeX;
+					backBtnAnim.run( areaView.backBtn, { x: 0, alpha: 1 }, 345, Strong.easeOut );
+					areaView.backBtn.visible = true;
+				}
+				
+				currTreeNodes.push(node);
+			}
+			else
+			{
+				currTreeNodes = new Vector.<PopupItem>();
+				
+				areaView.backBtn.visible = false;
+				areaView.branchTitle.visible = false;
+			}
+			
+			if( node.children && node.children.length > 0 )
+			{
+				var L:int = node.children.length;
+				for ( i = 0; i < L; i++) {
+					showTreeNode( node.children[i] );
+				}
+			}
+			else
+			{
+				showTreeNode( node );
+			}
+			
+			areaView.scrollpane1.contentHeightChange();
+			areaView.setWidth( areaView.getWidth() );
+			areaView.setHeight( areaView.getHeight() );
+			
+			if ( node != areapp.rootNode )
+			{
+				var s:String = "";
+				
+				for (i = 0; i < currTreeNodes.length; i++) {
+					s += currTreeNodes[i].label + " » ";
+				}
+				// fade back button in
+				areaView.branchTitle.alpha = 0;
+				areaView.branchTitle.x = 0;
+				branchTitleAnim.run( areaView.branchTitle, { x:  Options.iconSize + (8*CssUtils.numericScale), alpha: 1 }, 345, Strong.easeOut );
+				
+				areaView.branchTitle.visible = true;
+				areaView.branchTitle.label = s.substring(0, s.length - 3);
+				
+				areaView.setWidth( areaView.getWidth() );
+			}
+			
+			setCurrArea( areaView.itemList1, true );
+		}
+		
+		private function openTreeBranch ( e:MouseEvent ) :void
+		{
+			// go forward
+			areaView.scrollpane1.content.alpha = 0;
+			areaView.scrollpane1.content.x = areaView.cssSizeX;
+			treeNodeAnim.run( areaView.scrollpane1.content, { x: 0 }, 345, Strong.easeOut );
+			treeNodeAnim2.run( areaView.scrollpane1.content, { alpha: 1 }, 900, Strong.easeOut );
+			
+			showTreeBranch( Button(e.currentTarget).options.itemNode );
+		}
+		
+		private function showTreeNode ( node:PopupItem ) :void
+		{
+			var treeNode:ItemTree = areaView.itemList1;
+			var bt:Button;
+			
+			if( node.children && node.children.length > 0 )
+			{
+				bt = new Button( [new IconFromFile(Options.iconDir + "/folder.png", Options.iconSize, Options.iconSize), node.label, new IconFromFile(Options.iconDir + "/navi-right-btn.png", Options.iconSize, Options.iconSize) ], 0, 0, treeNode.itemList, styleSheet, '', 'tree-item-0', false );
+				bt.autoSwapState = "";
+				bt.options.itemNode = node;
+			
+				bt.addEventListener( MouseEvent.CLICK, openTreeBranch);
+				treeNode.addItem( bt, false );
+			}else{
+				
+				if( node.options.area && node.options.area.icon != "" ) {
+					bt = new Button( [ new IconFromFile(node.options.area.icon, Options.iconSize, Options.iconSize), node.label ], 0, 0, treeNode.itemList, styleSheet, '', 'tree-item-0', false );
+				}else{
+					bt = new Button( [ node.label ], 0, 0, treeNode.itemList, styleSheet, '', 'tree-item-0', false );
+				}
+				bt.options.itemTree = treeNode;
+				bt.addEventListener(MouseEvent.CLICK, areaClick);
+				bt.autoSwapState = "";
+				treeNode.addItem( bt, false );
 			}
 		}
 		
@@ -367,7 +521,6 @@
 				}
 			}
 		}
-		private static var treeStack:Array=null;
 		
 		internal function setCurrArea ( tr:ItemTree, dontOpen:Boolean=false ) :void
 		{
@@ -647,7 +800,6 @@
 					{
 						var yp:int = 0;
 						for( i=0; i < itemList.items.length; i++) {
-							//itemList.items[i].setWidth( w - (itemList.items[i].cssBoxX + cssBoxX + sbw) );
 							if( itemList.items[i].visible ) {
 								if( ! (itemList.items[i] is PropertyCtrl) ) {
 									itemList.items[i].y = int(yp);
@@ -751,10 +903,10 @@
 					var s:Number = 0;
 					if( nameCtrl && nameCtrl.visible ) {
 						nameCtrl.y = cssTop;
-						s = cssTop + nameCtrl.cssSizeY + nameCtrl.cssMarginBottom - nameCtrl.cssPaddingBottom;
+						s = cssTop + nameCtrl.getHeight() + nameCtrl.cssMarginBottom - nameCtrl.cssPaddingBottom;
 						
 						if( tabs ) {
-							tabs.y = cssTop + nameCtrl.getHeight() + tabs.cssMarginTop;
+							tabs.y = cssTop + nameCtrl.getHeight() + tabs.cssMarginTop - nameCtrl.cssPaddingBottom;
 							s += tabs.cssSizeY + tabs.cssMarginY;
 						}
 					}else{
@@ -1070,7 +1222,7 @@
 					}
 					
 					if( areaItems[i].visible == false ) {
-						pg.alpha = 0.35;
+						pg.alpha = 0.45;
 					}
 					
 					pg.options.result = r;
@@ -1167,6 +1319,11 @@
 		private var prevCat:Array=null;
 		private var rtScroll:Number = 0;
 		
+		private static var backBtnAnim:Animation = new Animation();
+		private static var branchTitleAnim:Animation = new Animation();
+		private static var treeNodeAnim:Animation = new Animation();
+		private static var treeNodeAnim2:Animation = new Animation();
+		
 		private static var anim:Animation = new Animation();
 		private static var anim2:Animation = new Animation();
 		private static var currentCat:Array;
@@ -1197,7 +1354,36 @@
 						scrollpane.applyScrollValue(rtScroll);
 					}
 				}
+				
 				setWidth( cssSizeX-cssBoxX );
+			}
+		}
+		
+		private var ltInsertScroll:int = 0;
+		
+		private function nameSizeHandler (e:Event) :void
+		{
+			setHeight( getHeight() );
+		}
+		private function insertScrollChange (e:Event) :void
+		{
+			if (nameCtrl) {
+				if ( scrollpane.slider.visible == false ) {
+					if ( nameCtrl.minHeight ) {
+						nameCtrl.showMaxHeight();
+					}
+					return;
+				}
+				if ( scrollpane.slider.value == scrollpane.slider.minValue ) {
+					if( nameCtrl.minHeight ) {
+						nameCtrl.showMaxHeight();
+					}
+				}else{
+					if( !nameCtrl.minHeight ) {
+						nameCtrl.showMinHeight();
+					}
+				}
+				ltInsertScroll = scrollpane.slider.value;
 			}
 		}
 		
@@ -1254,6 +1440,7 @@
 				var w:Number = getWidth();
 				scrollpane = new ScrollContainer(w, 0, this, styleSheet, '', 'area-insert-scrollcontainer',false);
 				scrollpane.content.addEventListener( MouseEvent.MOUSE_DOWN, btnDown );
+				scrollpane.slider.addEventListener( Event.CHANGE, insertScrollChange );
 				
 				itemList = new ItemList(w,0,scrollpane.content,styleSheet,'','area-insert-container',true);
 				var currSprite:CssSprite;
@@ -1269,6 +1456,7 @@
 					if ( !contains(nameCtrl) ) addChild( nameCtrl );
 				}else{
 					ict = new NameCtrl( "Name", "name", "name", "", null, null, w, 0, this, styleSheet, '', 'area-insert-prop', false);
+					ict.addEventListener("size", nameSizeHandler);
 				}
 				
 				var nm:NameCtrl = NameCtrl( ict );
@@ -1375,6 +1563,12 @@
 					currCatId = 0;
 				}
 				
+				nameCtrl = NameCtrl(ict);
+					
+				if( !forceLevel && nameCtrl.minHeight ) {
+					nameCtrl.showMaxHeight();
+				}
+				
 				if( !isUpdateForm ) {
 					nm.showSaveAndCloseButton(false);
 					nm.showSaveButton(true);
@@ -1391,11 +1585,14 @@
 					ict.addEventListener( "close", cancelPageItem);
 					ict.setWidth( w );
 					
-					if( !nameCtrl ) nameCtrl = NameCtrl(ict);
+					//if( !nameCtrl ) nameCtrl = NameCtrl(ict);
 					nameCtrl.label.label = Language.getKeyword("Create New Area Item") + " " + Language.getKeyword( tmpl.name ) + ":";
-											
+					
 					setHeight( _h );
 					setWidth( w );
+					
+					nameCtrl.textBox.value = "";
+					stage.focus = nameCtrl.textBox.textField;
 					
 					return;
 				}else{
@@ -1423,7 +1620,7 @@
 				{
 					_formNodes.push( new ItemForm( _subform ? inlineArea : currentArea.name, updateItem, _areaItems, currCat) );
 				}
-				nameCtrl = NameCtrl(ict);
+				//nameCtrl = NameCtrl(ict);
 				
 				if( !forceLevel ) {
 					ict.addEventListener( PropertyCtrl.ENTER, ictChange );
@@ -1650,23 +1847,16 @@
 		
 		private function folderClick (e:Event):void
 		{
-			/*if( clickScrolling )
-			{
-				clickScrolling = false;
-			}
-			else
-			{*/
 			abortClickScrolling();
-			
-				if( currentTemplate )
-				{
-					var scr:Number = scrollpane.slider.value;
-					if ( !prevCat ) rtScroll = scr;
-					
-					displayInsertForm ( currentTemplate, updateItem != null, _subform, _inlineArea, areaItems, e.currentTarget.options.folder, scr, e.currentTarget.options.isTab ? 3 : 1, true );
-					setWidth( cssSizeX-cssBoxX );
-				}
-			//}
+		
+			if( currentTemplate )
+			{
+				var scr:Number = scrollpane.slider.value;
+				if ( !prevCat ) rtScroll = scr;
+				
+				displayInsertForm ( currentTemplate, updateItem != null, _subform, _inlineArea, areaItems, e.currentTarget.options.folder, scr, e.currentTarget.options.isTab ? 3 : 1, true );
+				setWidth( cssSizeX-cssBoxX );
+			}
 		}
 		
 		private function storeCurrentItemValues () :void
@@ -1806,37 +1996,49 @@
 			{
 				if( mouseX < areaView.getWidth() - Options.iconSize )
 				{
-					dragNewButton.visible = false;
+					//dragNewButton.visible = false;
+					dragDisplay.visible = false;
+					//dragNewButton.alpha = 0.5;
 				}
 				else
 				{
-					dragNewButton.visible = true;
-					dragNewButton.x = mouseX - (dragNewButton.cssSizeX * .5);
-					dragNewButton.y = mouseY - (dragNewButton.cssSizeY * .5);
+					//dragNewButton.visible = true;
+					dragDisplay.visible = true;
+					//dragNewButton.alpha = 1;
 					
-					var newIndex:int = -1;
-					var L:int = itemList.numItems;
-					
-					for(var i:int=0; i<L; i++) {
-						if(dragNewButton.hitTestObject(itemList.getItemAt(i))){
-							newIndex = i;
-							break;
-						}
+					if(scrollpane.mouseY < 8) {
+						scrollpane.slider.value -= 5;
+						scrollpane.scrollbarChange(null);
+					}else if(scrollpane.mouseY > scrollpane.height - 25) {
+						scrollpane.slider.value += 5;
+						scrollpane.scrollbarChange(null);
 					}
-					var it:Sprite;
-					if( newIndex >= 0 && newIndex < itemList.numItems ) {
-						it = Sprite( itemList.getItemAt( newIndex ) );
-						if( it ) {
-							dragDisplay.y = it.y;
-						}
-					}else if( pageItemNewIndex < 0 ) {
-						it = itemList.getItemAt( itemList.numItems-1 );
-						if( it ) {
-							dragDisplay.y = it.y + CssSprite(it).cssSizeY;
-						}
-					}
-					pageItemNewIndex = newIndex;
 				}
+				dragNewButton.x = mouseX - (dragNewButton.cssSizeX * .5);
+				dragNewButton.y = mouseY - (dragNewButton.cssSizeY * .5);
+				
+				var newIndex:int = -1;
+				var L:int = itemList.numItems;
+				
+				for(var i:int=0; i<L; i++) {
+					if(dragNewButton.hitTestObject(itemList.getItemAt(i))){
+						newIndex = i;
+						break;
+					}
+				}
+				var it:Sprite;
+				if( newIndex >= 0 && newIndex < itemList.numItems ) {
+					it = Sprite( itemList.getItemAt( newIndex ) );
+					if( it ) {
+						dragDisplay.y = it.y;
+					}
+				}else if( pageItemNewIndex < 0 ) {
+					it = itemList.getItemAt( itemList.numItems-1 );
+					if( it ) {
+						dragDisplay.y = it.y + CssSprite(it).cssSizeY;
+					}
+				}
+				pageItemNewIndex = newIndex;
 			}
 		}
 		
@@ -2289,9 +2491,7 @@
 									
 								}else if( pc.textBox._supertype == "area" ) {
 									
-									//CTTools.invalidateArea( pc.textBox.areaName );
 									pc.textBox.value = CTTools.getAreaText (pc.textBox.areaName, pc.textBox.areaOffset, pc.textBox.areaLimit/*, pc.textBox.areaSubTemplateFilter*/ )
-									//
 									pms[ ":_"+ fields[i] ] = pc ? pc.textBox.value : ""
 									CTTools.pageItemTable[ updateItem.name ][ fields[i] ] = pms[":_"+fields[i]];
 									
@@ -2321,15 +2521,7 @@
 							
 							if( pc )
 							{
-								//props[ fields[i] ] =  pms[ ":_" + fields[i] ];// pc ? pc.textBox.value : "";// pms[ ":_" + fields[i] ];// || "";
-								/*if( pc.textBox._supertype == "text" || pc.textBox._supertype == "richtext"  || pc.textBox._supertype == "line"  )
-								{
-									props[ fields[i] ] = pc ? Template.transformRichText( pms[":_" + fields[i]], pc._args, currentTemplate) : "";
-								}
-								else
-								{*/
-									props[ fields[i] ] = pms[":_" + fields[i]];
-								//}
+								props[ fields[i] ] = pms[":_" + fields[i]];
 								if( pc.textBox._supertype == "text" || pc.textBox._supertype == "richtext"  || pc.textBox._supertype == "line"  ) {
 									_args[fields[i]] = pc._args;
 									_tmpl[fields[i]] = currentTemplate;
@@ -2410,6 +2602,14 @@
 						if(articlePageWritten) {
 							
 							showAreaItems();
+							setTimeout( function () {
+								try {
+									Application.instance.view.panel.src["reloadClick"]();
+								}catch(e:Error) {
+									
+								}
+							}, 0);
+						
 							return;
 						}else{
 							articleAreasInvalid = true;
@@ -2439,6 +2639,7 @@
 					}
 				}else{
 					showAreaItems();
+					
 				}
 			}
 			else
@@ -2500,7 +2701,6 @@
 				dragSaveClickHandler(null);
 				pageItemDragging = false;
 				
-				//showUpdateForm();
 			}else{
 				Application.instance.hideLoading();
 				
@@ -2649,17 +2849,15 @@
 						props = { name: pms[":_name"], inputname: pms[":_name"] };
 						_args = {};
 						_tmpl = {};
-						//props['__tmpl'] = currentTemplate;
 						
 						for( i = 0; i < L; i++) {
 							pc = PropertyCtrl( itemList.getChildByName( fields[i] ) );
-							//props['__args'] = pc._args;
-							
-							props[ fields[i] ] =  pms[":_"+fields[i]];
-							
-							if( pc.textBox._supertype == "text" || pc.textBox._supertype == "richtext"  || pc.textBox._supertype == "line"  ) {
-								_args[fields[i]] = pc._args;
-								_tmpl[fields[i]] = currentTemplate;
+							if( pc ) {
+								props[ fields[i] ] =  pms[":_"+fields[i]];
+								if( pc.textBox._supertype == "text" || pc.textBox._supertype == "richtext"  || pc.textBox._supertype == "line"  ) {
+									_args[fields[i]] = pc._args;
+									_tmpl[fields[i]] = currentTemplate;
+								}
 							}
 						}
 						
@@ -2712,11 +2910,6 @@
 				
 				currPF = pf;
 				articlePageWritten = true;
-				
-				/*if ( articleAreasInvalid )
-				{
-					showAreaItems();
-				}*/
 			}
 		}
 		

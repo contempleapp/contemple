@@ -46,8 +46,9 @@
 		}
 		
 		public function applyScrollValue ( val:Number ) :void {
+			removeEventListener(Event.ENTER_FRAME, animPos);
 			scrollbar.value = val;
-			content.y = int( -scrollbar.value );
+			content.y = toY = int( -scrollbar.value );
 		}
 		
 		public function setScrollerWidth (w:int) :void {
@@ -79,65 +80,12 @@
 			scrollRect = new Rectangle( cssLeft, cssTop, getWidth(), getHeight() );
 		}
 		
-		/*
-		private var startPos:Number = 0;
-		private var ended:Boolean = false;
-		
-		public function scrollbarStart (e:Event = null) :void
-		{
-			if ( friction > 1 )
-			{
-				startPos = mouseY;
-				speed = 0;
-				ended = false;
-				addEventListener( Event.ENTER_FRAME, scrollbarFrame);
-				slider.removeEventListener( Event.CHANGE, scrollbarChange);
-			}
-			
-		}
-		
-		public function scrollbarFrame (e:Event = null) :void
-		{
-			toY = -scrollbar.value;
-			
-			var d:Number = (mouseY - startPos) / scrollbar.height;
-			
-			if ( ended )
-			{
-				if( Math.abs(toY-content.y) > 0 ) {
-					content.y = int( content.y + (toY-content.y)/friction );
-				}else{
-					content.y = toY;
-					removeEventListener( Event.ENTER_FRAME, scrollbarFrame);
-					slider.addEventListener( Event.CHANGE, scrollbarChange);
-				}
-			}
-			else
-			{
-				content.y = int( content.y + (toY-content.y)/friction );
-			}
-		}
-		
-		public function scrollbarEnd (e:Event = null) :void
-		{
-			//removeEventListener( MouseEvent.MOUSE_MOVE, scrollbarMove);
-			
-			if ( friction <= 1 )
-			{
-				content.y = toY;
-				
-			}
-
-			ended = true;
-		}
-		*/
 		private var toY:int;
 		private function animPos (e:Event) :void {
 			if( Math.abs(toY-content.y) > 0 ) {
 				content.y = int( content.y + (toY-content.y)/friction );
 			}else{
 				content.y = toY;
-				//ended = true;
 				removeEventListener( Event.ENTER_FRAME, animPos);
 			}
 		}

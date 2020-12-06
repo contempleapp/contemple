@@ -3,6 +3,7 @@
 	import flash.display.*;
 	import flash.events.*;
 	import agf.html.CssSprite;
+	import agf.html.CssUtils;
 	import agf.html.CssStyleSheet;
 	import agf.animation.Animation;
 	import fl.transitions.easing.Strong;
@@ -85,7 +86,7 @@
 				removeChild( itemList );
 			}
 			
-			itemList.y = btn ? Math.max(btn.cssMarginBottom, itemList.cssMarginTop ) + cssTop + btn.cssSizeY + 8 : cssTop + itemList.cssMarginTop;
+			itemList.y = btn ? Math.max(btn.cssMarginBottom, itemList.cssMarginTop ) + cssTop + btn.cssSizeY + (8 * CssUtils.numericScale) : cssTop + itemList.cssMarginTop;
 		}
 		
 		public function addFolder ( icons:Array, noFormat:Boolean=false ) :ItemTree {
@@ -124,7 +125,6 @@
 			
 			rootNode.format(fsw);
 			rootNode.dispatchEvent( animDone );
-			
 		}
 		
 		public function toggle (e:Event) :void
@@ -157,16 +157,11 @@
 				itemList.scaleY = 1;
 				toOpened = false;
 				anim.run( itemList, { scaleY:0.001, alpha:0 }, closeTime, closeEasing );
-				
 			}
 			
 			addEventListener( Event.ENTER_FRAME, toggleFrameHandler); 
-			
-			
-			//else if( contains( itemList ) ) removeChild( itemList );
-			
-			//rootNode.format(fsw);
 		}
+		
 		public function open (e:Event) :void {
 			if( !_opened )
 			{
